@@ -126,7 +126,10 @@
             <input id="channelPuzzleHash" readonly placeholder="生成地址后自动填充">
           </label>
         </div>
-        <div class="actions"><button id="deriveChannelAddress" class="secondary" type="button">生成 HUB 锁定地址</button></div>
+        <div class="actions">
+          <button id="deriveChannelAddress" class="secondary" type="button">生成 HUB 锁定地址</button>
+          <button id="checkChannelFunding" class="secondary" type="button">检查锁币状态</button>
+        </div>
 
         <div class="section-title">订单信息</div>
         <div class="form-grid">
@@ -137,7 +140,7 @@
             <input id="idempotencyKey" required value="invoice:browser-order-001">
           </label>
           <label>Funding Coin ID
-            <input id="fundingCoinId" required placeholder="已确认的 64 位 Coin ID">
+            <input id="fundingCoinId" placeholder="检查锁币状态后自动填充，也可手动填写">
           </label>
           <div class="field-action">
             <label>订单 ID
@@ -265,6 +268,24 @@
       }
     }
 
+    async function checkChannelFunding() {
+      try {
+        const data = await callHub("/v1/channel-funding", { channel: channel() });
+        if (data.funding_coin_id) $("fundingCoinId").value = data.funding_coin_id;
+        showResult("invoiceResult", data);
+        const messages = {
+          FUNDING_CONFIRMED: "锁币已确认，可创建 Invoice",
+          PENDING_CONFIRMATION: "锁币交易尚未确认",
+          WAITING_FOR_FUNDING: "尚未发现锁币交易",
+          AMBIGUOUS_FUNDING: "发现多个锁币，请手动选择 Funding Coin ID"
+        };
+        setStatus(messages[data.status] || "锁币状态已更新", data.status === "FUNDING_CONFIRMED" ? "good" : "");
+      } catch (error) {
+        showResult("invoiceResult", { error: error.message });
+        setStatus("锁币状态查询失败", "bad");
+      }
+    }
+
     async function issueInvoice() {
       const form = $("issueInvoice").closest(".panel");
       const required = form.querySelectorAll("[required]");
@@ -274,7 +295,7 @@
           request_id: $("requestId").value.trim(),
           idempotency_key: $("idempotencyKey").value.trim(),
           channel: channel(),
-          funding_coin_id: $("fundingCoinId").value.trim(),
+          funding_coin_id: $("fundingCoinId").value.trim() || null,
           order_id: $("orderId").value.trim(),
           merchant_puzzle_hash: $("merchantPuzzleHash").value.trim(),
           payment_expiry_height: Number($("paymentExpiryHeight").value),
@@ -315,6 +336,7 @@
     });
     $("checkHealth").addEventListener("click", checkHealth);
     $("deriveChannelAddress").addEventListener("click", deriveChannelAddress);
+    $("checkChannelFunding").addEventListener("click", checkChannelFunding);
     $("issueInvoice").addEventListener("click", issueInvoice);
     $("issueVoucher").addEventListener("click", issueVoucher);
     document.querySelectorAll(".generate").forEach((button) => {

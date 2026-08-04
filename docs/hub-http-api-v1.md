@@ -60,6 +60,22 @@ funding balances. Wait for the wallet transaction to confirm, obtain the
 resulting funding coin ID, and only then submit `/v1/invoices` with that coin
 ID. Sending to the User's ordinary wallet address does not fund a HUB channel.
 
+For a wallet-connected flow, the Merchant client can poll the authenticated
+endpoint below after the user confirms the wallet transaction:
+
+```text
+POST /v1/channel-funding
+X-API-Key: <api-key>
+Content-Type: application/json
+```
+
+The request body is `{ "channel": { ... } }`, with the same channel fields as
+the Invoice request. The HUB queries its own chain RPC and returns one of
+`WAITING_FOR_FUNDING`, `PENDING_CONFIRMATION`, `FUNDING_CONFIRMED`, or
+`AMBIGUOUS_FUNDING`. A `FUNDING_CONFIRMED` response contains the unique
+confirmed `funding_coin_id`; an ambiguous result includes candidates and must
+not be selected automatically.
+
 ## Invoice signing
 
 ```text
@@ -82,7 +98,7 @@ Request:
     "claim_before_height": 130,
     "refund_height": 131
   },
-  "funding_coin_id": "<64 hex characters>",
+  "funding_coin_id": "<64 hex characters, optional when HUB can uniquely discover it>",
   "order_id": "<64 hex characters>",
   "merchant_puzzle_hash": "<64 hex characters>",
   "payment_expiry_height": 105,
@@ -91,8 +107,11 @@ Request:
 ```
 
 The response contains `invoice_hex`, the fixed binary Invoice to pass to the
-User and Merchant. The endpoint creates the channel's local `FUNDED` record;
-the caller must only use this after the funding coin is actually confirmed.
+User and Merchant. The endpoint creates the channel's local `FUNDED` record.
+Before signing, the HUB verifies through its own RPC that the selected funding
+coin is confirmed, unspent, has the exact channel puzzle hash, and has the
+exact configured amount. If `funding_coin_id` is omitted, it must discover
+exactly one confirmed matching coin or it rejects the request.
 
 ## Voucher signing
 

@@ -138,7 +138,7 @@ pub struct InvoiceRequest {
     pub request_id: String,
     pub idempotency_key: String,
     pub channel: ChannelRequest,
-    pub funding_coin_id: String,
+    pub funding_coin_id: Option<String>,
     pub order_id: String,
     pub merchant_puzzle_hash: String,
     pub payment_expiry_height: u64,
@@ -181,6 +181,30 @@ pub struct ChannelAddressResponse {
     pub user_remaining_amount: u64,
     pub claim_before_height: u64,
     pub refund_height: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChannelFundingRequest {
+    pub channel: ChannelRequest,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FundingCoinCandidate {
+    pub funding_coin_id: String,
+    pub amount: u64,
+    pub confirmed_height: Option<u32>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ChannelFundingResponse {
+    pub status: String,
+    pub channel_address: String,
+    pub channel_puzzle_hash: String,
+    pub funding_amount: u64,
+    pub funding_coin_id: Option<String>,
+    pub confirmed_height: Option<u32>,
+    pub peak_height: u32,
+    pub candidates: Vec<FundingCoinCandidate>,
 }
 
 #[derive(Debug, Serialize)]
@@ -246,6 +270,7 @@ pub async fn run_hub_api(config_path: impl AsRef<Path>) -> Result<(), String> {
         .route("/healthz", get(health))
         .route("/merchant", get(merchant_page))
         .route("/v1/channel-address", post(derive_channel_address))
+        .route("/v1/channel-funding", post(channel_funding_status))
         .route("/v1/invoices", post(issue_invoice))
         .route("/v1/vouchers", post(issue_voucher))
         .layer(DefaultBodyLimit::max(MAX_REQUEST_BYTES))
@@ -295,6 +320,66 @@ async fn derive_channel_address(
     }))
 }
 
+async fn channel_funding_status(
+    State(state): State<ApiState>,
+    headers: HeaderMap,
+    Json(request): Json<ChannelFundingRequest>,
+) -> Result<Json<ChannelFundingResponse>, HttpError> {
+    authorize(&headers, &state)?;
+    let args = request.channel.channel_args()?;
+    let funding_amount = request.channel.funding_amount()?;
+    validate_mainnet(&args)?;
+    let (puzzle_hash, _) = puzzle_reveal(&args)
+        .map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))?;
+    let channel_address = Address::new(puzzle_hash, "xch".to_string())
+        .encode()
+        .map_err(|error| HttpError::bad_request("ADDRESS_ENCODING", error.to_string()))?;
+    let peak_height = trusted_peak_height(&state).await? as u32;
+    let records = state
+        .node
+        .get_unspent_coins(puzzle_hash, funding_amount)
+        .await
+        .map_err(node_error)?;
+    let candidates = records
+        .into_iter()
+        .filter(|record| record.coin.amount == funding_amount)
+        .map(|record| FundingCoinCandidate {
+            funding_coin_id: format!("0x{}", hex::encode(record.coin.coin_id())),
+            amount: record.coin.amount,
+            confirmed_height: (record.confirmed_block_index > 0)
+                .then_some(record.confirmed_block_index),
+        })
+        .collect::<Vec<_>>();
+    let (status, funding_coin_id, confirmed_height) = funding_status(&candidates);
+    Ok(Json(ChannelFundingResponse {
+        status,
+        channel_address,
+        channel_puzzle_hash: format!("0x{}", hex::encode(puzzle_hash)),
+        funding_amount,
+        funding_coin_id,
+        confirmed_height,
+        peak_height,
+        candidates,
+    }))
+}
+
+fn funding_status(candidates: &[FundingCoinCandidate]) -> (String, Option<String>, Option<u32>) {
+    let confirmed = candidates
+        .iter()
+        .filter(|candidate| candidate.confirmed_height.is_some())
+        .collect::<Vec<_>>();
+    match confirmed.as_slice() {
+        [candidate] => (
+            "FUNDING_CONFIRMED".to_string(),
+            Some(candidate.funding_coin_id.clone()),
+            candidate.confirmed_height,
+        ),
+        [] if candidates.is_empty() => ("WAITING_FOR_FUNDING".to_string(), None, None),
+        [] => ("PENDING_CONFIRMATION".to_string(), None, None),
+        _ => ("AMBIGUOUS_FUNDING".to_string(), None, None),
+    }
+}
+
 async fn merchant_page() -> Html<&'static str> {
     Html(include_str!("../web/merchant.html"))
 }
@@ -310,7 +395,15 @@ async fn issue_invoice(
     let args = request.channel.channel_args()?;
     let funding_amount = request.channel.funding_amount()?;
     validate_mainnet(&args)?;
-    let funding_coin_id = parse_bytes32(&request.funding_coin_id, "funding_coin_id")?;
+    let (channel_puzzle_hash, _) = puzzle_reveal(&args)
+        .map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))?;
+    let funding_coin_id = resolve_funding_coin(
+        &state,
+        request.funding_coin_id.as_deref(),
+        channel_puzzle_hash,
+        funding_amount,
+    )
+    .await?;
     let fields = InvoiceFields::new(
         args.genesis_challenge,
         funding_coin_id,
@@ -343,6 +436,74 @@ async fn issue_invoice(
         hub_public_key: state.hub_public_key,
         invoice_hex: hex::encode(invoice.to_bytes()),
     }))
+}
+
+async fn resolve_funding_coin(
+    state: &ApiState,
+    supplied_coin_id: Option<&str>,
+    channel_puzzle_hash: Bytes32,
+    funding_amount: u64,
+) -> Result<Bytes32, HttpError> {
+    if let Some(value) = supplied_coin_id
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        let funding_coin_id = parse_bytes32(value, "funding_coin_id")?;
+        let record = state
+            .node
+            .get_coin(funding_coin_id)
+            .await
+            .map_err(node_error)?
+            .ok_or_else(|| {
+                HttpError::bad_request("FUNDING_NOT_FOUND", "funding coin was not found")
+            })?;
+        if record.spent {
+            return Err(HttpError::bad_request(
+                "FUNDING_SPENT",
+                "funding coin is already spent",
+            ));
+        }
+        if record.confirmed_block_index == 0 {
+            return Err(HttpError::bad_request(
+                "FUNDING_NOT_CONFIRMED",
+                "funding coin is not confirmed yet",
+            ));
+        }
+        if record.coin.puzzle_hash != channel_puzzle_hash {
+            return Err(HttpError::bad_request(
+                "FUNDING_WRONG_PUZZLE",
+                "funding coin puzzle hash does not match the channel",
+            ));
+        }
+        if record.coin.amount != funding_amount {
+            return Err(HttpError::bad_request(
+                "FUNDING_WRONG_AMOUNT",
+                "funding coin amount does not match channel funding_amount",
+            ));
+        }
+        return Ok(funding_coin_id);
+    }
+
+    let records = state
+        .node
+        .get_unspent_coins(channel_puzzle_hash, funding_amount)
+        .await
+        .map_err(node_error)?;
+    let confirmed = records
+        .into_iter()
+        .filter(|record| record.coin.amount == funding_amount && record.confirmed_block_index > 0)
+        .collect::<Vec<_>>();
+    match confirmed.as_slice() {
+        [record] => Ok(record.coin.coin_id()),
+        [] => Err(HttpError::bad_request(
+            "FUNDING_NOT_CONFIRMED",
+            "no unique confirmed funding coin was found for this channel",
+        )),
+        _ => Err(HttpError::bad_request(
+            "AMBIGUOUS_FUNDING",
+            "multiple confirmed funding coins match this channel; provide funding_coin_id",
+        )),
+    }
 }
 
 async fn issue_voucher(
@@ -540,5 +701,42 @@ fn node_error(error: ChiaNodeError) -> HttpError {
         status: StatusCode::SERVICE_UNAVAILABLE,
         code: "RPC_UNAVAILABLE",
         message: error.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{FundingCoinCandidate, funding_status};
+
+    fn candidate(id: &str, confirmed_height: Option<u32>) -> FundingCoinCandidate {
+        FundingCoinCandidate {
+            funding_coin_id: id.to_string(),
+            amount: 10,
+            confirmed_height,
+        }
+    }
+
+    #[test]
+    fn funding_status_requires_one_confirmed_coin() {
+        assert_eq!(
+            funding_status(&[]),
+            ("WAITING_FOR_FUNDING".to_string(), None, None)
+        );
+        assert_eq!(
+            funding_status(&[candidate("pending", None)]),
+            ("PENDING_CONFIRMATION".to_string(), None, None)
+        );
+        assert_eq!(
+            funding_status(&[candidate("confirmed", Some(42))]),
+            (
+                "FUNDING_CONFIRMED".to_string(),
+                Some("confirmed".to_string()),
+                Some(42)
+            )
+        );
+        assert_eq!(
+            funding_status(&[candidate("first", Some(42)), candidate("second", Some(43)),]),
+            ("AMBIGUOUS_FUNDING".to_string(), None, None)
+        );
     }
 }
