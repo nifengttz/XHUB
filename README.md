@@ -199,6 +199,30 @@ mempool observations, confirmation observations, and audit events are stored
 in SQLite. Re-running the same idempotency key reuses the same SpendBundle;
 restarting a watcher resumes recoverable broadcast jobs.
 
+## Lost local state recovery
+
+`user recover-refund` recovers a confirmed, unspent channel funding coin even
+when the local SQLite database, Invoice, Intent, and Voucher are unavailable.
+It does not contact the HUB or require a HUB signature. At or after the
+channel's `refund_height`, it verifies the coin uses the reconstructed channel
+puzzle hash, signs the on-chain REFUND branch with the User key, and broadcasts
+the full coin amount back to `user_puzzle_hash`.
+
+Create a private configuration from
+`examples/refund-recovery.example.json`, populate the immutable parameters of
+the original channel and one funding coin ID, then run. The User public key is
+derived locally from `user_secret_key` and is never a separate input:
+
+```powershell
+cargo run --bin user -- recover-refund .\refund-recovery.json
+```
+
+The command outputs `Idle` before the refund height, `BroadcastSubmitted` with
+the transaction ID after submitting, or `Confirmed` when the coin was already
+spent to the expected full-amount User refund output. It rejects a coin that
+does not match the reconstructed channel puzzle or was spent differently.
+Keep `refund-recovery.json` outside Git because it contains `user_secret_key`.
+
 `metrics <db_path>` returns counts for channels, broadcast jobs, recoverable
 jobs, attempts, confirmed jobs, and reorg observations. Audit records are
 available through `ChannelStore::list_audit_events` for operator tooling.

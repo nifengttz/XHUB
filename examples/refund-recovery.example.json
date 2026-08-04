@@ -1,0 +1,12 @@
+{
+  "network": "mainnet",
+  "funding_coin_id": "REPLACE_WITH_64_HEX_CHARACTERS",
+  "genesis_challenge": "ccd5bb71183532bff220ba46c268991a00000000000000000000000000000000",
+  "hub_public_key": "REPLACE_WITH_96_HEX_CHARACTERS",
+  "user_puzzle_hash": "REPLACE_WITH_64_HEX_CHARACTERS",
+  "claim_before_height": 0,
+  "refund_height": 0,
+  "rpc_url": "https://api.coinset.org",
+  "user_secret_key": "REPLACE_WITH_64_HEX_CHARACTERS",
+  "agg_sig_me_additional_data": null
+}

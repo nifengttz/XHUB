@@ -170,6 +170,16 @@ pub struct WatchOutcome {
     pub peak_height: u32,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct RefundRecoveryOutcome {
+    pub action: WatchAction,
+    pub channel_id: String,
+    pub funding_coin_id: String,
+    pub funding_amount: Option<u64>,
+    pub spend_bundle_id: Option<String>,
+    pub peak_height: u32,
+}
+
 #[derive(Debug, Error)]
 pub enum WatcherError {
     #[error(transparent)]
@@ -186,6 +196,79 @@ pub enum WatcherError {
     UnexpectedSpend,
     #[error("channel height has invalid binary encoding")]
     InvalidHeight,
+    #[error("funding coin does not use this channel puzzle hash")]
+    WrongFundingPuzzle,
+}
+
+/// Recover a funding coin when the user's local channel database is unavailable.
+/// The refund branch needs only the immutable channel arguments and user's key.
+pub async fn recover_refund_once(
+    node: &ChiaNode,
+    funding_coin_id: Bytes32,
+    args: &ChannelArgs,
+    user_secret_key: &chia_bls::SecretKey,
+    agg_sig_me_additional_data: Bytes32,
+) -> Result<RefundRecoveryOutcome, WatcherError> {
+    let status = node.status().await?;
+    if !status.synced {
+        return Err(WatcherError::Node(ChiaNodeError::Rejected(
+            "node is not synced".to_string(),
+        )));
+    }
+    let channel_id = crate::channel_id(args.genesis_challenge, funding_coin_id);
+    let refund_height = decode_height(&args.refund_height)?;
+    let record = node
+        .get_coin(funding_coin_id)
+        .await?
+        .ok_or(WatcherError::FundingCoinUnavailable)?;
+    let (expected_puzzle_hash, _) =
+        crate::puzzle_reveal(args).map_err(SettlementWorkflowError::Spend)?;
+    if record.coin.puzzle_hash != expected_puzzle_hash {
+        return Err(WatcherError::WrongFundingPuzzle);
+    }
+    if record.spent {
+        let children = node.children(funding_coin_id).await?;
+        if children.len() == 1
+            && children[0].coin.puzzle_hash == args.user_puzzle_hash
+            && children[0].coin.amount == record.coin.amount
+            && children[0].confirmed_block_index > 0
+        {
+            return Ok(refund_recovery_outcome(
+                WatchAction::Confirmed,
+                channel_id,
+                funding_coin_id,
+                Some(record.coin.amount),
+                None,
+                status.peak_height,
+            ));
+        }
+        return Err(WatcherError::UnexpectedSpend);
+    }
+    if u64::from(status.peak_height) < refund_height {
+        return Ok(refund_recovery_outcome(
+            WatchAction::Idle,
+            channel_id,
+            funding_coin_id,
+            Some(record.coin.amount),
+            None,
+            status.peak_height,
+        ));
+    }
+    let bundle = build_refund_bundle(
+        record.coin,
+        args,
+        user_secret_key,
+        agg_sig_me_additional_data,
+    )?;
+    let tx_id = node.broadcast(bundle).await?;
+    Ok(refund_recovery_outcome(
+        WatchAction::BroadcastSubmitted,
+        channel_id,
+        funding_coin_id,
+        Some(record.coin.amount),
+        Some(tx_id),
+        status.peak_height,
+    ))
 }
 
 pub async fn merchant_watch_once(
@@ -559,11 +642,29 @@ fn outcome(
     }
 }
 
+fn refund_recovery_outcome(
+    action: WatchAction,
+    channel_id: Bytes32,
+    funding_coin_id: Bytes32,
+    funding_amount: Option<u64>,
+    spend_bundle_id: Option<Bytes32>,
+    peak_height: u32,
+) -> RefundRecoveryOutcome {
+    RefundRecoveryOutcome {
+        action,
+        channel_id: format!("0x{}", hex::encode(channel_id)),
+        funding_coin_id: format!("0x{}", hex::encode(funding_coin_id)),
+        funding_amount,
+        spend_bundle_id: spend_bundle_id.map(|id| format!("0x{}", hex::encode(id))),
+        peak_height,
+    }
+}
+
 pub fn run_role_cli(role: &str) -> Result<(), String> {
     let args = env::args().skip(1).collect::<Vec<_>>();
     if args.is_empty() || args[0] == "--help" || args[0] == "help" {
         println!(
-            "wall-hub-{role}\n\n  artifact encode <Invoice|Intent|Voucher> <payload_hex> <channel_id> <idempotency_key>\n  artifact decode <json>\n  watch <config.json> [--once]\n  metrics <db_path>"
+            "wall-hub-{role}\n\n  artifact encode <Invoice|Intent|Voucher> <payload_hex> <channel_id> <idempotency_key>\n  artifact decode <json>\n  watch <config.json> [--once]\n  recover-refund <config.json>\n  metrics <db_path>"
         );
         return Ok(());
     }
@@ -573,6 +674,12 @@ pub fn run_role_cli(role: &str) -> Result<(), String> {
             return Err("watch accepts only the optional --once flag".to_string());
         }
         return run_watch_cli(role, Path::new(&args[1]), once);
+    }
+    if args[0] == "recover-refund" && args.len() == 2 {
+        if role != "user" {
+            return Err("recover-refund is supported only by the user role".to_string());
+        }
+        return run_recover_refund_cli(Path::new(&args[1]));
     }
     if args[0] == "metrics" && args.len() == 2 {
         let store = ChannelStore::open(&args[1]).map_err(|error| error.to_string())?;
@@ -634,6 +741,91 @@ pub struct WatchConfig {
     pub max_iterations: Option<u32>,
     pub user_secret_key: Option<String>,
     pub agg_sig_me_additional_data: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RefundRecoveryConfig {
+    pub network: Option<String>,
+    pub funding_coin_id: String,
+    pub genesis_challenge: String,
+    pub hub_public_key: String,
+    pub user_puzzle_hash: String,
+    pub claim_before_height: u64,
+    pub refund_height: u64,
+    pub rpc_url: Option<String>,
+    pub user_secret_key: String,
+    pub agg_sig_me_additional_data: Option<String>,
+}
+
+pub fn run_recover_refund_cli(config_path: &Path) -> Result<(), String> {
+    let config: RefundRecoveryConfig =
+        serde_json::from_str(&fs::read_to_string(config_path).map_err(|error| error.to_string())?)
+            .map_err(|error| error.to_string())?;
+    let funding_coin_id = parse_config_bytes32(&config.funding_coin_id)?;
+    let genesis_challenge = parse_config_bytes32(&config.genesis_challenge)?;
+    let secret = parse_secret_key(&config.user_secret_key)?;
+    let args = ChannelArgs::new(
+        secret.public_key(),
+        parse_public_key(&config.hub_public_key)?,
+        parse_config_bytes32(&config.user_puzzle_hash)?,
+        genesis_challenge,
+        config.claim_before_height,
+        config.refund_height,
+    )
+    .map_err(|error| error.to_string())?;
+    let network = config.network.as_deref().unwrap_or("mainnet");
+    let (rpc_config, default_additional_data, expected_genesis_challenge) = match network {
+        "mainnet" => (
+            crate::ChiaRpcConfig::PublicMainnet {
+                base_url: config
+                    .rpc_url
+                    .unwrap_or_else(|| "https://api.coinset.org".to_string()),
+            },
+            MAINNET_CONSTANTS.agg_sig_me_additional_data,
+            MAINNET_CONSTANTS.genesis_challenge,
+        ),
+        "testnet11" => (
+            crate::ChiaRpcConfig::PublicTestnet11 {
+                base_url: config
+                    .rpc_url
+                    .unwrap_or_else(|| "https://testnet11.api.coinset.org".to_string()),
+            },
+            TESTNET11_CONSTANTS.agg_sig_me_additional_data,
+            TESTNET11_CONSTANTS.genesis_challenge,
+        ),
+        other => return Err(format!("unsupported network: {other}")),
+    };
+    if genesis_challenge != expected_genesis_challenge {
+        return Err(format!(
+            "genesis_challenge does not match {network} network"
+        ));
+    }
+    let node =
+        ChiaNode::connect(rpc_config, genesis_challenge).map_err(|error| error.to_string())?;
+    let additional_data = config
+        .agg_sig_me_additional_data
+        .as_deref()
+        .map(parse_config_bytes32)
+        .transpose()?
+        .unwrap_or(default_additional_data);
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .map_err(|error| error.to_string())?;
+    let output = runtime
+        .block_on(recover_refund_once(
+            &node,
+            funding_coin_id,
+            &args,
+            &secret,
+            additional_data,
+        ))
+        .map_err(|error| error.to_string())?;
+    println!(
+        "{}",
+        serde_json::to_string(&output).map_err(|error| error.to_string())?
+    );
+    Ok(())
 }
 
 pub fn run_watch_cli(role: &str, config_path: &Path, once: bool) -> Result<(), String> {
