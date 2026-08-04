@@ -4,7 +4,7 @@ use axum::{
     Json, Router,
     extract::{DefaultBodyLimit, State},
     http::{HeaderMap, StatusCode},
-    response::{IntoResponse, Response},
+    response::{Html, IntoResponse, Response},
     routing::{get, post},
 };
 use chia_bls::{PublicKey, SecretKey};
@@ -164,8 +164,10 @@ pub struct VoucherResponse {
 struct HealthResponse {
     status: &'static str,
     role: &'static str,
+    network: &'static str,
     schema_version: u16,
     protocol_version: u16,
+    genesis_challenge: String,
     hub_public_key: String,
 }
 
@@ -219,6 +221,7 @@ pub async fn run_hub_api(config_path: impl AsRef<Path>) -> Result<(), String> {
     };
     let app = Router::new()
         .route("/healthz", get(health))
+        .route("/merchant", get(merchant_page))
         .route("/v1/invoices", post(issue_invoice))
         .route("/v1/vouchers", post(issue_voucher))
         .layer(DefaultBodyLimit::max(MAX_REQUEST_BYTES))
@@ -236,10 +239,16 @@ async fn health(State(state): State<ApiState>) -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "ok",
         role: "hub",
+        network: "mainnet",
         schema_version: API_SCHEMA_VERSION,
         protocol_version: API_PROTOCOL_VERSION,
+        genesis_challenge: format!("0x{}", hex::encode(MAINNET_CONSTANTS.genesis_challenge)),
         hub_public_key: state.hub_public_key,
     })
+}
+
+async fn merchant_page() -> Html<&'static str> {
+    Html(include_str!("../web/merchant.html"))
 }
 
 async fn issue_invoice(

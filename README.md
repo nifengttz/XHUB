@@ -243,6 +243,12 @@ curl http://127.0.0.1:8080/healthz
 The request and response schemas are documented in
 `docs/hub-http-api-v1.md`.
 
+Open the merchant browser workbench at `http://<hub-host>:8080/merchant`.
+It provides health checking, Invoice creation, and Voucher submission without
+requiring the merchant to use CLI commands. The API key is kept in the current
+browser session for controlled testing; this page is not a production account
+or TLS system.
+
 ## Stage C engineering hardening
 
 The current hardening baseline is documented in `docs/stage-c-hardening.md`.

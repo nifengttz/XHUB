@@ -30,7 +30,17 @@ Never commit `hub-api.json`, the Hub secret key, or the API key.
 GET /healthz
 ```
 
-This endpoint does not require authentication and returns the Hub public key.
+This endpoint does not require authentication and returns the Hub public key,
+network name, and mainnet Genesis Challenge.
+
+## Merchant browser workbench
+
+Open `http://<hub-host>:8080/merchant` from the merchant computer. The page
+checks the HUB, collects the Invoice and Voucher fields, and calls the same
+authenticated API endpoints. The merchant must enter the configured `api_key`
+in the page; it is retained only in the browser session for this controlled
+test. The user private key is never entered into the page: the CHIA client still
+produces the signed `PaymentIntent` that is pasted into the Voucher form.
 
 ## Invoice signing
 

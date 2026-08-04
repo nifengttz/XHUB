@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XHUB 商户工作台</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #66717d;
+      --line: #d9e0e6;
+      --paper: #ffffff;
+      --wash: #f4f7f9;
+      --accent: #146c94;
+      --accent-dark: #0d4e6b;
+      --good: #1d7a4a;
+      --bad: #ad342e;
+      --shadow: 0 10px 30px rgba(23, 33, 43, .08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--wash); color: var(--ink); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; padding: 28px clamp(18px, 5vw, 72px) 22px; background: var(--paper); border-bottom: 1px solid var(--line); }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: 24px; letter-spacing: 0; }
+    h2 { font-size: 17px; }
+    header p, .hint, .meta, .notice { color: var(--muted); }
+    header p { margin-top: 5px; }
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--line); background: #fbfcfd; color: var(--muted); white-space: nowrap; }
+    .status::before { content: ""; width: 8px; height: 8px; background: #a9b3bc; border-radius: 50%; }
+    .status.good { color: var(--good); }
+    .status.good::before { background: var(--good); }
+    .status.bad { color: var(--bad); }
+    .status.bad::before { background: var(--bad); }
+    main { width: min(1380px, calc(100% - 36px)); margin: 22px auto 48px; }
+    .toolbar, .panel { background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .toolbar { padding: 16px; margin-bottom: 18px; }
+    .toolbar-grid { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto auto; gap: 12px; align-items: end; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 18px; }
+    .panel { padding: 20px; }
+    .panel-head { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .panel-head p { color: var(--muted); font-size: 13px; }
+    .section-title { margin: 20px 0 10px; color: var(--accent-dark); font-weight: 700; font-size: 13px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .full { grid-column: 1 / -1; }
+    label { display: grid; gap: 5px; color: #33404c; font-weight: 600; }
+    input, textarea { width: 100%; border: 1px solid #c8d1d9; background: #fff; color: var(--ink); padding: 9px 10px; border-radius: 4px; font: inherit; }
+    input:focus, textarea:focus { outline: 2px solid rgba(20, 108, 148, .22); border-color: var(--accent); }
+    input[readonly] { background: #f2f5f7; color: #52606d; }
+    textarea { min-height: 112px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+    .field-action { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+    button { min-height: 38px; border: 1px solid var(--accent); border-radius: 4px; padding: 8px 13px; background: var(--accent); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    button:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    button.secondary { background: white; color: var(--accent-dark); }
+    button.secondary:hover { background: #edf5f8; }
+    button:disabled { opacity: .55; cursor: wait; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .hint, .notice { margin-top: 6px; font-size: 12px; font-weight: 400; }
+    .result { margin-top: 18px; }
+    .result pre { max-height: 260px; overflow: auto; margin: 8px 0 0; padding: 12px; background: #16222c; color: #d8f1e5; border-radius: 4px; white-space: pre-wrap; word-break: break-word; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .toolbar-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { header { display: block; } .status { margin-top: 14px; } .toolbar-grid, .form-grid { grid-template-columns: 1fr; } .full { grid-column: auto; } main { width: min(100% - 22px, 1380px); margin-top: 12px; } .panel { padding: 15px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>XHUB 商户工作台</h1>
+      <p>在浏览器中创建 Invoice，并提交用户签名后的 PaymentIntent。</p>
+    </div>
+    <div id="status" class="status">未检查 HUB</div>
+  </header>
+
+  <main>
+    <section class="toolbar">
+      <div class="toolbar-grid">
+        <label>HUB 地址
+          <input id="hubUrl" type="url" autocomplete="url" placeholder="http://192.168.56.102:8080">
+        </label>
+        <label>HUB API Key
+          <input id="apiKey" type="password" autocomplete="off" placeholder="仅保存在本次浏览器会话">
+        </label>
+        <button id="saveConfig" class="secondary" type="button">保存配置</button>
+        <button id="checkHealth" type="button">检查 HUB</button>
+      </div>
+      <p class="notice">这是受控主网测试工作台。API Key 只保存在商户浏览器当前会话中，不要把页面暴露到公网。</p>
+    </section>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>创建 Invoice</h2><p>商户向 HUB 请求签署当前订单。</p></div>
+          <span class="meta">POST /v1/invoices</span>
+        </div>
+
+        <div class="section-title">渠道信息</div>
+        <div class="form-grid">
+          <label>用户公钥
+            <input id="userPublicKey" required placeholder="96 个十六进制字符">
+          </label>
+          <label>HUB 公钥
+            <input id="hubPublicKey" readonly placeholder="点击检查 HUB 自动填充">
+          </label>
+          <label>用户 Puzzle Hash
+            <input id="userPuzzleHash" required placeholder="64 个十六进制字符">
+          </label>
+          <label>主网 Genesis Challenge
+            <input id="genesisChallenge" readonly placeholder="点击检查 HUB 自动填充">
+          </label>
+          <label>Claim 截止高度
+            <input id="claimBeforeHeight" type="number" min="0" required value="0">
+          </label>
+          <label>Refund 高度
+            <input id="refundHeight" type="number" min="1" required value="1">
+            <span class="hint">必须正好比 Claim 高 1。</span>
+          </label>
+        </div>
+
+        <div class="section-title">订单信息</div>
+        <div class="form-grid">
+          <label>请求 ID
+            <input id="requestId" required value="merchant-browser-001">
+          </label>
+          <label>幂等键
+            <input id="idempotencyKey" required value="invoice:browser-order-001">
+          </label>
+          <label>Funding Coin ID
+            <input id="fundingCoinId" required placeholder="已确认的 64 位 Coin ID">
+          </label>
+          <div class="field-action">
+            <label>订单 ID
+              <input id="orderId" required placeholder="64 个十六进制字符">
+            </label>
+            <button class="secondary generate" data-target="orderId" type="button">生成</button>
+          </div>
+          <label>商户 Puzzle Hash
+            <input id="merchantPuzzleHash" required placeholder="64 个十六进制字符">
+          </label>
+          <label>支付过期高度
+            <input id="paymentExpiryHeight" type="number" min="1" required value="0">
+          </label>
+          <div class="field-action full">
+            <label>Invoice Nonce
+              <input id="invoiceNonce" required placeholder="64 个十六进制字符">
+            </label>
+            <button class="secondary generate" data-target="invoiceNonce" type="button">生成</button>
+          </div>
+        </div>
+        <div class="actions"><button id="issueInvoice" type="button">向 HUB 创建 Invoice</button></div>
+        <div class="result"><div class="meta">最近响应</div><pre id="invoiceResult">尚未提交</pre></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>提交 Voucher</h2><p>用户在 CHIA 客户端签名后，在这里粘贴 Intent。</p></div>
+          <span class="meta">POST /v1/vouchers</span>
+        </div>
+        <div class="form-grid">
+          <label>请求 ID
+            <input id="voucherRequestId" required value="merchant-browser-voucher-001">
+          </label>
+          <label>幂等键
+            <input id="voucherIdempotencyKey" required value="voucher:browser-order-001">
+          </label>
+          <label class="full">Invoice Hex
+            <textarea id="invoiceHex" required placeholder="创建 Invoice 成功后自动填充，也可以手动粘贴"></textarea>
+          </label>
+          <label class="full">User-signed PaymentIntent Hex
+            <textarea id="intentHex" required placeholder="从用户 CHIA 客户端取得的 PaymentIntent 十六进制数据"></textarea>
+          </label>
+        </div>
+        <div class="actions"><button id="issueVoucher" type="button">向 HUB 提交 Voucher</button></div>
+        <div class="result"><div class="meta">最近响应</div><pre id="voucherResult">尚未提交</pre></div>
+        <p class="notice">Invoice 和 Voucher 表单共享上方渠道字段。当前 MVP 的用户签名仍由 CHIA 客户端完成，网页不会接触用户私钥。</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const sessionKey = "xhub-merchant-config";
+
+    function setStatus(message, kind) {
+      const node = $("status");
+      node.textContent = message;
+      node.className = "status" + (kind ? " " + kind : "");
+    }
+
+    function hubUrl() {
+      return ($("hubUrl").value.trim() || window.location.origin).replace(/\/$/, "");
+    }
+
+    function showResult(id, value) {
+      $(id).textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+    }
+
+    function hex32() {
+      const bytes = new Uint8Array(32);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+    }
+
+    function channel() {
+      return {
+        user_public_key: $("userPublicKey").value.trim(),
+        hub_public_key: $("hubPublicKey").value.trim(),
+        user_puzzle_hash: $("userPuzzleHash").value.trim(),
+        genesis_challenge: $("genesisChallenge").value.trim(),
+        claim_before_height: Number($("claimBeforeHeight").value),
+        refund_height: Number($("refundHeight").value)
+      };
+    }
+
+    async function callHub(path, body) {
+      const headers = { "Content-Type": "application/json" };
+      const key = $("apiKey").value.trim();
+      if (key) headers["X-API-Key"] = key;
+      const response = await fetch(hubUrl() + path, {
+        method: body ? "POST" : "GET",
+        headers,
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const data = await response.json().catch(() => ({ error: { message: "HUB 返回了非 JSON 响应" } }));
+      if (!response.ok) throw new Error((data.error && data.error.message) || `HTTP ${response.status}`);
+      return data;
+    }
+
+    async function checkHealth() {
+      setStatus("正在连接 HUB...", "");
+      try {
+        const data = await callHub("/healthz");
+        $("hubPublicKey").value = data.hub_public_key || "";
+        $("genesisChallenge").value = data.genesis_challenge || "";
+        setStatus(`HUB 正常 · ${data.network || "mainnet"}`, "good");
+        showResult("invoiceResult", data);
+      } catch (error) {
+        setStatus("HUB 连接失败", "bad");
+        showResult("invoiceResult", { error: error.message });
+      }
+    }
+
+    async function issueInvoice() {
+      const form = $("issueInvoice").closest(".panel");
+      const required = form.querySelectorAll("[required]");
+      if (![...required].every((field) => field.reportValidity())) return;
+      try {
+        const data = await callHub("/v1/invoices", {
+          request_id: $("requestId").value.trim(),
+          idempotency_key: $("idempotencyKey").value.trim(),
+          channel: channel(),
+          funding_coin_id: $("fundingCoinId").value.trim(),
+          order_id: $("orderId").value.trim(),
+          merchant_puzzle_hash: $("merchantPuzzleHash").value.trim(),
+          payment_expiry_height: Number($("paymentExpiryHeight").value),
+          invoice_nonce: $("invoiceNonce").value.trim()
+        });
+        $("invoiceHex").value = data.invoice_hex || "";
+        showResult("invoiceResult", data);
+        setStatus("Invoice 已由 HUB 签署", "good");
+      } catch (error) {
+        showResult("invoiceResult", { error: error.message });
+        setStatus("Invoice 请求失败", "bad");
+      }
+    }
+
+    async function issueVoucher() {
+      const form = $("issueVoucher").closest(".panel");
+      const required = form.querySelectorAll("[required]");
+      if (![...required].every((field) => field.reportValidity())) return;
+      try {
+        const data = await callHub("/v1/vouchers", {
+          request_id: $("voucherRequestId").value.trim(),
+          idempotency_key: $("voucherIdempotencyKey").value.trim(),
+          channel: channel(),
+          invoice_hex: $("invoiceHex").value.trim(),
+          intent_hex: $("intentHex").value.trim()
+        });
+        showResult("voucherResult", data);
+        setStatus("Voucher 已由 HUB 签署", "good");
+      } catch (error) {
+        showResult("voucherResult", { error: error.message });
+        setStatus("Voucher 请求失败", "bad");
+      }
+    }
+
+    $("saveConfig").addEventListener("click", () => {
+      sessionStorage.setItem(sessionKey, JSON.stringify({ hubUrl: $("hubUrl").value.trim(), apiKey: $("apiKey").value }));
+      setStatus("配置已保存在本次会话", "good");
+    });
+    $("checkHealth").addEventListener("click", checkHealth);
+    $("issueInvoice").addEventListener("click", issueInvoice);
+    $("issueVoucher").addEventListener("click", issueVoucher);
+    document.querySelectorAll(".generate").forEach((button) => {
+      button.addEventListener("click", () => { $(button.dataset.target).value = hex32(); });
+    });
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(sessionKey) || "null");
+      if (saved) { $("hubUrl").value = saved.hubUrl || ""; $("apiKey").value = saved.apiKey || ""; }
+    } catch (_) {}
+    if (!$("hubUrl").value) $("hubUrl").value = window.location.origin;
+    checkHealth();
+  </script>
+</body>
+</html>
