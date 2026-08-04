@@ -42,6 +42,24 @@ in the page; it is retained only in the browser session for this controlled
 test. The user private key is never entered into the page: the CHIA client still
 produces the signed `PaymentIntent` that is pasted into the Voucher form.
 
+## Channel address and funding
+
+Before creating an Invoice, derive the channel address from the exact channel
+parameters and send the selected amount of mojo to that address from the User
+wallet:
+
+```text
+POST /v1/channel-address
+X-API-Key: <api-key>
+Content-Type: application/json
+```
+
+The request body is the `channel` object used by the Invoice request. The
+response contains `channel_address`, `channel_puzzle_hash`, and the conserved
+funding balances. Wait for the wallet transaction to confirm, obtain the
+resulting funding coin ID, and only then submit `/v1/invoices` with that coin
+ID. Sending to the User's ordinary wallet address does not fund a HUB channel.
+
 ## Invoice signing
 
 ```text

@@ -10,13 +10,14 @@ use axum::{
 use chia_bls::{PublicKey, SecretKey};
 use chia_protocol::Bytes32;
 use chia_sdk_types::MAINNET_CONSTANTS;
+use chia_sdk_utils::Address;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
 use crate::{
     API_PROTOCOL_VERSION, API_SCHEMA_VERSION, ChannelArgs, ChannelState, ChannelStore, ChiaNode,
-    ChiaNodeError, ChiaRpcConfig, FUNDING_AMOUNT, InvoiceFields, MAX_PROTOCOL_U64,
-    MERCHANT_AMOUNT, MerchantInvoice, PaymentIntent, PaymentVoucher, StateStoreError,
+    ChiaNodeError, ChiaRpcConfig, FUNDING_AMOUNT, InvoiceFields, MAX_PROTOCOL_U64, MERCHANT_AMOUNT,
+    MerchantInvoice, PaymentIntent, PaymentVoucher, StateStoreError, puzzle_reveal,
 };
 
 const MAX_REQUEST_BYTES: usize = 64 * 1024;
@@ -173,6 +174,16 @@ pub struct VoucherResponse {
 }
 
 #[derive(Debug, Serialize)]
+pub struct ChannelAddressResponse {
+    pub channel_address: String,
+    pub channel_puzzle_hash: String,
+    pub funding_amount: u64,
+    pub user_remaining_amount: u64,
+    pub claim_before_height: u64,
+    pub refund_height: u64,
+}
+
+#[derive(Debug, Serialize)]
 struct HealthResponse {
     status: &'static str,
     role: &'static str,
@@ -234,6 +245,7 @@ pub async fn run_hub_api(config_path: impl AsRef<Path>) -> Result<(), String> {
     let app = Router::new()
         .route("/healthz", get(health))
         .route("/merchant", get(merchant_page))
+        .route("/v1/channel-address", post(derive_channel_address))
         .route("/v1/invoices", post(issue_invoice))
         .route("/v1/vouchers", post(issue_voucher))
         .layer(DefaultBodyLimit::max(MAX_REQUEST_BYTES))
@@ -257,6 +269,30 @@ async fn health(State(state): State<ApiState>) -> Json<HealthResponse> {
         genesis_challenge: format!("0x{}", hex::encode(MAINNET_CONSTANTS.genesis_challenge)),
         hub_public_key: state.hub_public_key,
     })
+}
+
+async fn derive_channel_address(
+    State(state): State<ApiState>,
+    headers: HeaderMap,
+    Json(request): Json<ChannelRequest>,
+) -> Result<Json<ChannelAddressResponse>, HttpError> {
+    authorize(&headers, &state)?;
+    let args = request.channel_args()?;
+    let funding_amount = request.funding_amount()?;
+    validate_mainnet(&args)?;
+    let (puzzle_hash, _) = puzzle_reveal(&args)
+        .map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))?;
+    let channel_address = Address::new(puzzle_hash, "xch".to_string())
+        .encode()
+        .map_err(|error| HttpError::bad_request("ADDRESS_ENCODING", error.to_string()))?;
+    Ok(Json(ChannelAddressResponse {
+        channel_address,
+        channel_puzzle_hash: format!("0x{}", hex::encode(puzzle_hash)),
+        funding_amount,
+        user_remaining_amount: funding_amount - MERCHANT_AMOUNT,
+        claim_before_height: decode_fixed_height(&args.claim_before_height),
+        refund_height: decode_fixed_height(&args.refund_height),
+    }))
 }
 
 async fn merchant_page() -> Html<&'static str> {
@@ -442,6 +478,13 @@ fn validate_request_meta(request_id: &str, idempotency_key: &str) -> Result<(), 
         ));
     }
     Ok(())
+}
+
+fn decode_fixed_height(value: &[u8]) -> u64 {
+    let bytes: [u8; 8] = value
+        .try_into()
+        .expect("ChannelArgs validates fixed height encoding");
+    u64::from_be_bytes(bytes)
 }
 
 fn parse_bytes32(value: &str, field: &'static str) -> Result<Bytes32, HttpError> {

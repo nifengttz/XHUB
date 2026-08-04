@@ -118,7 +118,15 @@
             <input id="fundingAmount" type="number" min="2" step="1" required value="10">
             <span class="hint">商户收款固定为 1 mojo，剩余金额自动留给用户。</span>
           </label>
+          <label class="full">HUB 锁定地址
+            <input id="channelAddress" readonly placeholder="点击生成锁定地址后复制到钱包">
+            <span class="hint">先生成地址，再从钱包发送上面的锁定金额；确认后填写 Funding Coin ID。</span>
+          </label>
+          <label class="full">Channel Puzzle Hash
+            <input id="channelPuzzleHash" readonly placeholder="生成地址后自动填充">
+          </label>
         </div>
+        <div class="actions"><button id="deriveChannelAddress" class="secondary" type="button">生成 HUB 锁定地址</button></div>
 
         <div class="section-title">订单信息</div>
         <div class="form-grid">
@@ -244,6 +252,19 @@
       }
     }
 
+    async function deriveChannelAddress() {
+      try {
+        const data = await callHub("/v1/channel-address", channel());
+        $("channelAddress").value = data.channel_address || "";
+        $("channelPuzzleHash").value = data.channel_puzzle_hash || "";
+        showResult("invoiceResult", data);
+        setStatus("HUB 锁定地址已生成", "good");
+      } catch (error) {
+        showResult("invoiceResult", { error: error.message });
+        setStatus("锁定地址生成失败", "bad");
+      }
+    }
+
     async function issueInvoice() {
       const form = $("issueInvoice").closest(".panel");
       const required = form.querySelectorAll("[required]");
@@ -293,6 +314,7 @@
       setStatus("配置已保存在本次会话", "good");
     });
     $("checkHealth").addEventListener("click", checkHealth);
+    $("deriveChannelAddress").addEventListener("click", deriveChannelAddress);
     $("issueInvoice").addEventListener("click", issueInvoice);
     $("issueVoucher").addEventListener("click", issueVoucher);
     document.querySelectorAll(".generate").forEach((button) => {
