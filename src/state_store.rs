@@ -335,6 +335,22 @@ impl ChannelStore {
     }
 
     pub fn create_channel(&mut self, channel_id: Bytes32) -> Result<(), StateStoreError> {
+        self.insert_channel(channel_id, FUNDING_AMOUNT)
+    }
+
+    pub fn create_channel_with_funding_amount(
+        &mut self,
+        channel_id: Bytes32,
+        funding_amount: u64,
+    ) -> Result<(), StateStoreError> {
+        self.insert_channel(channel_id, funding_amount)
+    }
+
+    fn insert_channel(
+        &mut self,
+        channel_id: Bytes32,
+        funding_amount: u64,
+    ) -> Result<(), StateStoreError> {
         if self.channel_exists(channel_id)? {
             return Err(StateStoreError::ChannelAlreadyExists);
         }
@@ -345,7 +361,7 @@ impl ChannelStore {
             params![
                 channel_id.as_ref(),
                 ChannelState::Funded as i64,
-                u64_to_sql(FUNDING_AMOUNT)?
+                u64_to_sql(funding_amount)?
             ],
         )?;
         Ok(())

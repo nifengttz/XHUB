@@ -624,6 +624,7 @@ pub struct WatchConfig {
     pub user_public_key: String,
     pub hub_public_key: String,
     pub user_puzzle_hash: String,
+    pub funding_amount: Option<u64>,
     pub claim_before_height: u64,
     pub refund_height: u64,
     pub rpc_url: Option<String>,

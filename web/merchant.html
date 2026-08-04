@@ -114,6 +114,10 @@
             <input id="refundHeight" type="number" min="1" required value="1">
             <span class="hint">必须正好比 Claim 高 1。</span>
           </label>
+          <label class="full">锁定金额 (mojo)
+            <input id="fundingAmount" type="number" min="2" step="1" required value="10">
+            <span class="hint">商户收款固定为 1 mojo，剩余金额自动留给用户。</span>
+          </label>
         </div>
 
         <div class="section-title">订单信息</div>
@@ -207,7 +211,8 @@
         user_puzzle_hash: $("userPuzzleHash").value.trim(),
         genesis_challenge: $("genesisChallenge").value.trim(),
         claim_before_height: Number($("claimBeforeHeight").value),
-        refund_height: Number($("refundHeight").value)
+        refund_height: Number($("refundHeight").value),
+        funding_amount: Number($("fundingAmount").value)
       };
     }
 

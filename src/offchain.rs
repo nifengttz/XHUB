@@ -3,9 +3,9 @@ use chia_protocol::Bytes32;
 use thiserror::Error;
 
 use super::{
-    ChannelArgs, ChannelSolution, FEE_POLICY, FUNDING_AMOUNT, INVOICE_DOMAIN, MAX_PROTOCOL_U64,
-    MERCHANT_AMOUNT, MIN_CLAIM_WINDOW_BLOCKS, PROTOCOL_VERSION, SETTLEMENT_DOMAIN, STATE_NUMBER,
-    USER_REMAINDER, channel_id, hash_parts,
+    ChannelArgs, ChannelSolution, FEE_POLICY, INVOICE_DOMAIN, MAX_PROTOCOL_U64, MERCHANT_AMOUNT,
+    MIN_CLAIM_WINDOW_BLOCKS, PROTOCOL_VERSION, SETTLEMENT_DOMAIN, STATE_NUMBER, channel_id,
+    hash_parts,
 };
 
 const VERSION: u16 = u16::from_be_bytes(PROTOCOL_VERSION);
@@ -295,7 +295,7 @@ impl SettlementCommitment {
             merchant_puzzle_hash: solution.merchant_puzzle_hash,
             merchant_amount: MERCHANT_AMOUNT,
             user_puzzle_hash: args.user_puzzle_hash,
-            user_remaining_amount: USER_REMAINDER,
+            user_remaining_amount: decode_u64(&solution.user_remaining_amount)?,
             nonce: solution.nonce,
             payment_expiry_height: decode_u64(&solution.payment_expiry_height)?,
             claim_before_height: decode_u64(&args.claim_before_height)?,
@@ -374,15 +374,18 @@ impl SettlementCommitment {
         if self.user_puzzle_hash != args.user_puzzle_hash {
             return Err(ProtocolError::InvalidField("user_puzzle_hash"));
         }
-        if self.user_remaining_amount != USER_REMAINDER
-            || self.merchant_amount + self.user_remaining_amount != FUNDING_AMOUNT
+        if self
+                .merchant_amount
+                .checked_add(self.user_remaining_amount)
+                .is_none_or(|amount| amount > MAX_PROTOCOL_U64)
         {
             return Err(ProtocolError::InvalidField("user_remaining_amount"));
         }
         if self.payment_expiry_height != invoice.fields.payment_expiry_height {
             return Err(ProtocolError::InvalidField("payment_expiry_height"));
         }
-        if self.payment_expiry_height > MAX_PROTOCOL_U64
+        if self.user_remaining_amount > MAX_PROTOCOL_U64
+            || self.payment_expiry_height > MAX_PROTOCOL_U64
             || self.claim_before_height > MAX_PROTOCOL_U64
             || self.refund_height > MAX_PROTOCOL_U64
         {

@@ -15,8 +15,8 @@ use tokio::sync::Mutex;
 
 use crate::{
     API_PROTOCOL_VERSION, API_SCHEMA_VERSION, ChannelArgs, ChannelState, ChannelStore, ChiaNode,
-    ChiaNodeError, ChiaRpcConfig, InvoiceFields, MerchantInvoice, PaymentIntent, PaymentVoucher,
-    StateStoreError,
+    ChiaNodeError, ChiaRpcConfig, FUNDING_AMOUNT, InvoiceFields, MAX_PROTOCOL_U64,
+    MERCHANT_AMOUNT, MerchantInvoice, PaymentIntent, PaymentVoucher, StateStoreError,
 };
 
 const MAX_REQUEST_BYTES: usize = 64 * 1024;
@@ -102,6 +102,7 @@ pub struct ChannelRequest {
     pub hub_public_key: String,
     pub user_puzzle_hash: String,
     pub genesis_challenge: String,
+    pub funding_amount: Option<u64>,
     pub claim_before_height: u64,
     pub refund_height: u64,
 }
@@ -117,6 +118,17 @@ impl ChannelRequest {
             self.refund_height,
         )
         .map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))
+    }
+
+    fn funding_amount(&self) -> Result<u64, HttpError> {
+        let funding_amount = self.funding_amount.unwrap_or(FUNDING_AMOUNT);
+        if funding_amount > MAX_PROTOCOL_U64 || funding_amount <= MERCHANT_AMOUNT {
+            return Err(HttpError::bad_request(
+                "INVALID_FUNDING_AMOUNT",
+                "funding_amount must be greater than merchant amount and fit the protocol range",
+            ));
+        }
+        Ok(funding_amount)
     }
 }
 
@@ -260,6 +272,7 @@ async fn issue_invoice(
     validate_request_meta(&request.request_id, &request.idempotency_key)?;
     let current_height = trusted_peak_height(&state).await?;
     let args = request.channel.channel_args()?;
+    let funding_amount = request.channel.funding_amount()?;
     validate_mainnet(&args)?;
     let funding_coin_id = parse_bytes32(&request.funding_coin_id, "funding_coin_id")?;
     let fields = InvoiceFields::new(
@@ -282,7 +295,7 @@ async fn issue_invoice(
         Ok(_) => {}
         Err(StateStoreError::ChannelNotFound) => runtime
             .store
-            .create_channel(invoice.fields.channel_id)
+            .create_channel_with_funding_amount(invoice.fields.channel_id, funding_amount)
             .map_err(store_error)?,
         Err(error) => return Err(store_error(error)),
     }
@@ -305,6 +318,7 @@ async fn issue_voucher(
     validate_request_meta(&request.request_id, &request.idempotency_key)?;
     let current_height = trusted_peak_height(&state).await?;
     let args = request.channel.channel_args()?;
+    let expected_funding_amount = request.channel.funding_amount()?;
     validate_mainnet(&args)?;
     let invoice = MerchantInvoice::from_bytes(
         &hex::decode(&request.invoice_hex)
@@ -316,6 +330,17 @@ async fn issue_voucher(
             .map_err(|error| HttpError::bad_request("INVALID_INTENT", error.to_string()))?,
     )
     .map_err(protocol_error)?;
+    if intent
+        .commitment
+        .merchant_amount
+        .checked_add(intent.commitment.user_remaining_amount)
+        .is_none_or(|amount| amount != expected_funding_amount)
+    {
+        return Err(HttpError::bad_request(
+            "INVALID_FUNDING_AMOUNT",
+            "intent balances do not match channel funding_amount",
+        ));
+    }
     let channel_id = intent.commitment.channel_id;
     let mut runtime = state.runtime.lock().await;
 

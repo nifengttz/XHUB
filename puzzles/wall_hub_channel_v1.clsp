@@ -7,6 +7,8 @@
     REFUND_HEIGHT
     branch
     funding_coin_id
+    funding_amount
+    user_remaining_amount
     invoice_hash
     order_id
     merchant_puzzle_hash
@@ -27,9 +29,7 @@
   (defconstant ASSERT_BEFORE_HEIGHT_ABSOLUTE 87)
 
   (defconstant PROTOCOL_VERSION 0x0001)
-  (defconstant FUNDING_AMOUNT 0x000000000000000a)
   (defconstant MERCHANT_AMOUNT 0x0000000000000001)
-  (defconstant USER_REMAINDER 0x0000000000000009)
   (defconstant STATE_NUMBER 0x0000000000000001)
   (defconstant FEE_POLICY 0x00)
   (defconstant MIN_CLAIM_WINDOW_BLOCKS 20)
@@ -53,6 +53,7 @@
       order
       merchant_ph
       user_ph
+      user_remaining
       payment_nonce
       payment_expiry
       claim_before
@@ -70,7 +71,7 @@
       merchant_ph
       MERCHANT_AMOUNT
       user_ph
-      USER_REMAINDER
+      user_remaining
       payment_nonce
       payment_expiry
       claim_before
@@ -83,6 +84,7 @@
       genesis_challenge
       coin_id
       user_ph
+      funding_amount
       refund_height
     )
     (sha256
@@ -92,7 +94,7 @@
       coin_id
       (channel-id genesis_challenge coin_id)
       user_ph
-      FUNDING_AMOUNT
+      funding_amount
       refund_height
       FEE_POLICY
     )
@@ -100,78 +102,86 @@
 
   (require (= (strlen USER_PUBLIC_KEY) 48)
     (require (= (strlen HUB_PUBLIC_KEY) 48)
-      (require (= (strlen USER_PUZZLE_HASH) 32)
-        (require (= (strlen GENESIS_CHALLENGE) 32)
-          (require (= (strlen CLAIM_BEFORE_HEIGHT) 8)
-            (require (= (strlen REFUND_HEIGHT) 8)
-              (require (= (- REFUND_HEIGHT CLAIM_BEFORE_HEIGHT) 1)
-                (require (= (strlen funding_coin_id) 32)
-                  (if (= branch CLAIM)
-                    (require (= (strlen invoice_hash) 32)
-                      (require (= (strlen order_id) 32)
-                        (require (= (strlen merchant_puzzle_hash) 32)
-                          (require (= (strlen nonce) 32)
-                            (require (= (strlen payment_expiry_height) 8)
-                              (require (> CLAIM_BEFORE_HEIGHT (+ payment_expiry_height (- MIN_CLAIM_WINDOW_BLOCKS 1)))
-                                (list
-                                  (list ASSERT_MY_COIN_ID funding_coin_id)
-                                  (list ASSERT_MY_AMOUNT (+ FUNDING_AMOUNT 0))
-                                  (list ASSERT_BEFORE_HEIGHT_ABSOLUTE (+ CLAIM_BEFORE_HEIGHT 0))
-                                  (list AGG_SIG_ME USER_PUBLIC_KEY
-                                    (settlement-hash
-                                      GENESIS_CHALLENGE
-                                      funding_coin_id
-                                      invoice_hash
-                                      order_id
-                                      merchant_puzzle_hash
-                                      USER_PUZZLE_HASH
-                                      nonce
-                                      payment_expiry_height
-                                      CLAIM_BEFORE_HEIGHT
-                                      REFUND_HEIGHT
+          (require (= (strlen USER_PUZZLE_HASH) 32)
+            (require (= (strlen GENESIS_CHALLENGE) 32)
+              (require (= (strlen CLAIM_BEFORE_HEIGHT) 8)
+                (require (= (strlen REFUND_HEIGHT) 8)
+                  (require (= (- REFUND_HEIGHT CLAIM_BEFORE_HEIGHT) 1)
+                    (require (= (strlen funding_coin_id) 32)
+                      (if (= branch CLAIM)
+                        (require (= (strlen user_remaining_amount) 8)
+                          (require (= (strlen invoice_hash) 32)
+                            (require (= (strlen order_id) 32)
+                              (require (= (strlen merchant_puzzle_hash) 32)
+                                (require (= (strlen nonce) 32)
+                                  (require (= (strlen payment_expiry_height) 8)
+                                    (require (> CLAIM_BEFORE_HEIGHT (+ payment_expiry_height (- MIN_CLAIM_WINDOW_BLOCKS 1)))
+                                      (list
+                                        (list ASSERT_MY_COIN_ID funding_coin_id)
+                                        (list ASSERT_MY_AMOUNT (+ MERCHANT_AMOUNT user_remaining_amount))
+                                        (list ASSERT_BEFORE_HEIGHT_ABSOLUTE (+ CLAIM_BEFORE_HEIGHT 0))
+                                        (list AGG_SIG_ME USER_PUBLIC_KEY
+                                          (settlement-hash
+                                            GENESIS_CHALLENGE
+                                            funding_coin_id
+                                            invoice_hash
+                                            order_id
+                                            merchant_puzzle_hash
+                                            USER_PUZZLE_HASH
+                                            user_remaining_amount
+                                            nonce
+                                            payment_expiry_height
+                                            CLAIM_BEFORE_HEIGHT
+                                            REFUND_HEIGHT
+                                          )
+                                        )
+                                        (list AGG_SIG_ME HUB_PUBLIC_KEY
+                                          (settlement-hash
+                                            GENESIS_CHALLENGE
+                                            funding_coin_id
+                                            invoice_hash
+                                            order_id
+                                            merchant_puzzle_hash
+                                            USER_PUZZLE_HASH
+                                            user_remaining_amount
+                                            nonce
+                                            payment_expiry_height
+                                            CLAIM_BEFORE_HEIGHT
+                                            REFUND_HEIGHT
+                                          )
+                                        )
+                                        (list CREATE_COIN merchant_puzzle_hash (+ MERCHANT_AMOUNT 0))
+                                        (list CREATE_COIN USER_PUZZLE_HASH (+ user_remaining_amount 0))
+                                      )
                                     )
                                   )
-                                  (list AGG_SIG_ME HUB_PUBLIC_KEY
-                                    (settlement-hash
-                                      GENESIS_CHALLENGE
-                                      funding_coin_id
-                                      invoice_hash
-                                      order_id
-                                      merchant_puzzle_hash
-                                      USER_PUZZLE_HASH
-                                      nonce
-                                      payment_expiry_height
-                                      CLAIM_BEFORE_HEIGHT
-                                      REFUND_HEIGHT
-                                    )
-                                  )
-                                  (list CREATE_COIN merchant_puzzle_hash (+ MERCHANT_AMOUNT 0))
-                                  (list CREATE_COIN USER_PUZZLE_HASH (+ USER_REMAINDER 0))
                                 )
                               )
                             )
                           )
                         )
-                      )
-                    )
-                    (require (= branch REFUND)
-                      (list
-                        (list ASSERT_MY_COIN_ID funding_coin_id)
-                        (list ASSERT_MY_AMOUNT (+ FUNDING_AMOUNT 0))
-                        (list ASSERT_HEIGHT_ABSOLUTE (+ REFUND_HEIGHT 0))
-                        (list AGG_SIG_ME USER_PUBLIC_KEY
-                          (refund-hash
-                            GENESIS_CHALLENGE
-                            funding_coin_id
-                            USER_PUZZLE_HASH
-                            REFUND_HEIGHT
+                        (require (= (strlen funding_amount) 8)
+                          (require (= branch REFUND)
+                            (list
+                              (list ASSERT_MY_COIN_ID funding_coin_id)
+                              (list ASSERT_MY_AMOUNT (+ funding_amount 0))
+                              (list ASSERT_HEIGHT_ABSOLUTE (+ REFUND_HEIGHT 0))
+                              (list AGG_SIG_ME USER_PUBLIC_KEY
+                                (refund-hash
+                                  GENESIS_CHALLENGE
+                                  funding_coin_id
+                                  USER_PUZZLE_HASH
+                                  funding_amount
+                                  REFUND_HEIGHT
+                                )
+                              )
+                              (list CREATE_COIN USER_PUZZLE_HASH (+ funding_amount 0))
+                            )
                           )
                         )
-                        (list CREATE_COIN USER_PUZZLE_HASH (+ FUNDING_AMOUNT 0))
                       )
                     )
                   )
-                )
               )
             )
           )
@@ -179,4 +189,3 @@
       )
     )
   )
-)

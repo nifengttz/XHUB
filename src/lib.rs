@@ -95,6 +95,8 @@ impl ChannelArgs {
 pub struct ChannelSolution {
     pub branch: u8,
     pub funding_coin_id: Bytes32,
+    pub funding_amount: Bytes,
+    pub user_remaining_amount: Bytes,
     pub invoice_hash: Bytes32,
     pub order_id: Bytes32,
     pub merchant_puzzle_hash: Bytes32,
@@ -111,27 +113,70 @@ impl ChannelSolution {
         nonce: Bytes32,
         payment_expiry_height: u64,
     ) -> Self {
-        Self {
-            branch: 1,
+        Self::claim_for_funding_amount(
             funding_coin_id,
             invoice_hash,
             order_id,
             merchant_puzzle_hash,
             nonce,
+            payment_expiry_height,
+            FUNDING_AMOUNT,
+        )
+        .expect("default funding amount is valid")
+    }
+
+    pub fn claim_for_funding_amount(
+        funding_coin_id: Bytes32,
+        invoice_hash: Bytes32,
+        order_id: Bytes32,
+        merchant_puzzle_hash: Bytes32,
+        nonce: Bytes32,
+        payment_expiry_height: u64,
+        funding_amount: u64,
+    ) -> Result<Self> {
+        ensure!(
+            funding_amount <= MAX_PROTOCOL_U64,
+            "funding amount must fit signed SQLite integers"
+        );
+        ensure!(
+            funding_amount > MERCHANT_AMOUNT,
+            "funding amount must be greater than merchant amount"
+        );
+        let user_remaining_amount = funding_amount - MERCHANT_AMOUNT;
+        Ok(Self {
+            branch: 1,
+            funding_coin_id,
+            funding_amount: fixed_u64(funding_amount),
+            user_remaining_amount: fixed_u64(user_remaining_amount),
+            invoice_hash,
+            order_id,
+            merchant_puzzle_hash,
+            nonce,
             payment_expiry_height: fixed_u64(payment_expiry_height),
-        }
+        })
     }
 
     pub fn refund(funding_coin_id: Bytes32) -> Self {
-        Self {
+        Self::refund_for_funding_amount(funding_coin_id, FUNDING_AMOUNT)
+            .expect("default funding amount is valid")
+    }
+
+    pub fn refund_for_funding_amount(funding_coin_id: Bytes32, funding_amount: u64) -> Result<Self> {
+        ensure!(
+            funding_amount <= MAX_PROTOCOL_U64,
+            "funding amount must fit signed SQLite integers"
+        );
+        Ok(Self {
             branch: 2,
             funding_coin_id,
+            funding_amount: fixed_u64(funding_amount),
+            user_remaining_amount: Bytes::new(Vec::new()),
             invoice_hash: Bytes32::default(),
             order_id: Bytes32::default(),
             merchant_puzzle_hash: Bytes32::default(),
             nonce: Bytes32::default(),
             payment_expiry_height: Bytes::new(Vec::new()),
-        }
+        })
     }
 }
 
@@ -156,7 +201,7 @@ pub fn settlement_hash(args: &ChannelArgs, solution: &ChannelSolution) -> Bytes3
         solution.merchant_puzzle_hash.as_ref(),
         &MERCHANT_AMOUNT.to_be_bytes(),
         args.user_puzzle_hash.as_ref(),
-        &USER_REMAINDER.to_be_bytes(),
+        solution.user_remaining_amount.as_ref(),
         solution.nonce.as_ref(),
         solution.payment_expiry_height.as_ref(),
         args.claim_before_height.as_ref(),
@@ -166,6 +211,14 @@ pub fn settlement_hash(args: &ChannelArgs, solution: &ChannelSolution) -> Bytes3
 }
 
 pub fn refund_hash(args: &ChannelArgs, funding_coin_id: Bytes32) -> Bytes32 {
+    refund_hash_for_funding_amount(args, funding_coin_id, FUNDING_AMOUNT)
+}
+
+pub fn refund_hash_for_funding_amount(
+    args: &ChannelArgs,
+    funding_coin_id: Bytes32,
+    funding_amount: u64,
+) -> Bytes32 {
     hash_parts(&[
         REFUND_DOMAIN,
         &PROTOCOL_VERSION,
@@ -173,7 +226,7 @@ pub fn refund_hash(args: &ChannelArgs, funding_coin_id: Bytes32) -> Bytes32 {
         funding_coin_id.as_ref(),
         channel_id(args.genesis_challenge, funding_coin_id).as_ref(),
         args.user_puzzle_hash.as_ref(),
-        &FUNDING_AMOUNT.to_be_bytes(),
+        &funding_amount.to_be_bytes(),
         args.refund_height.as_ref(),
         &FEE_POLICY,
     ])
@@ -452,6 +505,43 @@ mod tests {
             result,
             Err(SimulatorError::Validation(ErrorCode::AssertMyAmountFailed))
         ));
+    }
+
+    #[test]
+    fn custom_funding_amount_is_conserved() {
+        let mut sim = Simulator::new();
+        let channel = setup(&mut sim);
+        let funding_amount = 17;
+        let coin = sim.new_coin(channel.coin.puzzle_hash, funding_amount);
+        let solution = ChannelSolution::claim_for_funding_amount(
+            coin.coin_id(),
+            Bytes32::from([0x31; 32]),
+            Bytes32::from([0x32; 32]),
+            channel.merchant.puzzle_hash,
+            Bytes32::from([0x33; 32]),
+            PAYMENT_EXPIRY_HEIGHT,
+            funding_amount,
+        )
+        .unwrap();
+        let spend = coin_spend(coin, &channel.args, &solution).unwrap();
+        let signature = sign_transaction(
+            std::slice::from_ref(&spend),
+            &[channel.user.sk.clone(), channel.hub.sk.clone()],
+        )
+        .unwrap();
+
+        sim.new_transaction(SpendBundle::new(vec![spend], signature))
+            .unwrap();
+
+        let children = sim.children(coin.coin_id());
+        assert!(children.iter().any(|state| {
+            state.coin.puzzle_hash == channel.merchant.puzzle_hash
+                && state.coin.amount == MERCHANT_AMOUNT
+        }));
+        assert!(children.iter().any(|state| {
+            state.coin.puzzle_hash == channel.user.puzzle_hash
+                && state.coin.amount == funding_amount - MERCHANT_AMOUNT
+        }));
     }
 
     #[test]

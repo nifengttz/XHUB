@@ -8,9 +8,8 @@ use clvm_utils::ToTreeHash;
 use thiserror::Error;
 
 use crate::{
-    ChainObservation, ChannelArgs, ChannelSolution, ChannelState, ChannelStore, FUNDING_AMOUNT,
-    MERCHANT_AMOUNT, PaymentVoucher, StateStoreError, USER_REMAINDER, coin_spend, is_reorged,
-    refund_hash,
+    ChainObservation, ChannelArgs, ChannelSolution, ChannelState, ChannelStore, PaymentVoucher,
+    StateStoreError, coin_spend, is_reorged, refund_hash_for_funding_amount,
 };
 
 #[derive(Debug, Error)]
@@ -49,14 +48,19 @@ pub fn build_claim_bundle(
     if commitment.funding_coin_id != funding_coin.coin_id() {
         return Err(SettlementWorkflowError::WrongFundingCoin);
     }
-    let solution = ChannelSolution::claim(
+    let funding_amount = commitment
+        .merchant_amount
+        .checked_add(commitment.user_remaining_amount)
+        .ok_or(SettlementWorkflowError::ConfirmationMismatch)?;
+    let solution = ChannelSolution::claim_for_funding_amount(
         commitment.funding_coin_id,
         commitment.invoice_hash,
         commitment.order_id,
         commitment.merchant_puzzle_hash,
         commitment.nonce,
         commitment.payment_expiry_height,
-    );
+        funding_amount,
+    )?;
     let spend = coin_spend(funding_coin, args, &solution)?;
     Ok(SpendBundle::new(
         vec![spend],
@@ -73,10 +77,11 @@ pub fn build_refund_bundle(
     if user_secret_key.public_key() != args.user_public_key {
         return Err(SettlementWorkflowError::WrongUserKey);
     }
-    let solution = ChannelSolution::refund(funding_coin.coin_id());
+    let solution =
+        ChannelSolution::refund_for_funding_amount(funding_coin.coin_id(), funding_coin.amount)?;
     let spend = coin_spend(funding_coin, args, &solution)?;
     let message = [
-        refund_hash(args, funding_coin.coin_id()).as_ref(),
+        refund_hash_for_funding_amount(args, funding_coin.coin_id(), funding_coin.amount).as_ref(),
         funding_coin.coin_id().as_ref(),
         agg_sig_me_additional_data.as_ref(),
     ]
@@ -172,8 +177,11 @@ pub fn confirm_claim(
         .ok_or(SettlementWorkflowError::MissingVoucher)?;
     let commitment = voucher.intent.commitment;
     let expected = [
-        (commitment.merchant_puzzle_hash, MERCHANT_AMOUNT),
-        (commitment.user_puzzle_hash, USER_REMAINDER),
+        (commitment.merchant_puzzle_hash, commitment.merchant_amount),
+        (
+            commitment.user_puzzle_hash,
+            commitment.user_remaining_amount,
+        ),
     ];
     if !outputs_match(funding_coin_id, confirmed_children, &expected) {
         return Err(SettlementWorkflowError::ConfirmationMismatch);
@@ -196,11 +204,11 @@ pub fn confirm_refund(
             actual: record.state,
         });
     }
-    if !outputs_match(
-        funding_coin_id,
-        confirmed_children,
-        &[(user_puzzle_hash, FUNDING_AMOUNT)],
-    ) {
+    let funding_amount = record
+        .merchant_amount
+        .checked_add(record.user_remaining_amount)
+        .ok_or(SettlementWorkflowError::ConfirmationMismatch)?;
+    if !outputs_match(funding_coin_id, confirmed_children, &[(user_puzzle_hash, funding_amount)]) {
         return Err(SettlementWorkflowError::ConfirmationMismatch);
     }
     store.mark_refunded(channel_id)?;
