@@ -1,0 +1,32 @@
+name: security
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo install cargo-audit --locked
+      - run: cargo install cargo-deny --locked
+      - run: cargo fmt --all -- --check
+      - run: cargo test --locked --all-targets
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo audit --locked
+      - run: cargo deny check
+      - name: Generate SBOM
+        shell: pwsh
+        run: ./scripts/generate-sbom.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: target/security/sbom.cdx.json

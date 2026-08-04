@@ -1,0 +1,182 @@
+(mod (
+    USER_PUBLIC_KEY
+    HUB_PUBLIC_KEY
+    USER_PUZZLE_HASH
+    GENESIS_CHALLENGE
+    CLAIM_BEFORE_HEIGHT
+    REFUND_HEIGHT
+    branch
+    funding_coin_id
+    invoice_hash
+    order_id
+    merchant_puzzle_hash
+    nonce
+    payment_expiry_height
+  )
+
+  (include *standard-cl-23*)
+
+  (defconstant CLAIM 1)
+  (defconstant REFUND 2)
+
+  (defconstant AGG_SIG_ME 50)
+  (defconstant CREATE_COIN 51)
+  (defconstant ASSERT_MY_COIN_ID 70)
+  (defconstant ASSERT_MY_AMOUNT 73)
+  (defconstant ASSERT_HEIGHT_ABSOLUTE 83)
+  (defconstant ASSERT_BEFORE_HEIGHT_ABSOLUTE 87)
+
+  (defconstant PROTOCOL_VERSION 0x0001)
+  (defconstant FUNDING_AMOUNT 0x000000000000000a)
+  (defconstant MERCHANT_AMOUNT 0x0000000000000001)
+  (defconstant USER_REMAINDER 0x0000000000000009)
+  (defconstant STATE_NUMBER 0x0000000000000001)
+  (defconstant FEE_POLICY 0x00)
+  (defconstant MIN_CLAIM_WINDOW_BLOCKS 20)
+
+  (defconstant CHANNEL_DOMAIN "WALL_HUB_CHANNEL_V1")
+  (defconstant SETTLEMENT_DOMAIN "WALL_HUB_SETTLEMENT_V1")
+  (defconstant REFUND_DOMAIN "WALL_HUB_REFUND_V1")
+
+  (defun-inline require (condition value)
+    (if condition value (x))
+  )
+
+  (defun-inline channel-id (genesis_challenge coin_id)
+    (sha256 CHANNEL_DOMAIN genesis_challenge coin_id)
+  )
+
+  (defun-inline settlement-hash (
+      genesis_challenge
+      coin_id
+      invoice
+      order
+      merchant_ph
+      user_ph
+      payment_nonce
+      payment_expiry
+      claim_before
+      refund_height
+    )
+    (sha256
+      SETTLEMENT_DOMAIN
+      PROTOCOL_VERSION
+      genesis_challenge
+      coin_id
+      (channel-id genesis_challenge coin_id)
+      STATE_NUMBER
+      invoice
+      order
+      merchant_ph
+      MERCHANT_AMOUNT
+      user_ph
+      USER_REMAINDER
+      payment_nonce
+      payment_expiry
+      claim_before
+      refund_height
+      FEE_POLICY
+    )
+  )
+
+  (defun-inline refund-hash (
+      genesis_challenge
+      coin_id
+      user_ph
+      refund_height
+    )
+    (sha256
+      REFUND_DOMAIN
+      PROTOCOL_VERSION
+      genesis_challenge
+      coin_id
+      (channel-id genesis_challenge coin_id)
+      user_ph
+      FUNDING_AMOUNT
+      refund_height
+      FEE_POLICY
+    )
+  )
+
+  (require (= (strlen USER_PUBLIC_KEY) 48)
+    (require (= (strlen HUB_PUBLIC_KEY) 48)
+      (require (= (strlen USER_PUZZLE_HASH) 32)
+        (require (= (strlen GENESIS_CHALLENGE) 32)
+          (require (= (strlen CLAIM_BEFORE_HEIGHT) 8)
+            (require (= (strlen REFUND_HEIGHT) 8)
+              (require (= (- REFUND_HEIGHT CLAIM_BEFORE_HEIGHT) 1)
+                (require (= (strlen funding_coin_id) 32)
+                  (if (= branch CLAIM)
+                    (require (= (strlen invoice_hash) 32)
+                      (require (= (strlen order_id) 32)
+                        (require (= (strlen merchant_puzzle_hash) 32)
+                          (require (= (strlen nonce) 32)
+                            (require (= (strlen payment_expiry_height) 8)
+                              (require (> CLAIM_BEFORE_HEIGHT (+ payment_expiry_height (- MIN_CLAIM_WINDOW_BLOCKS 1)))
+                                (list
+                                  (list ASSERT_MY_COIN_ID funding_coin_id)
+                                  (list ASSERT_MY_AMOUNT (+ FUNDING_AMOUNT 0))
+                                  (list ASSERT_BEFORE_HEIGHT_ABSOLUTE (+ CLAIM_BEFORE_HEIGHT 0))
+                                  (list AGG_SIG_ME USER_PUBLIC_KEY
+                                    (settlement-hash
+                                      GENESIS_CHALLENGE
+                                      funding_coin_id
+                                      invoice_hash
+                                      order_id
+                                      merchant_puzzle_hash
+                                      USER_PUZZLE_HASH
+                                      nonce
+                                      payment_expiry_height
+                                      CLAIM_BEFORE_HEIGHT
+                                      REFUND_HEIGHT
+                                    )
+                                  )
+                                  (list AGG_SIG_ME HUB_PUBLIC_KEY
+                                    (settlement-hash
+                                      GENESIS_CHALLENGE
+                                      funding_coin_id
+                                      invoice_hash
+                                      order_id
+                                      merchant_puzzle_hash
+                                      USER_PUZZLE_HASH
+                                      nonce
+                                      payment_expiry_height
+                                      CLAIM_BEFORE_HEIGHT
+                                      REFUND_HEIGHT
+                                    )
+                                  )
+                                  (list CREATE_COIN merchant_puzzle_hash (+ MERCHANT_AMOUNT 0))
+                                  (list CREATE_COIN USER_PUZZLE_HASH (+ USER_REMAINDER 0))
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                    (require (= branch REFUND)
+                      (list
+                        (list ASSERT_MY_COIN_ID funding_coin_id)
+                        (list ASSERT_MY_AMOUNT (+ FUNDING_AMOUNT 0))
+                        (list ASSERT_HEIGHT_ABSOLUTE (+ REFUND_HEIGHT 0))
+                        (list AGG_SIG_ME USER_PUBLIC_KEY
+                          (refund-hash
+                            GENESIS_CHALLENGE
+                            funding_coin_id
+                            USER_PUZZLE_HASH
+                            REFUND_HEIGHT
+                          )
+                        )
+                        (list CREATE_COIN USER_PUZZLE_HASH (+ FUNDING_AMOUNT 0))
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)
