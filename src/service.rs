@@ -2,7 +2,7 @@ use std::{env, fmt, fs, path::Path, time::Duration};
 
 use chia_bls::{PublicKey, SecretKey};
 use chia_protocol::{Bytes32, Coin, SpendBundle};
-use chia_sdk_types::TESTNET11_CONSTANTS;
+use chia_sdk_types::{MAINNET_CONSTANTS, TESTNET11_CONSTANTS};
 use chia_traits::Streamable;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -618,6 +618,7 @@ pub fn run_role_cli(role: &str) -> Result<(), String> {
 #[derive(Debug, Deserialize)]
 pub struct WatchConfig {
     pub db_path: String,
+    pub network: Option<String>,
     pub channel_id: String,
     pub genesis_challenge: String,
     pub user_public_key: String,
@@ -652,15 +653,35 @@ pub fn run_watch_cli(role: &str, config_path: &Path, once: bool) -> Result<(), S
         config.refund_height,
     )
     .map_err(|error| error.to_string())?;
-    let node = ChiaNode::connect(
-        crate::ChiaRpcConfig::PublicTestnet11 {
-            base_url: config
-                .rpc_url
-                .unwrap_or_else(|| "https://testnet11.api.coinset.org".to_string()),
-        },
-        genesis_challenge,
-    )
-    .map_err(|error| error.to_string())?;
+    let network = config.network.as_deref().unwrap_or("mainnet");
+    let (rpc_config, default_additional_data, expected_genesis_challenge) = match network {
+        "mainnet" => (
+            crate::ChiaRpcConfig::PublicMainnet {
+                base_url: config
+                    .rpc_url
+                    .unwrap_or_else(|| "https://api.coinset.org".to_string()),
+            },
+            MAINNET_CONSTANTS.agg_sig_me_additional_data,
+            MAINNET_CONSTANTS.genesis_challenge,
+        ),
+        "testnet11" => (
+            crate::ChiaRpcConfig::PublicTestnet11 {
+                base_url: config
+                    .rpc_url
+                    .unwrap_or_else(|| "https://testnet11.api.coinset.org".to_string()),
+            },
+            TESTNET11_CONSTANTS.agg_sig_me_additional_data,
+            TESTNET11_CONSTANTS.genesis_challenge,
+        ),
+        other => return Err(format!("unsupported network: {other}")),
+    };
+    if genesis_challenge != expected_genesis_challenge {
+        return Err(format!(
+            "genesis_challenge does not match {network} network"
+        ));
+    }
+    let node =
+        ChiaNode::connect(rpc_config, genesis_challenge).map_err(|error| error.to_string())?;
     let mut store = ChannelStore::open(&config.db_path).map_err(|error| error.to_string())?;
     let confirmation_depth = config.confirmation_depth.unwrap_or(3);
     let safety_margin = config.safety_margin.unwrap_or(5);
@@ -692,7 +713,7 @@ pub fn run_watch_cli(role: &str, config_path: &Path, once: bool) -> Result<(), S
                 .as_deref()
                 .map(parse_config_bytes32)
                 .transpose()?
-                .unwrap_or(TESTNET11_CONSTANTS.agg_sig_me_additional_data);
+                .unwrap_or(default_additional_data);
             runtime.block_on(user_refund_watch_once(
                 &mut store,
                 &node,

@@ -1,0 +1,8 @@
+{
+  "listen_addr": "127.0.0.1:8080",
+  "db_path": "hub-api.sqlite3",
+  "rpc_url": "https://api.coinset.org",
+  "hub_secret_key": "REPLACE_WITH_64_HEX_CHARACTERS",
+  "api_key": "REPLACE_WITH_A_LONG_RANDOM_API_KEY",
+  "agg_sig_me_additional_data": null
+}

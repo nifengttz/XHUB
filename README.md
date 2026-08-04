@@ -203,6 +203,46 @@ restarting a watcher resumes recoverable broadcast jobs.
 jobs, attempts, confirmed jobs, and reorg observations. Audit records are
 available through `ChannelStore::list_audit_events` for operator tooling.
 
+## Stage B HTTP Hub API
+
+The `hub-api` binary exposes a small HTTP boundary for a User or Merchant on
+another computer. It keeps the Hub private key in a local JSON configuration
+file and never accepts that key over HTTP. The API currently provides:
+
+- `GET /healthz`: public liveness and Hub public key;
+- `POST /v1/invoices`: validate and sign a Merchant invoice;
+- `POST /v1/vouchers`: validate a User Intent, atomically issue a Voucher, and
+  persist it in SQLite.
+
+The default network is Chia mainnet through `https://api.coinset.org`. The
+service connects to this RPC at startup, validates the mainnet Genesis
+Challenge, and reads the current peak height before every signature operation.
+
+Copy `examples/hub-api.example.json` to a private file, replace both
+placeholders, and start the service:
+
+```bash
+cp examples/hub-api.example.json hub-api.json
+cargo build --release --bin hub-api
+./target/release/hub-api --config hub-api.json
+```
+
+The example binds only to `127.0.0.1`. For a LAN or cloud-server test, set
+`listen_addr` to `0.0.0.0:8080`, open TCP port 8080 in the firewall, and send
+the configured value in the `X-API-Key` header. Keep the JSON file outside Git
+and use a long random API key. The public Coinset RPC is suitable for this
+controlled mainnet test; a production deployment should use a self-operated
+Full Node RPC for availability and rate-limit control.
+
+Example health check:
+
+```bash
+curl http://127.0.0.1:8080/healthz
+```
+
+The request and response schemas are documented in
+`docs/hub-http-api-v1.md`.
+
 ## Stage C engineering hardening
 
 The current hardening baseline is documented in `docs/stage-c-hardening.md`.

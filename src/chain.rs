@@ -5,13 +5,16 @@ use chia_sdk_coinset::{
     BlockchainStateResponse, ChiaRpcClient, CoinRecord, CoinsetClient, FullNodeClient,
     GetCoinRecordResponse, GetCoinRecordsResponse, GetMempoolItemResponse,
 };
-use chia_sdk_types::TESTNET11_CONSTANTS;
+use chia_sdk_types::{MAINNET_CONSTANTS, TESTNET11_CONSTANTS};
 use thiserror::Error;
 
 const COST_UNIT: u64 = 5_000_000;
 
 #[derive(Debug, Clone)]
 pub enum ChiaRpcConfig {
+    PublicMainnet {
+        base_url: String,
+    },
     PublicTestnet11 {
         base_url: String,
     },
@@ -23,6 +26,12 @@ pub enum ChiaRpcConfig {
 }
 
 impl ChiaRpcConfig {
+    pub fn public_mainnet() -> Self {
+        Self::PublicMainnet {
+            base_url: "https://api.coinset.org".to_string(),
+        }
+    }
+
     pub fn public_testnet11() -> Self {
         Self::PublicTestnet11 {
             base_url: "https://testnet11.api.coinset.org".to_string(),
@@ -88,7 +97,8 @@ impl ChiaNode {
         expected_genesis_challenge: Bytes32,
     ) -> Result<Self, ChiaNodeError> {
         let endpoint = match config {
-            ChiaRpcConfig::PublicTestnet11 { base_url } => {
+            ChiaRpcConfig::PublicMainnet { base_url }
+            | ChiaRpcConfig::PublicTestnet11 { base_url } => {
                 RpcEndpoint::Public(CoinsetClient::new(base_url))
             }
             ChiaRpcConfig::FullNode {
@@ -118,6 +128,13 @@ impl ChiaNode {
         Self::connect(
             ChiaRpcConfig::public_testnet11(),
             TESTNET11_CONSTANTS.genesis_challenge,
+        )
+    }
+
+    pub fn mainnet() -> Result<Self, ChiaNodeError> {
+        Self::connect(
+            ChiaRpcConfig::public_mainnet(),
+            MAINNET_CONSTANTS.genesis_challenge,
         )
     }
 

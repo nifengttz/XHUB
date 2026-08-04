@@ -10,6 +10,7 @@ use clvmr::{
 use sha2::{Digest, Sha256};
 
 mod chain;
+mod api;
 mod offchain;
 mod service;
 mod settlement;
@@ -27,6 +28,7 @@ mod settlement_tests;
 mod state_store_tests;
 
 pub use chain::*;
+pub use api::*;
 pub use offchain::*;
 pub use service::*;
 pub use settlement::*;
