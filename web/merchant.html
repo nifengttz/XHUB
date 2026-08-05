@@ -35,7 +35,7 @@
     main { width: min(1380px, calc(100% - 36px)); margin: 22px auto 48px; }
     .toolbar, .panel { background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow); }
     .toolbar { padding: 16px; margin-bottom: 18px; }
-    .toolbar-grid { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto auto; gap: 12px; align-items: end; }
+    .toolbar-grid { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto auto auto auto; gap: 12px; align-items: end; }
     .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 18px; }
     .panel { padding: 20px; }
     .panel-head { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
@@ -55,6 +55,9 @@
     button.secondary:hover { background: #edf5f8; }
     button:disabled { opacity: .55; cursor: wait; }
     .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .button-feedback { min-height: 20px; margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    .button-feedback.good { color: var(--good); }
+    .button-feedback.bad { color: var(--bad); }
     .hint, .notice { margin-top: 6px; font-size: 12px; font-weight: 400; }
     .result { margin-top: 18px; }
     .result pre { max-height: 260px; overflow: auto; margin: 8px 0 0; padding: 12px; background: #16222c; color: #d8f1e5; border-radius: 4px; white-space: pre-wrap; word-break: break-word; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; }
@@ -82,8 +85,12 @@
         </label>
         <button id="saveConfig" class="secondary" type="button">保存配置</button>
         <button id="checkHealth" type="button">检查 HUB</button>
+        <button id="exportSession" class="secondary" type="button">导出本次信息</button>
+        <button id="importSession" class="secondary" type="button">导入 TXT</button>
+        <input id="importSessionFile" type="file" accept=".txt,.json,text/plain,application/json" hidden>
       </div>
-      <p class="notice">这是受控主网测试工作台。API Key 只保存在商户浏览器当前会话中，不要把页面暴露到公网。</p>
+      <p class="notice">这是受控主网测试工作台。API Key 只保存在商户浏览器当前会话中，不要把页面暴露到公网；导出的 TXT 不包含 API Key 或私钥。</p>
+      <p id="toolbarFeedback" class="button-feedback" aria-live="polite"></p>
     </section>
 
     <div class="layout">
@@ -130,6 +137,7 @@
           <button id="deriveChannelAddress" class="secondary" type="button">生成 HUB 锁定地址</button>
           <button id="checkChannelFunding" class="secondary" type="button">检查锁币状态</button>
         </div>
+        <p id="channelFeedback" class="button-feedback" aria-live="polite"></p>
 
         <div class="section-title">订单信息</div>
         <div class="form-grid">
@@ -161,8 +169,16 @@
             <button class="secondary generate" data-target="invoiceNonce" type="button">生成</button>
           </div>
         </div>
+        <p id="invoiceFieldFeedback" class="button-feedback" aria-live="polite"></p>
         <div class="actions"><button id="issueInvoice" type="button">向 HUB 创建 Invoice</button></div>
+        <p id="invoiceFeedback" class="button-feedback" aria-live="polite"></p>
         <div class="result"><div class="meta">最近响应</div><pre id="invoiceResult">尚未提交</pre></div>
+        <div class="result">
+          <div class="meta">用户签名请求</div>
+          <textarea id="paymentRequest" readonly placeholder="创建 Invoice 后自动生成，可复制到 HUBWALLET 的“粘贴支付请求”区域"></textarea>
+          <div class="actions"><button id="copyPaymentRequest" class="secondary" type="button" disabled>复制支付请求</button></div>
+          <p id="paymentRequestFeedback" class="button-feedback" aria-live="polite"></p>
+        </div>
       </section>
 
       <section class="panel">
@@ -185,6 +201,7 @@
           </label>
         </div>
         <div class="actions"><button id="issueVoucher" type="button">向 HUB 提交 Voucher</button></div>
+        <p id="voucherFeedback" class="button-feedback" aria-live="polite"></p>
         <div class="result"><div class="meta">最近响应</div><pre id="voucherResult">尚未提交</pre></div>
         <p class="notice">Invoice 和 Voucher 表单共享上方渠道字段。当前 MVP 的用户签名仍由 CHIA 客户端完成，网页不会接触用户私钥。</p>
       </section>
@@ -207,6 +224,99 @@
 
     function showResult(id, value) {
       $(id).textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+    }
+
+    function showFeedback(id, message, kind = "") {
+      const node = $(id);
+      node.textContent = message;
+      node.className = "button-feedback" + (kind ? " " + kind : "");
+    }
+
+    function paymentRequest(invoiceHex, channelData) {
+      return JSON.stringify({ invoice_hex: invoiceHex, channel: channelData }, null, 2);
+    }
+
+    const sessionFieldIds = [
+      "hubUrl", "userPublicKey", "hubPublicKey", "userPuzzleHash", "genesisChallenge",
+      "claimBeforeHeight", "refundHeight", "fundingAmount", "channelAddress", "channelPuzzleHash",
+      "requestId", "idempotencyKey", "fundingCoinId", "orderId", "merchantPuzzleHash",
+      "paymentExpiryHeight", "invoiceNonce", "invoiceHex", "paymentRequest", "voucherRequestId",
+      "voucherIdempotencyKey", "intentHex"
+    ];
+
+    function merchantSessionExport() {
+      const fields = Object.fromEntries(sessionFieldIds.map((id) => [id, $(id).value]));
+      return {
+        format: "xhub-merchant-session",
+        version: 1,
+        exported_at: new Date().toISOString(),
+        fields,
+        invoice_response: $("invoiceResult").textContent,
+        voucher_response: $("voucherResult").textContent
+      };
+    }
+
+    function exportSession() {
+      const content = JSON.stringify(merchantSessionExport(), null, 2);
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `xhub-merchant-${stamp}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      setStatus("本次信息已导出", "good");
+      showFeedback("toolbarFeedback", "TXT 下载已开始，文件不包含 API Key 或私钥。", "good");
+    }
+
+    async function importSessionFile(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        if (data.format !== "xhub-merchant-session" || data.version !== 1 || !data.fields) {
+          throw new Error("unsupported export");
+        }
+        for (const id of sessionFieldIds) {
+          const value = data.fields[id];
+          if (typeof value === "string" || typeof value === "number") $(id).value = String(value);
+        }
+        if (typeof data.invoice_response === "string") $("invoiceResult").textContent = data.invoice_response;
+        if (typeof data.voucher_response === "string") $("voucherResult").textContent = data.voucher_response;
+        $("copyPaymentRequest").disabled = !$("paymentRequest").value;
+        setStatus("本次信息已导入，请核对后继续", "good");
+        showFeedback("toolbarFeedback", "TXT 已导入。请核对通道高度、Funding Coin 和收款地址后再提交。", "good");
+      } catch (_) {
+        setStatus("TXT 格式无效，未导入任何信息", "bad");
+        showFeedback("toolbarFeedback", "TXT 格式无效，未导入任何信息。", "bad");
+      }
+    }
+
+    async function copyPaymentRequest() {
+      const value = $("paymentRequest").value;
+      if (!value) {
+        showFeedback("paymentRequestFeedback", "请先创建 Invoice，再生成支付请求。", "bad");
+        return;
+      }
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(value);
+        } else {
+          $("paymentRequest").select();
+          if (!document.execCommand("copy")) throw new Error("copy failed");
+        }
+        setStatus("支付请求已复制到剪贴板", "good");
+        showFeedback("paymentRequestFeedback", "支付请求已复制，可粘贴到 HUBWALLET 的“粘贴支付请求”区域。", "good");
+      } catch (_) {
+        $("paymentRequest").focus();
+        $("paymentRequest").select();
+        setStatus("请手动复制支付请求", "bad");
+        showFeedback("paymentRequestFeedback", "浏览器未授权自动复制，文本已选中，请按 Ctrl+C 手动复制。", "bad");
+      }
     }
 
     function hex32() {
@@ -247,10 +357,12 @@
         const data = await callHub("/healthz");
         $("hubPublicKey").value = data.hub_public_key || "";
         $("genesisChallenge").value = data.genesis_challenge || "";
+        showFeedback("toolbarFeedback", "HUB 连接正常，已载入 HUB 公钥和网络参数。", "good");
         setStatus(`HUB 正常 · ${data.network || "mainnet"}`, "good");
         showResult("invoiceResult", data);
       } catch (error) {
         setStatus("HUB 连接失败", "bad");
+        showFeedback("toolbarFeedback", `HUB 检查失败：${error.message}`, "bad");
         showResult("invoiceResult", { error: error.message });
       }
     }
@@ -260,11 +372,13 @@
         const data = await callHub("/v1/channel-address", channel());
         $("channelAddress").value = data.channel_address || "";
         $("channelPuzzleHash").value = data.channel_puzzle_hash || "";
+        showFeedback("channelFeedback", "锁定地址已生成。请从用户钱包转入锁定金额，确认后再检查锁币状态。", "good");
         showResult("invoiceResult", data);
         setStatus("HUB 锁定地址已生成", "good");
       } catch (error) {
         showResult("invoiceResult", { error: error.message });
         setStatus("锁定地址生成失败", "bad");
+        showFeedback("channelFeedback", `锁定地址生成失败：${error.message}`, "bad");
       }
     }
 
@@ -272,6 +386,13 @@
       try {
         const data = await callHub("/v1/channel-funding", { channel: channel() });
         if (data.funding_coin_id) $("fundingCoinId").value = data.funding_coin_id;
+        const feedback = {
+          FUNDING_CONFIRMED: "COIN 已锁定，已导入下方 Funding Coin 栏，可以创建 Invoice。",
+          PENDING_CONFIRMATION: "已发现锁币交易，正在等待链上确认。",
+          WAITING_FOR_FUNDING: "未发现匹配的锁币，请检查锁定地址、金额和通道参数。",
+          AMBIGUOUS_FUNDING: "发现多枚匹配锁币，请在 Funding Coin 栏手动选择要使用的一枚。"
+        };
+        showFeedback("channelFeedback", feedback[data.status] || "锁币状态已更新。", data.status === "FUNDING_CONFIRMED" ? "good" : "");
         showResult("invoiceResult", data);
         const messages = {
           FUNDING_CONFIRMED: "锁币已确认，可创建 Invoice",
@@ -283,18 +404,23 @@
       } catch (error) {
         showResult("invoiceResult", { error: error.message });
         setStatus("锁币状态查询失败", "bad");
+        showFeedback("channelFeedback", `锁币状态查询失败：${error.message}`, "bad");
       }
     }
 
     async function issueInvoice() {
       const form = $("issueInvoice").closest(".panel");
       const required = form.querySelectorAll("[required]");
-      if (![...required].every((field) => field.reportValidity())) return;
+      if (![...required].every((field) => field.reportValidity())) {
+        showFeedback("invoiceFeedback", "请先填写所有必填的通道和订单字段。", "bad");
+        return;
+      }
       try {
+        const channelData = channel();
         const data = await callHub("/v1/invoices", {
           request_id: $("requestId").value.trim(),
           idempotency_key: $("idempotencyKey").value.trim(),
-          channel: channel(),
+          channel: channelData,
           funding_coin_id: $("fundingCoinId").value.trim() || null,
           order_id: $("orderId").value.trim(),
           merchant_puzzle_hash: $("merchantPuzzleHash").value.trim(),
@@ -302,18 +428,25 @@
           invoice_nonce: $("invoiceNonce").value.trim()
         });
         $("invoiceHex").value = data.invoice_hex || "";
+        $("paymentRequest").value = paymentRequest(data.invoice_hex || "", channelData);
+        $("copyPaymentRequest").disabled = !data.invoice_hex;
+        showFeedback("invoiceFeedback", "Invoice 创建成功，已生成下方用户签名请求。请交给 HUBWALLET 核对并签名。", "good");
         showResult("invoiceResult", data);
         setStatus("Invoice 已由 HUB 签署", "good");
       } catch (error) {
         showResult("invoiceResult", { error: error.message });
         setStatus("Invoice 请求失败", "bad");
+        showFeedback("invoiceFeedback", `Invoice 创建失败：${error.message}`, "bad");
       }
     }
 
     async function issueVoucher() {
       const form = $("issueVoucher").closest(".panel");
       const required = form.querySelectorAll("[required]");
-      if (![...required].every((field) => field.reportValidity())) return;
+      if (![...required].every((field) => field.reportValidity())) {
+        showFeedback("voucherFeedback", "请先提供 Invoice Hex 和用户签名的 PaymentIntent Hex。", "bad");
+        return;
+      }
       try {
         const data = await callHub("/v1/vouchers", {
           request_id: $("voucherRequestId").value.trim(),
@@ -322,25 +455,39 @@
           invoice_hex: $("invoiceHex").value.trim(),
           intent_hex: $("intentHex").value.trim()
         });
+        showFeedback("voucherFeedback", "Voucher 已签发。请在 Claim 截止高度前让 Merchant watcher 广播 Claim。", "good");
         showResult("voucherResult", data);
         setStatus("Voucher 已由 HUB 签署", "good");
       } catch (error) {
         showResult("voucherResult", { error: error.message });
         setStatus("Voucher 请求失败", "bad");
+        showFeedback("voucherFeedback", `Voucher 提交失败：${error.message}`, "bad");
       }
     }
 
     $("saveConfig").addEventListener("click", () => {
       sessionStorage.setItem(sessionKey, JSON.stringify({ hubUrl: $("hubUrl").value.trim(), apiKey: $("apiKey").value }));
+      showFeedback("toolbarFeedback", "HUB 地址和 API Key 已保存到当前浏览器会话。", "good");
       setStatus("配置已保存在本次会话", "good");
     });
     $("checkHealth").addEventListener("click", checkHealth);
+    $("exportSession").addEventListener("click", exportSession);
+    $("importSession").addEventListener("click", () => {
+      showFeedback("toolbarFeedback", "请选择此前导出的 XHUB Merchant TXT 文件。", "");
+      $("importSessionFile").click();
+    });
+    $("importSessionFile").addEventListener("change", importSessionFile);
     $("deriveChannelAddress").addEventListener("click", deriveChannelAddress);
     $("checkChannelFunding").addEventListener("click", checkChannelFunding);
     $("issueInvoice").addEventListener("click", issueInvoice);
     $("issueVoucher").addEventListener("click", issueVoucher);
+    $("copyPaymentRequest").addEventListener("click", copyPaymentRequest);
     document.querySelectorAll(".generate").forEach((button) => {
-      button.addEventListener("click", () => { $(button.dataset.target).value = hex32(); });
+      button.addEventListener("click", () => {
+        const label = button.dataset.target === "orderId" ? "订单 ID" : "Invoice Nonce";
+        $(button.dataset.target).value = hex32();
+        showFeedback("invoiceFieldFeedback", `已生成新的${label}。如已创建 Invoice，请重新创建后再签名。`, "good");
+      });
     });
     try {
       const saved = JSON.parse(sessionStorage.getItem(sessionKey) || "null");
