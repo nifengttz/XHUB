@@ -1,0 +1,33 @@
+{
+  "vector_version": 1,
+  "status": "compiled and simulator-verified on mainnet constants; not a production authorization",
+  "network": "mainnet",
+  "fields": {
+    "genesis_challenge": "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb",
+    "agg_sig_me_additional_data": "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb",
+    "funding_coin_id": "6d91591e1e1b1fc81a8ddad964cc6fd4b0e9afb8df8f0bf47f65e8eb2635fcf4",
+    "hub_public_key": "935a603d33e5f66ba9337c44d426ebca3819715515a59007ec65bf4c4d8e3b7d259e1952aa0ebab59947f0a6ff691202",
+    "user_public_key": "8c285a81f47f67fcd1b0e08bbd065f5c8c15caf4ff1fb969760c2013fb7d267962a56697a8c413aa75aae062b2fbca74",
+    "user_puzzle_hash": "a17d522869528be7fdc3263bef2724295d652ccfe31a059f19bf8e9fe67210b3",
+    "funding_amount": 1000000,
+    "claim_before_height": 25,
+    "refund_height": 26,
+    "merchant_puzzle_hash": "d40eae3807ae7a3c73f2e1a52890648a6ba0a69f5c537d5dd6bcf977ff5a57be",
+    "settlement_amount": 250000,
+    "user_remainder": 750000,
+    "settlement_nonce": "7777777777777777777777777777777777777777777777777777777777777777"
+  },
+  "expected": {
+    "channel_id": "640ee4c36e6ebe34bc5db65552c881f891cd228a397329add53c9adacc25b696",
+    "channel_id_preimage_length": 83,
+    "channel_terms_hash": "fd8c21597bebf7206ad13230c5b381f2f673a2a76ee60dae60e07b18e3f58623",
+    "settlement_hash": "c9b4aea65e8522cfbf80d154d7ad79baac5bfe5aac5b6cfebcc3b3fa2338ea05",
+    "refund_hash": "bd796b03ac123d0e66118bdc6747b6f0ea25b368b789897f7d371dc0beb84850",
+    "funding_puzzle_hash": "443a52f2ada15456654eac806f185a9007f56212cdd8605c867abcf421317c9c",
+    "invariants": [
+      "settlement_amount + user_remainder == funding_amount",
+      "refund_height > claim_before_height",
+      "funding amount and all heights use u64 big-endian encoding"
+    ]
+  }
+}

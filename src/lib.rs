@@ -15,6 +15,9 @@ mod offchain;
 mod service;
 mod settlement;
 mod state_store;
+mod v2;
+mod wallet_connect;
+mod noise_session;
 
 #[cfg(test)]
 mod day6_tests;
@@ -33,6 +36,9 @@ pub use offchain::*;
 pub use service::*;
 pub use settlement::*;
 pub use state_store::*;
+pub use v2::*;
+pub use wallet_connect::*;
+pub use noise_session::*;
 
 pub const FUNDING_AMOUNT: u64 = 10;
 pub const MERCHANT_AMOUNT: u64 = 1;
