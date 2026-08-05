@@ -233,7 +233,18 @@
     }
 
     function paymentRequest(invoiceHex, channelData) {
-      return JSON.stringify({ invoice_hex: invoiceHex, channel: channelData }, null, 2);
+      // HUBWALLET's Tauri command deserializes this user-facing envelope as camelCase.
+      return JSON.stringify({
+        invoiceHex,
+        channel: {
+          userPublicKey: channelData.user_public_key,
+          hubPublicKey: channelData.hub_public_key,
+          userPuzzleHash: channelData.user_puzzle_hash,
+          genesisChallenge: channelData.genesis_challenge,
+          claimBeforeHeight: channelData.claim_before_height,
+          refundHeight: channelData.refund_height
+        }
+      }, null, 2);
     }
 
     const sessionFieldIds = [
