@@ -375,9 +375,9 @@ impl SettlementCommitment {
             return Err(ProtocolError::InvalidField("user_puzzle_hash"));
         }
         if self
-                .merchant_amount
-                .checked_add(self.user_remaining_amount)
-                .is_none_or(|amount| amount > MAX_PROTOCOL_U64)
+            .merchant_amount
+            .checked_add(self.user_remaining_amount)
+            .is_none_or(|amount| amount > MAX_PROTOCOL_U64)
         {
             return Err(ProtocolError::InvalidField("user_remaining_amount"));
         }

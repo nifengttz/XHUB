@@ -1,4 +1,10 @@
-use std::{collections::HashMap, net::SocketAddr, path::Path, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    path::Path,
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use axum::{
     Json, Router,
@@ -7,20 +13,20 @@ use axum::{
     response::{Html, IntoResponse, Response},
     routing::{get, post},
 };
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use chia_bls::{PublicKey, SecretKey};
 use chia_protocol::Bytes32;
 use chia_sdk_types::MAINNET_CONSTANTS;
 use chia_sdk_utils::Address;
-use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
 use crate::{
-    API_PROTOCOL_VERSION, API_SCHEMA_VERSION, ChannelArgs, ChannelState, ChannelStore, ChiaNode,
-    ChiaNodeError, ChiaRpcConfig, FUNDING_AMOUNT, InvoiceFields, MAX_PROTOCOL_U64, MERCHANT_AMOUNT,
-    ChannelTermsV2, MerchantInvoice, NoiseHubSessions, PaymentIntent, PaymentVoucher,
-    StateStoreError, WalletConnectState, WalletConnectStore, puzzle_reveal, puzzle_reveal_v2,
-    sign_connect_uri,
+    API_PROTOCOL_VERSION, API_SCHEMA_VERSION, ChannelArgs, ChannelState, ChannelStore,
+    ChannelTermsV2, ChiaNode, ChiaNodeError, ChiaRpcConfig, FUNDING_AMOUNT, InvoiceFields,
+    MAX_PROTOCOL_U64, MERCHANT_AMOUNT, MerchantInvoice, NoiseHubSessions, PaymentIntent,
+    PaymentVoucher, StateStoreError, WalletConnectState, WalletConnectStore, puzzle_reveal,
+    puzzle_reveal_v2, sign_connect_uri,
 };
 
 const MAX_REQUEST_BYTES: usize = 64 * 1024;
@@ -265,9 +271,14 @@ struct WalletConnectStatusResponse {
 }
 
 #[derive(Debug, Deserialize)]
-struct RelayFrameRequest { session_id: String, message: String }
+struct RelayFrameRequest {
+    session_id: String,
+    message: String,
+}
 #[derive(Debug, Serialize)]
-struct RelayFrameResponse { message: String }
+struct RelayFrameResponse {
+    message: String,
+}
 
 #[derive(Debug, Deserialize)]
 struct WalletHello {
@@ -282,21 +293,54 @@ struct WalletHello {
     nonce: String,
 }
 #[derive(Debug, Deserialize)]
-struct WalletHelloChannel { user_public_key: String, user_puzzle_hash: String }
+struct WalletHelloChannel {
+    user_public_key: String,
+    user_puzzle_hash: String,
+}
 #[derive(Debug, Deserialize)]
-struct FundingStatus { #[serde(rename = "type")] message_type: String, request_id: String, status: String, transaction_id: Option<String> }
+struct FundingStatus {
+    #[serde(rename = "type")]
+    message_type: String,
+    request_id: String,
+    status: String,
+    transaction_id: Option<String>,
+}
 
 #[derive(Debug, Serialize)]
 struct FundingRequestFinal {
-    protocol: &'static str, version: u16, #[serde(rename = "type")] message_type: &'static str,
-    request_id: String, session_id: String, created_at: u64, expires_at: u64, network: &'static str,
-    hub_key_id: String, wallet_public_key: String, wallet_nonce: String,
-    funding: FundingRequestFunding, channel: FundingRequestChannel, hub_signature: String,
+    protocol: &'static str,
+    version: u16,
+    #[serde(rename = "type")]
+    message_type: &'static str,
+    request_id: String,
+    session_id: String,
+    created_at: u64,
+    expires_at: u64,
+    network: &'static str,
+    hub_key_id: String,
+    wallet_public_key: String,
+    wallet_nonce: String,
+    funding: FundingRequestFunding,
+    channel: FundingRequestChannel,
+    hub_signature: String,
 }
 #[derive(Debug, Serialize)]
-struct FundingRequestFunding { asset_id: &'static str, amount_mojos: String, required_confirmations: u32 }
+struct FundingRequestFunding {
+    asset_id: &'static str,
+    amount_mojos: String,
+    required_confirmations: u32,
+}
 #[derive(Debug, Serialize)]
-struct FundingRequestChannel { protocol_version: u16, hub_public_key: String, user_public_key: String, user_puzzle_hash: String, claim_before_height: u64, refund_height: u64, funding_puzzle_hash: String, channel_terms_hash: String }
+struct FundingRequestChannel {
+    protocol_version: u16,
+    hub_public_key: String,
+    user_public_key: String,
+    user_puzzle_hash: String,
+    claim_before_height: u64,
+    refund_height: u64,
+    funding_puzzle_hash: String,
+    channel_terms_hash: String,
+}
 
 #[derive(Debug, Serialize)]
 struct HubKeyRegistryResponse {
@@ -348,13 +392,18 @@ pub async fn run_hub_api(config_path: impl AsRef<Path>) -> Result<(), String> {
         .map_err(|error| error.message)?
         .unwrap_or(MAINNET_CONSTANTS.agg_sig_me_additional_data);
     let store = ChannelStore::open(&config.db_path).map_err(|error| error.to_string())?;
-    let wallet_connect_store = WalletConnectStore::open(&config.db_path).map_err(|error| error.to_string())?;
+    let wallet_connect_store =
+        WalletConnectStore::open(&config.db_path).map_err(|error| error.to_string())?;
     let connect_request_secret_key = config
         .connect_request_secret_key
         .as_deref()
         .map(parse_secret_key)
         .transpose()?;
-    let connect_noise_private_key = config.connect_noise_private_key.as_deref().map(parse_raw_32).transpose()?;
+    let connect_noise_private_key = config
+        .connect_noise_private_key
+        .as_deref()
+        .map(parse_raw_32)
+        .transpose()?;
     let noise_configured = connect_noise_private_key.is_some();
 
     let state = ApiState {
@@ -370,7 +419,9 @@ pub async fn run_hub_api(config_path: impl AsRef<Path>) -> Result<(), String> {
         node,
         api_key: Arc::new(config.api_key),
         hub_public_key,
-        noise_sessions: Arc::new(Mutex::new(NoiseHubSessions::new(connect_noise_private_key.unwrap_or([0; 32])))),
+        noise_sessions: Arc::new(Mutex::new(NoiseHubSessions::new(
+            connect_noise_private_key.unwrap_or([0; 32]),
+        ))),
         noise_bindings: Arc::new(Mutex::new(HashMap::new())),
         noise_configured,
     };
@@ -381,12 +432,30 @@ pub async fn run_hub_api(config_path: impl AsRef<Path>) -> Result<(), String> {
         .route("/v1/channel-funding", post(channel_funding_status))
         .route("/v1/invoices", post(issue_invoice))
         .route("/v1/vouchers", post(issue_voucher))
-        .route("/v1/wallet-connect/requests", post(create_wallet_connect_request))
-        .route("/v1/wallet-connect/requests/{request_id}", get(wallet_connect_status))
-        .route("/.well-known/xhub-connect-keys.json", get(wallet_connect_keys))
-        .route("/v1/wallet-connect/relay/{request_id}/handshake", post(wallet_connect_handshake))
-        .route("/v1/wallet-connect/relay/{request_id}/messages", post(wallet_connect_message))
-        .route("/v1/wallet-connect/requests/{request_id}/verify", post(verify_wallet_connect_funding))
+        .route(
+            "/v1/wallet-connect/requests",
+            post(create_wallet_connect_request),
+        )
+        .route(
+            "/v1/wallet-connect/requests/{request_id}",
+            get(wallet_connect_status),
+        )
+        .route(
+            "/.well-known/xhub-connect-keys.json",
+            get(wallet_connect_keys),
+        )
+        .route(
+            "/v1/wallet-connect/relay/{request_id}/handshake",
+            post(wallet_connect_handshake),
+        )
+        .route(
+            "/v1/wallet-connect/relay/{request_id}/messages",
+            post(wallet_connect_message),
+        )
+        .route(
+            "/v1/wallet-connect/requests/{request_id}/verify",
+            post(verify_wallet_connect_funding),
+        )
         .layer(DefaultBodyLimit::max(MAX_REQUEST_BYTES))
         .with_state(state);
     let listener = tokio::net::TcpListener::bind(listen_addr)
@@ -402,8 +471,18 @@ async fn wallet_connect_keys(
     State(state): State<ApiState>,
 ) -> Result<Json<HubKeyRegistryResponse>, HttpError> {
     let runtime = state.runtime.lock().await;
-    let key_id = runtime.connect_hub_key_id.clone().ok_or_else(|| HttpError::bad_request("CONNECT_NOT_CONFIGURED", "wallet-connect Hub key id is not configured"))?;
-    let request_key = runtime.connect_request_secret_key.as_ref().ok_or_else(|| HttpError::bad_request("CONNECT_NOT_CONFIGURED", "wallet-connect request signing key is not configured"))?;
+    let key_id = runtime.connect_hub_key_id.clone().ok_or_else(|| {
+        HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "wallet-connect Hub key id is not configured",
+        )
+    })?;
+    let request_key = runtime.connect_request_secret_key.as_ref().ok_or_else(|| {
+        HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "wallet-connect request signing key is not configured",
+        )
+    })?;
     Ok(Json(HubKeyRegistryResponse {
         protocol: "hubwallet-connect",
         keys: vec![HubKeyRegistryEntry {
@@ -415,91 +494,346 @@ async fn wallet_connect_keys(
 }
 
 async fn wallet_connect_handshake(
-    State(state): State<ApiState>, AxumPath(request_id): AxumPath<String>, Json(frame): Json<RelayFrameRequest>,
+    State(state): State<ApiState>,
+    AxumPath(request_id): AxumPath<String>,
+    Json(frame): Json<RelayFrameRequest>,
 ) -> Result<Json<RelayFrameResponse>, HttpError> {
-    if !state.noise_configured { return Err(HttpError::bad_request("CONNECT_NOT_CONFIGURED", "Noise private key is not configured")); }
-    if frame.session_id.is_empty() || frame.session_id.len() > 128 { return Err(HttpError::bad_request("INVALID_SESSION", "session_id is invalid")); }
+    if !state.noise_configured {
+        return Err(HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "Noise private key is not configured",
+        ));
+    }
+    if frame.session_id.is_empty() || frame.session_id.len() > 128 {
+        return Err(HttpError::bad_request(
+            "INVALID_SESSION",
+            "session_id is invalid",
+        ));
+    }
     let runtime = state.runtime.lock().await;
-    let record = runtime.wallet_connect_store.load(&request_id).map_err(wallet_connect_error)?.ok_or_else(|| HttpError::bad_request("REQUEST_NOT_FOUND", "wallet-connect request was not found"))?;
+    let record = runtime
+        .wallet_connect_store
+        .load(&request_id)
+        .map_err(wallet_connect_error)?
+        .ok_or_else(|| {
+            HttpError::bad_request("REQUEST_NOT_FOUND", "wallet-connect request was not found")
+        })?;
     drop(runtime);
-    if record.expires_at <= unix_now() || !matches!(record.state, WalletConnectState::Created | WalletConnectState::Paired) { return Err(HttpError::bad_request("REQUEST_UNAVAILABLE", "wallet-connect request is unavailable")); }
+    if record.expires_at <= unix_now()
+        || !matches!(
+            record.state,
+            WalletConnectState::Created | WalletConnectState::Paired
+        )
+    {
+        return Err(HttpError::bad_request(
+            "REQUEST_UNAVAILABLE",
+            "wallet-connect request is unavailable",
+        ));
+    }
     let key = format!("{request_id}:{}", frame.session_id);
-    state.noise_bindings.lock().await.insert(key.clone(), request_id);
+    state
+        .noise_bindings
+        .lock()
+        .await
+        .insert(key.clone(), request_id);
     let payload = decode_frame(&frame.message)?;
-    let response = state.noise_sessions.lock().await.handshake_frame(&key, &payload).map_err(|error| HttpError::bad_request("NOISE_HANDSHAKE", error.to_string()))?.ok_or_else(|| HttpError::bad_request("NOISE_HANDSHAKE", "handshake produced no response"))?;
-    Ok(Json(RelayFrameResponse { message: URL_SAFE_NO_PAD.encode(response) }))
+    let response = state
+        .noise_sessions
+        .lock()
+        .await
+        .handshake_frame(&key, &payload)
+        .map_err(|error| HttpError::bad_request("NOISE_HANDSHAKE", error.to_string()))?
+        .ok_or_else(|| {
+            HttpError::bad_request("NOISE_HANDSHAKE", "handshake produced no response")
+        })?;
+    Ok(Json(RelayFrameResponse {
+        message: URL_SAFE_NO_PAD.encode(response),
+    }))
 }
 
 async fn wallet_connect_message(
-    State(state): State<ApiState>, AxumPath(request_id): AxumPath<String>, Json(frame): Json<RelayFrameRequest>,
+    State(state): State<ApiState>,
+    AxumPath(request_id): AxumPath<String>,
+    Json(frame): Json<RelayFrameRequest>,
 ) -> Result<Json<RelayFrameResponse>, HttpError> {
     let key = format!("{request_id}:{}", frame.session_id);
-    if state.noise_bindings.lock().await.get(&key).map(String::as_str) != Some(request_id.as_str()) { return Err(HttpError::bad_request("UNKNOWN_SESSION", "session is not bound to this request")); }
-    let plaintext = state.noise_sessions.lock().await.receive(&key, &decode_frame(&frame.message)?).map_err(|error| HttpError::bad_request("NOISE_MESSAGE", error.to_string()))?;
-    let message_type = serde_json::from_slice::<serde_json::Value>(&plaintext).ok().and_then(|value| value.get("type").and_then(serde_json::Value::as_str).map(str::to_owned));
-    if message_type.as_deref() == Some("funding_status") {
-        let status: FundingStatus = serde_json::from_slice(&plaintext).map_err(|_| HttpError::bad_request("INVALID_FUNDING_STATUS", "invalid funding status"))?;
-        if status.message_type != "funding_status" || status.request_id != request_id || status.status != "broadcast" { return Err(HttpError::bad_request("INVALID_FUNDING_STATUS", "only a bound broadcast status is accepted")); }
-        let tx_id = status.transaction_id.as_deref().ok_or_else(|| HttpError::bad_request("INVALID_FUNDING_STATUS", "broadcast requires transaction_id")).and_then(|value| parse_bytes32(value, "transaction_id"))?;
-        let mut runtime = state.runtime.lock().await;
-        runtime.wallet_connect_store.record_broadcast(&request_id, tx_id).map_err(wallet_connect_error)?;
-        drop(runtime);
-        let encrypted = state.noise_sessions.lock().await.send(&key, br#"{"type":"funding_status_ack","status":"recorded"}"#).map_err(|error| HttpError::bad_request("NOISE_MESSAGE", error.to_string()))?;
-        return Ok(Json(RelayFrameResponse { message: URL_SAFE_NO_PAD.encode(encrypted) }));
+    if state
+        .noise_bindings
+        .lock()
+        .await
+        .get(&key)
+        .map(String::as_str)
+        != Some(request_id.as_str())
+    {
+        return Err(HttpError::bad_request(
+            "UNKNOWN_SESSION",
+            "session is not bound to this request",
+        ));
     }
-    let hello: WalletHello = serde_json::from_slice(&plaintext).map_err(|_| HttpError::bad_request("INVALID_WALLET_HELLO", "encrypted message is not a valid wallet_hello"))?;
+    let plaintext = state
+        .noise_sessions
+        .lock()
+        .await
+        .receive(&key, &decode_frame(&frame.message)?)
+        .map_err(|error| HttpError::bad_request("NOISE_MESSAGE", error.to_string()))?;
+    let message_type = serde_json::from_slice::<serde_json::Value>(&plaintext)
+        .ok()
+        .and_then(|value| {
+            value
+                .get("type")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned)
+        });
+    if message_type.as_deref() == Some("funding_status") {
+        let status: FundingStatus = serde_json::from_slice(&plaintext).map_err(|_| {
+            HttpError::bad_request("INVALID_FUNDING_STATUS", "invalid funding status")
+        })?;
+        if status.message_type != "funding_status"
+            || status.request_id != request_id
+            || status.status != "broadcast"
+        {
+            return Err(HttpError::bad_request(
+                "INVALID_FUNDING_STATUS",
+                "only a bound broadcast status is accepted",
+            ));
+        }
+        let tx_id = status
+            .transaction_id
+            .as_deref()
+            .ok_or_else(|| {
+                HttpError::bad_request(
+                    "INVALID_FUNDING_STATUS",
+                    "broadcast requires transaction_id",
+                )
+            })
+            .and_then(|value| parse_bytes32(value, "transaction_id"))?;
+        let mut runtime = state.runtime.lock().await;
+        runtime
+            .wallet_connect_store
+            .record_broadcast(&request_id, tx_id)
+            .map_err(wallet_connect_error)?;
+        drop(runtime);
+        let encrypted = state
+            .noise_sessions
+            .lock()
+            .await
+            .send(
+                &key,
+                br#"{"type":"funding_status_ack","status":"recorded"}"#,
+            )
+            .map_err(|error| HttpError::bad_request("NOISE_MESSAGE", error.to_string()))?;
+        return Ok(Json(RelayFrameResponse {
+            message: URL_SAFE_NO_PAD.encode(encrypted),
+        }));
+    }
+    let hello: WalletHello = serde_json::from_slice(&plaintext).map_err(|_| {
+        HttpError::bad_request(
+            "INVALID_WALLET_HELLO",
+            "encrypted message is not a valid wallet_hello",
+        )
+    })?;
     validate_wallet_hello(&hello, &request_id, &frame.session_id)?;
     let peak_height = trusted_peak_height(&state).await?;
     let mut runtime = state.runtime.lock().await;
-    let request = runtime.wallet_connect_store.pair(&request_id, &hello.session_id, parse_public_key_bytes(&hello.channel.user_public_key)?, parse_bytes32(&hello.channel.user_puzzle_hash, "user_puzzle_hash")?).map_err(wallet_connect_error)?;
-    let request_key = runtime.connect_request_secret_key.clone().ok_or_else(|| HttpError::bad_request("CONNECT_NOT_CONFIGURED", "wallet-connect request signing key is not configured"))?;
-    let hub_key_id = runtime.connect_hub_key_id.clone().ok_or_else(|| HttpError::bad_request("CONNECT_NOT_CONFIGURED", "wallet-connect Hub key id is not configured"))?;
-    let refund_height = peak_height.checked_add(request.refund_delay_blocks).ok_or_else(|| HttpError::bad_request("INVALID_HEIGHT", "refund height overflow"))?;
-    let claim_before_height = refund_height.checked_sub(1).ok_or_else(|| HttpError::bad_request("INVALID_HEIGHT", "refund height is too low"))?;
+    let request = runtime
+        .wallet_connect_store
+        .pair(
+            &request_id,
+            &hello.session_id,
+            parse_public_key_bytes(&hello.channel.user_public_key)?,
+            parse_bytes32(&hello.channel.user_puzzle_hash, "user_puzzle_hash")?,
+        )
+        .map_err(wallet_connect_error)?;
+    let request_key = runtime.connect_request_secret_key.clone().ok_or_else(|| {
+        HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "wallet-connect request signing key is not configured",
+        )
+    })?;
+    let hub_key_id = runtime.connect_hub_key_id.clone().ok_or_else(|| {
+        HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "wallet-connect Hub key id is not configured",
+        )
+    })?;
+    let refund_height = peak_height
+        .checked_add(request.refund_delay_blocks)
+        .ok_or_else(|| HttpError::bad_request("INVALID_HEIGHT", "refund height overflow"))?;
+    let claim_before_height = refund_height
+        .checked_sub(1)
+        .ok_or_else(|| HttpError::bad_request("INVALID_HEIGHT", "refund height is too low"))?;
     let user_key = parse_public_key(&hello.channel.user_public_key, "user_public_key")?;
     let user_puzzle_hash = parse_bytes32(&hello.channel.user_puzzle_hash, "user_puzzle_hash")?;
-    let terms = ChannelTermsV2::new(user_key, runtime.hub_secret_key.public_key(), user_puzzle_hash, MAINNET_CONSTANTS.genesis_challenge, runtime.agg_sig_me_additional_data, request.amount_mojos, claim_before_height, refund_height).map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))?;
-    let (funding_puzzle_hash, _) = puzzle_reveal_v2(&terms).map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))?;
-    runtime.wallet_connect_store.authorize_funding(&request_id, funding_puzzle_hash).map_err(wallet_connect_error)?;
+    let terms = ChannelTermsV2::new(
+        user_key,
+        runtime.hub_secret_key.public_key(),
+        user_puzzle_hash,
+        MAINNET_CONSTANTS.genesis_challenge,
+        runtime.agg_sig_me_additional_data,
+        request.amount_mojos,
+        claim_before_height,
+        refund_height,
+    )
+    .map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))?;
+    let (funding_puzzle_hash, _) = puzzle_reveal_v2(&terms)
+        .map_err(|error| HttpError::bad_request("INVALID_CHANNEL", error.to_string()))?;
+    runtime
+        .wallet_connect_store
+        .authorize_funding(&request_id, funding_puzzle_hash)
+        .map_err(wallet_connect_error)?;
     let mut final_request = FundingRequestFinal {
-        protocol: "hubwallet-connect", version: 1, message_type: "funding_request_final", request_id: request_id.clone(), session_id: frame.session_id.clone(), created_at: unix_now(), expires_at: request.expires_at, network: "mainnet", hub_key_id, wallet_public_key: hello.wallet_public_key.clone(), wallet_nonce: hello.nonce.clone(),
-        funding: FundingRequestFunding { asset_id: "xch", amount_mojos: request.amount_mojos.to_string(), required_confirmations: 1 },
-        channel: FundingRequestChannel { protocol_version: 2, hub_public_key: hex::encode(runtime.hub_secret_key.public_key().to_bytes()), user_public_key: hello.channel.user_public_key.clone(), user_puzzle_hash: hello.channel.user_puzzle_hash.clone(), claim_before_height, refund_height, funding_puzzle_hash: hex::encode(funding_puzzle_hash), channel_terms_hash: hex::encode(terms.channel_terms_hash()) }, hub_signature: String::new(),
+        protocol: "hubwallet-connect",
+        version: 1,
+        message_type: "funding_request_final",
+        request_id: request_id.clone(),
+        session_id: frame.session_id.clone(),
+        created_at: unix_now(),
+        expires_at: request.expires_at,
+        network: "mainnet",
+        hub_key_id,
+        wallet_public_key: hello.wallet_public_key.clone(),
+        wallet_nonce: hello.nonce.clone(),
+        funding: FundingRequestFunding {
+            asset_id: "xch",
+            amount_mojos: request.amount_mojos.to_string(),
+            required_confirmations: 1,
+        },
+        channel: FundingRequestChannel {
+            protocol_version: 2,
+            hub_public_key: hex::encode(runtime.hub_secret_key.public_key().to_bytes()),
+            user_public_key: hello.channel.user_public_key.clone(),
+            user_puzzle_hash: hello.channel.user_puzzle_hash.clone(),
+            claim_before_height,
+            refund_height,
+            funding_puzzle_hash: hex::encode(funding_puzzle_hash),
+            channel_terms_hash: hex::encode(terms.channel_terms_hash()),
+        },
+        hub_signature: String::new(),
     };
-    final_request.hub_signature = URL_SAFE_NO_PAD.encode(chia_bls::sign(&request_key, funding_request_signature_hash(&final_request).as_ref()).to_bytes());
-    let encoded = serde_json::to_vec(&final_request).map_err(|_| HttpError::bad_request("SERIALIZATION_ERROR", "failed to serialize final request"))?;
+    final_request.hub_signature = URL_SAFE_NO_PAD.encode(
+        chia_bls::sign(
+            &request_key,
+            funding_request_signature_hash(&final_request).as_ref(),
+        )
+        .to_bytes(),
+    );
+    let encoded = serde_json::to_vec(&final_request).map_err(|_| {
+        HttpError::bad_request("SERIALIZATION_ERROR", "failed to serialize final request")
+    })?;
     drop(runtime);
-    let encrypted = state.noise_sessions.lock().await.send(&key, &encoded).map_err(|error| HttpError::bad_request("NOISE_MESSAGE", error.to_string()))?;
-    Ok(Json(RelayFrameResponse { message: URL_SAFE_NO_PAD.encode(encrypted) }))
+    let encrypted = state
+        .noise_sessions
+        .lock()
+        .await
+        .send(&key, &encoded)
+        .map_err(|error| HttpError::bad_request("NOISE_MESSAGE", error.to_string()))?;
+    Ok(Json(RelayFrameResponse {
+        message: URL_SAFE_NO_PAD.encode(encrypted),
+    }))
 }
 
 async fn verify_wallet_connect_funding(
-    State(state): State<ApiState>, AxumPath(request_id): AxumPath<String>,
+    State(state): State<ApiState>,
+    AxumPath(request_id): AxumPath<String>,
 ) -> Result<Json<WalletConnectStatusResponse>, HttpError> {
-    let record = { state.runtime.lock().await.wallet_connect_store.load(&request_id).map_err(wallet_connect_error)?.ok_or_else(|| HttpError::bad_request("REQUEST_NOT_FOUND", "wallet-connect request was not found"))? };
-    let funding_puzzle_hash = record.funding_puzzle_hash.ok_or_else(|| HttpError::bad_request("FUNDING_NOT_AUTHORIZED", "funding parameters have not been authorized"))?;
-    if !matches!(record.state, WalletConnectState::Broadcast | WalletConnectState::PendingConfirmation | WalletConnectState::Active | WalletConnectState::Reorged) { return Err(HttpError::bad_request("FUNDING_NOT_BROADCAST", "wallet has not reported broadcast")); }
+    let record = {
+        state
+            .runtime
+            .lock()
+            .await
+            .wallet_connect_store
+            .load(&request_id)
+            .map_err(wallet_connect_error)?
+            .ok_or_else(|| {
+                HttpError::bad_request("REQUEST_NOT_FOUND", "wallet-connect request was not found")
+            })?
+    };
+    let funding_puzzle_hash = record.funding_puzzle_hash.ok_or_else(|| {
+        HttpError::bad_request(
+            "FUNDING_NOT_AUTHORIZED",
+            "funding parameters have not been authorized",
+        )
+    })?;
+    if !matches!(
+        record.state,
+        WalletConnectState::Broadcast
+            | WalletConnectState::PendingConfirmation
+            | WalletConnectState::Active
+            | WalletConnectState::Reorged
+    ) {
+        return Err(HttpError::bad_request(
+            "FUNDING_NOT_BROADCAST",
+            "wallet has not reported broadcast",
+        ));
+    }
     let node_status = state.node.status().await.map_err(node_error)?;
-    let candidates = state.node.get_unspent_coins(funding_puzzle_hash, record.amount_mojos).await.map_err(node_error)?.into_iter().filter(|coin| coin.coin.amount == record.amount_mojos).collect::<Vec<_>>();
+    let candidates = state
+        .node
+        .get_unspent_coins(funding_puzzle_hash, record.amount_mojos)
+        .await
+        .map_err(node_error)?
+        .into_iter()
+        .filter(|coin| coin.coin.amount == record.amount_mojos)
+        .collect::<Vec<_>>();
     let prior_coin = if candidates.is_empty() {
         match record.funding_coin_id {
             Some(coin_id) => state.node.get_coin(coin_id).await.map_err(node_error)?,
             None => None,
         }
-    } else { None };
+    } else {
+        None
+    };
     let mut runtime = state.runtime.lock().await;
     let next = match candidates.as_slice() {
         [coin] if coin.confirmed_block_index > 0 => {
-            let confirmations = node_status.peak_height.saturating_sub(coin.confirmed_block_index).saturating_add(1);
-            runtime.wallet_connect_store.observe_funding(&request_id, coin.coin.coin_id(), confirmations >= 1, false).map_err(wallet_connect_error)?
+            let confirmations = node_status
+                .peak_height
+                .saturating_sub(coin.confirmed_block_index)
+                .saturating_add(1);
+            runtime
+                .wallet_connect_store
+                .observe_funding(&request_id, coin.coin.coin_id(), confirmations >= 1, false)
+                .map_err(wallet_connect_error)?
         }
-        [coin] => runtime.wallet_connect_store.observe_funding(&request_id, coin.coin.coin_id(), false, false).map_err(wallet_connect_error)?,
-        [] if record.state == WalletConnectState::Active && prior_coin.is_none() && record.funding_coin_id.is_some() => runtime.wallet_connect_store.observe_funding(&request_id, record.funding_coin_id.expect("checked"), false, true).map_err(wallet_connect_error)?,
-        [] if prior_coin.as_ref().is_some_and(|coin| coin.spent) => return Err(HttpError::bad_request("FUNDING_SPENT", "funding coin is spent and cannot be reactivated")),
+        [coin] => runtime
+            .wallet_connect_store
+            .observe_funding(&request_id, coin.coin.coin_id(), false, false)
+            .map_err(wallet_connect_error)?,
+        [] if record.state == WalletConnectState::Active
+            && prior_coin.is_none()
+            && record.funding_coin_id.is_some() =>
+        {
+            runtime
+                .wallet_connect_store
+                .observe_funding(
+                    &request_id,
+                    record.funding_coin_id.expect("checked"),
+                    false,
+                    true,
+                )
+                .map_err(wallet_connect_error)?
+        }
+        [] if prior_coin.as_ref().is_some_and(|coin| coin.spent) => {
+            return Err(HttpError::bad_request(
+                "FUNDING_SPENT",
+                "funding coin is spent and cannot be reactivated",
+            ));
+        }
         [] => record,
-        _ => return Err(HttpError::bad_request("AMBIGUOUS_FUNDING", "multiple exact funding coins match this request")),
+        _ => {
+            return Err(HttpError::bad_request(
+                "AMBIGUOUS_FUNDING",
+                "multiple exact funding coins match this request",
+            ));
+        }
     };
-    Ok(Json(WalletConnectStatusResponse { request_id: next.request_id, state: next.state.as_str(), expires_at: next.expires_at, transaction_id: next.transaction_id.map(hex::encode), confirmations: 0 }))
+    Ok(Json(WalletConnectStatusResponse {
+        request_id: next.request_id,
+        state: next.state.as_str(),
+        expires_at: next.expires_at,
+        transaction_id: next.transaction_id.map(hex::encode),
+        confirmations: 0,
+    }))
 }
 
 async fn create_wallet_connect_request(
@@ -507,29 +841,90 @@ async fn create_wallet_connect_request(
     Json(request): Json<CreateWalletConnectRequest>,
 ) -> Result<Json<CreateWalletConnectResponse>, HttpError> {
     if request.asset_id != "xch" || request.network != "mainnet" {
-        return Err(HttpError::bad_request("UNSUPPORTED_ASSET_OR_NETWORK", "only mainnet XCH is supported"));
+        return Err(HttpError::bad_request(
+            "UNSUPPORTED_ASSET_OR_NETWORK",
+            "only mainnet XCH is supported",
+        ));
     }
-    let amount_mojos = request.amount_mojos.parse::<u64>().map_err(|_| HttpError::bad_request("INVALID_AMOUNT", "amount_mojos must be an unsigned decimal integer"))?;
+    let amount_mojos = request.amount_mojos.parse::<u64>().map_err(|_| {
+        HttpError::bad_request(
+            "INVALID_AMOUNT",
+            "amount_mojos must be an unsigned decimal integer",
+        )
+    })?;
     if amount_mojos == 0 || amount_mojos > MAX_PROTOCOL_U64 {
-        return Err(HttpError::bad_request("INVALID_AMOUNT", "amount_mojos is out of range"));
+        return Err(HttpError::bad_request(
+            "INVALID_AMOUNT",
+            "amount_mojos is out of range",
+        ));
     }
     if request.refund_delay_blocks < 20 {
-        return Err(HttpError::bad_request("INVALID_REFUND_DELAY", "refund_delay_blocks must be at least 20"));
+        return Err(HttpError::bad_request(
+            "INVALID_REFUND_DELAY",
+            "refund_delay_blocks must be at least 20",
+        ));
     }
-    let expires_at = unix_now().checked_add(300).ok_or_else(|| HttpError::bad_request("CLOCK_ERROR", "server clock overflow"))?;
+    let expires_at = unix_now()
+        .checked_add(300)
+        .ok_or_else(|| HttpError::bad_request("CLOCK_ERROR", "server clock overflow"))?;
     let mut runtime = state.runtime.lock().await;
-    let public_base = runtime.connect_public_base_url.clone().ok_or_else(|| HttpError::bad_request("CONNECT_NOT_CONFIGURED", "wallet-connect public base URL is not configured"))?;
-    let key_id = runtime.connect_hub_key_id.clone().ok_or_else(|| HttpError::bad_request("CONNECT_NOT_CONFIGURED", "wallet-connect Hub key id is not configured"))?;
-    let request_key = runtime.connect_request_secret_key.clone().ok_or_else(|| HttpError::bad_request("CONNECT_NOT_CONFIGURED", "wallet-connect request signing key is not configured"))?;
-    let stored = runtime.wallet_connect_store.create(amount_mojos, request.refund_delay_blocks, "mainnet", expires_at).map_err(wallet_connect_error)?;
-    let request_uri = format!("{}/v1/wallet-connect/requests/{}", public_base.trim_end_matches('/'), stored.request_id);
-    let signature = sign_connect_uri(&request_key, &request_uri, &stored.request_id, expires_at, &key_id).map_err(wallet_connect_error)?;
-    let connect_uri = format!("hubwallet://connect?v=1&request_uri={}&request_id={}&expires_at={}&hub_key_id={}&sig={}", percent_encode(&request_uri), stored.request_id, expires_at, percent_encode(&key_id), signature);
+    let public_base = runtime.connect_public_base_url.clone().ok_or_else(|| {
+        HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "wallet-connect public base URL is not configured",
+        )
+    })?;
+    let key_id = runtime.connect_hub_key_id.clone().ok_or_else(|| {
+        HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "wallet-connect Hub key id is not configured",
+        )
+    })?;
+    let request_key = runtime.connect_request_secret_key.clone().ok_or_else(|| {
+        HttpError::bad_request(
+            "CONNECT_NOT_CONFIGURED",
+            "wallet-connect request signing key is not configured",
+        )
+    })?;
+    let stored = runtime
+        .wallet_connect_store
+        .create(
+            amount_mojos,
+            request.refund_delay_blocks,
+            "mainnet",
+            expires_at,
+        )
+        .map_err(wallet_connect_error)?;
+    let request_uri = format!(
+        "{}/v1/wallet-connect/requests/{}",
+        public_base.trim_end_matches('/'),
+        stored.request_id
+    );
+    let signature = sign_connect_uri(
+        &request_key,
+        &request_uri,
+        &stored.request_id,
+        expires_at,
+        &key_id,
+    )
+    .map_err(wallet_connect_error)?;
+    let connect_uri = format!(
+        "hubwallet://connect?v=1&request_uri={}&request_id={}&expires_at={}&hub_key_id={}&sig={}",
+        percent_encode(&request_uri),
+        stored.request_id,
+        expires_at,
+        percent_encode(&key_id),
+        signature
+    );
     Ok(Json(CreateWalletConnectResponse {
         request_id: stored.request_id,
         connect_uri,
         expires_at,
-        display: WalletConnectDisplay { amount_xch: format_xch(amount_mojos), refund_delay_blocks: request.refund_delay_blocks, estimated_refund_time: format!("about {} blocks", request.refund_delay_blocks) },
+        display: WalletConnectDisplay {
+            amount_xch: format_xch(amount_mojos),
+            refund_delay_blocks: request.refund_delay_blocks,
+            estimated_refund_time: format!("about {} blocks", request.refund_delay_blocks),
+        },
     }))
 }
 
@@ -538,11 +933,36 @@ async fn wallet_connect_status(
     AxumPath(request_id): AxumPath<String>,
 ) -> Result<Json<WalletConnectStatusResponse>, HttpError> {
     let mut runtime = state.runtime.lock().await;
-    let record = runtime.wallet_connect_store.load(&request_id).map_err(wallet_connect_error)?.ok_or_else(|| HttpError::bad_request("REQUEST_NOT_FOUND", "wallet-connect request was not found"))?;
-    let record = if record.expires_at <= unix_now() && !matches!(record.state, WalletConnectState::Active | WalletConnectState::Cancelled | WalletConnectState::Expired | WalletConnectState::Rejected | WalletConnectState::Failed) {
-        runtime.wallet_connect_store.transition(&request_id, WalletConnectState::Expired).unwrap_or(record)
-    } else { record };
-    Ok(Json(WalletConnectStatusResponse { request_id: record.request_id, state: record.state.as_str(), expires_at: record.expires_at, transaction_id: None, confirmations: 0 }))
+    let record = runtime
+        .wallet_connect_store
+        .load(&request_id)
+        .map_err(wallet_connect_error)?
+        .ok_or_else(|| {
+            HttpError::bad_request("REQUEST_NOT_FOUND", "wallet-connect request was not found")
+        })?;
+    let record = if record.expires_at <= unix_now()
+        && !matches!(
+            record.state,
+            WalletConnectState::Active
+                | WalletConnectState::Cancelled
+                | WalletConnectState::Expired
+                | WalletConnectState::Rejected
+                | WalletConnectState::Failed
+        ) {
+        runtime
+            .wallet_connect_store
+            .transition(&request_id, WalletConnectState::Expired)
+            .unwrap_or(record)
+    } else {
+        record
+    };
+    Ok(Json(WalletConnectStatusResponse {
+        request_id: record.request_id,
+        state: record.state.as_str(),
+        expires_at: record.expires_at,
+        transaction_id: None,
+        confirmations: 0,
+    }))
 }
 
 async fn health(State(state): State<ApiState>) -> Json<HealthResponse> {
@@ -967,49 +1387,108 @@ fn node_error(error: ChiaNodeError) -> HttpError {
 
 fn wallet_connect_error(error: crate::WalletConnectError) -> HttpError {
     let status = match error {
-        crate::WalletConnectError::Database(_) | crate::WalletConnectError::Corrupt(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        crate::WalletConnectError::Database(_) | crate::WalletConnectError::Corrupt(_) => {
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
         crate::WalletConnectError::NotFound => StatusCode::NOT_FOUND,
-        crate::WalletConnectError::Expired | crate::WalletConnectError::Consumed | crate::WalletConnectError::SessionConflict | crate::WalletConnectError::Transition { .. } | crate::WalletConnectError::Invalid(_) => StatusCode::BAD_REQUEST,
+        crate::WalletConnectError::Expired
+        | crate::WalletConnectError::Consumed
+        | crate::WalletConnectError::SessionConflict
+        | crate::WalletConnectError::Transition { .. }
+        | crate::WalletConnectError::Invalid(_) => StatusCode::BAD_REQUEST,
     };
-    HttpError { status, code: "WALLET_CONNECT_ERROR", message: error.to_string() }
+    HttpError {
+        status,
+        code: "WALLET_CONNECT_ERROR",
+        message: error.to_string(),
+    }
 }
 
-fn unix_now() -> u64 { SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs() }
+fn unix_now() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+}
 
 fn percent_encode(value: &str) -> String {
-    value.bytes().flat_map(|byte| {
-        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') { vec![byte as char] }
-        else { format!("%{byte:02X}").chars().collect() }
-    }).collect()
+    value
+        .bytes()
+        .flat_map(|byte| {
+            if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') {
+                vec![byte as char]
+            } else {
+                format!("%{byte:02X}").chars().collect()
+            }
+        })
+        .collect()
 }
 
 fn format_xch(mojos: u64) -> String {
     const MOJOS_PER_XCH: u64 = 1_000_000_000_000;
     let whole = mojos / MOJOS_PER_XCH;
     let fractional = mojos % MOJOS_PER_XCH;
-    if fractional == 0 { whole.to_string() } else { format!("{whole}.{fractional:012}").trim_end_matches('0').to_string() }
+    if fractional == 0 {
+        whole.to_string()
+    } else {
+        format!("{whole}.{fractional:012}")
+            .trim_end_matches('0')
+            .to_string()
+    }
 }
 
 fn decode_frame(value: &str) -> Result<Vec<u8>, HttpError> {
-    URL_SAFE_NO_PAD.decode(value).map_err(|_| HttpError::bad_request("INVALID_RELAY_FRAME", "message must be base64url"))
+    URL_SAFE_NO_PAD
+        .decode(value)
+        .map_err(|_| HttpError::bad_request("INVALID_RELAY_FRAME", "message must be base64url"))
 }
 
 fn parse_raw_32(value: &str) -> Result<[u8; 32], String> {
     let value = value.strip_prefix("0x").unwrap_or(value);
-    hex::decode(value).map_err(|error| format!("invalid 32-byte key: {error}"))?.try_into().map_err(|_| "key must be 32 bytes".to_string())
+    hex::decode(value)
+        .map_err(|error| format!("invalid 32-byte key: {error}"))?
+        .try_into()
+        .map_err(|_| "key must be 32 bytes".to_string())
 }
 
 fn parse_public_key_bytes(value: &str) -> Result<[u8; 48], HttpError> {
     let value = value.strip_prefix("0x").unwrap_or(value);
-    hex::decode(value).map_err(|_| HttpError::bad_request("INVALID_PUBLIC_KEY", "user_public_key must be hex"))?.try_into().map_err(|_| HttpError::bad_request("INVALID_PUBLIC_KEY", "user_public_key must be 48 bytes"))
+    hex::decode(value)
+        .map_err(|_| HttpError::bad_request("INVALID_PUBLIC_KEY", "user_public_key must be hex"))?
+        .try_into()
+        .map_err(|_| {
+            HttpError::bad_request("INVALID_PUBLIC_KEY", "user_public_key must be 48 bytes")
+        })
 }
 
-fn validate_wallet_hello(hello: &WalletHello, request_id: &str, session_id: &str) -> Result<(), HttpError> {
-    if hello.protocol != "hubwallet-connect" || hello.version != 1 || hello.message_type != "wallet_hello" { return Err(HttpError::bad_request("INVALID_WALLET_HELLO", "unsupported wallet hello protocol")); }
-    if hello.request_id != request_id || hello.session_id != session_id { return Err(HttpError::bad_request("INVALID_WALLET_HELLO", "request or session binding does not match")); }
+fn validate_wallet_hello(
+    hello: &WalletHello,
+    request_id: &str,
+    session_id: &str,
+) -> Result<(), HttpError> {
+    if hello.protocol != "hubwallet-connect"
+        || hello.version != 1
+        || hello.message_type != "wallet_hello"
+    {
+        return Err(HttpError::bad_request(
+            "INVALID_WALLET_HELLO",
+            "unsupported wallet hello protocol",
+        ));
+    }
+    if hello.request_id != request_id || hello.session_id != session_id {
+        return Err(HttpError::bad_request(
+            "INVALID_WALLET_HELLO",
+            "request or session binding does not match",
+        ));
+    }
     let wallet_key = decode_frame(&hello.wallet_public_key)?;
     let nonce = decode_frame(&hello.nonce)?;
-    if wallet_key.len() != 32 || nonce.len() != 32 { return Err(HttpError::bad_request("INVALID_WALLET_HELLO", "wallet key and nonce must be 32 bytes")); }
+    if wallet_key.len() != 32 || nonce.len() != 32 {
+        return Err(HttpError::bad_request(
+            "INVALID_WALLET_HELLO",
+            "wallet key and nonce must be 32 bytes",
+        ));
+    }
     parse_public_key(&hello.channel.user_public_key, "user_public_key")?;
     parse_bytes32(&hello.channel.user_puzzle_hash, "user_puzzle_hash")?;
     Ok(())
@@ -1017,14 +1496,50 @@ fn validate_wallet_hello(hello: &WalletHello, request_id: &str, session_id: &str
 
 fn funding_request_signature_hash(request: &FundingRequestFinal) -> Bytes32 {
     let fields: Vec<Vec<u8>> = vec![
-        b"XHUB_FUNDING_REQUEST_V1".to_vec(), request.version.to_be_bytes().to_vec(), text_bytes(&request.request_id), text_bytes(&request.session_id), request.created_at.to_be_bytes().to_vec(), request.expires_at.to_be_bytes().to_vec(), text_bytes(request.network), text_bytes(&request.hub_key_id), text_bytes(request.funding.asset_id), request.funding.amount_mojos.parse::<u64>().expect("server generated amount").to_be_bytes().to_vec(), request.funding.required_confirmations.to_be_bytes().to_vec(), request.channel.protocol_version.to_be_bytes().to_vec(),
-        hex::decode(&request.channel.hub_public_key).expect("server generated hub key"), hex::decode(&request.channel.user_public_key).expect("validated wallet key"), hex::decode(&request.channel.user_puzzle_hash).expect("validated wallet puzzle hash"), request.channel.claim_before_height.to_be_bytes().to_vec(), request.channel.refund_height.to_be_bytes().to_vec(), hex::decode(&request.channel.funding_puzzle_hash).expect("server generated puzzle hash"), hex::decode(&request.channel.channel_terms_hash).expect("server generated terms hash"), URL_SAFE_NO_PAD.decode(&request.wallet_public_key).expect("validated wallet ephemeral key"), URL_SAFE_NO_PAD.decode(&request.wallet_nonce).expect("validated wallet nonce"),
+        b"XHUB_FUNDING_REQUEST_V1".to_vec(),
+        request.version.to_be_bytes().to_vec(),
+        text_bytes(&request.request_id),
+        text_bytes(&request.session_id),
+        request.created_at.to_be_bytes().to_vec(),
+        request.expires_at.to_be_bytes().to_vec(),
+        text_bytes(request.network),
+        text_bytes(&request.hub_key_id),
+        text_bytes(request.funding.asset_id),
+        request
+            .funding
+            .amount_mojos
+            .parse::<u64>()
+            .expect("server generated amount")
+            .to_be_bytes()
+            .to_vec(),
+        request
+            .funding
+            .required_confirmations
+            .to_be_bytes()
+            .to_vec(),
+        request.channel.protocol_version.to_be_bytes().to_vec(),
+        hex::decode(&request.channel.hub_public_key).expect("server generated hub key"),
+        hex::decode(&request.channel.user_public_key).expect("validated wallet key"),
+        hex::decode(&request.channel.user_puzzle_hash).expect("validated wallet puzzle hash"),
+        request.channel.claim_before_height.to_be_bytes().to_vec(),
+        request.channel.refund_height.to_be_bytes().to_vec(),
+        hex::decode(&request.channel.funding_puzzle_hash).expect("server generated puzzle hash"),
+        hex::decode(&request.channel.channel_terms_hash).expect("server generated terms hash"),
+        URL_SAFE_NO_PAD
+            .decode(&request.wallet_public_key)
+            .expect("validated wallet ephemeral key"),
+        URL_SAFE_NO_PAD
+            .decode(&request.wallet_nonce)
+            .expect("validated wallet nonce"),
     ];
     crate::hash_parts(&fields.iter().map(Vec::as_slice).collect::<Vec<_>>())
 }
 
 fn text_bytes(value: &str) -> Vec<u8> {
-    let mut bytes = u32::try_from(value.len()).expect("protocol text length").to_be_bytes().to_vec();
+    let mut bytes = u32::try_from(value.len())
+        .expect("protocol text length")
+        .to_be_bytes()
+        .to_vec();
     bytes.extend_from_slice(value.as_bytes());
     bytes
 }
