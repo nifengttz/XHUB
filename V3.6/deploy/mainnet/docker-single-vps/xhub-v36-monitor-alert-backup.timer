@@ -1,0 +1,13 @@
+[Unit]
+Description=Daily XHUB V3.6 monitor aggregate alert database backup
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 UTC
+Persistent=true
+RandomizedDelaySec=15m
+AccuracySec=1m
+Unit=xhub-v36-monitor-alert-backup.service
+
+[Install]
+WantedBy=timers.target
+

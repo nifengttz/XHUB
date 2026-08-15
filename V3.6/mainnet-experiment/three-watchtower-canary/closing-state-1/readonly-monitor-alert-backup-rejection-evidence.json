@@ -1,0 +1,23 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-alert-backup-rejection-evidence-1",
+  "protocol_version": "0x0360",
+  "candidate_backup_id": "alerts-20260814T174934Z",
+  "candidate_database_sha256": "ecebcfef853ac1d1a44fc652c28ae7a95f8fce2a9b8d2a64c9dd5315ec865abb",
+  "candidate_database_size": 4096,
+  "expected_event_count": 3,
+  "backup_method": "MAIN_DATABASE_FILE_COPY_AFTER_CONTAINER_STOP",
+  "restore_drill_accepted": false,
+  "rejection_reason": "historical event set was not restored from a main-file-only WAL database copy",
+  "online_aggregate_affected": false,
+  "temporary_container_removed": true,
+  "temporary_restore_directory_removed": true,
+  "candidate_quarantined": true,
+  "quarantine_name": "alerts-20260814T174934Z.INVALID_WAL_COPY_DO_NOT_RESTORE",
+  "replacement_backup_id": "alerts-20260814T175458Z",
+  "replacement_method": "SQLITE_ONLINE_BACKUP_WITH_QUICK_CHECK",
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

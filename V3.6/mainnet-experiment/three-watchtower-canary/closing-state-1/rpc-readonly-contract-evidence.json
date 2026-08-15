@@ -1,0 +1,48 @@
+{
+  "schema": "xhub-v3-6-mainnet-rpc-readonly-contract-evidence-1",
+  "protocol_version": "0x0360",
+  "network": "mainnet",
+  "rpc_mode": "trusted_public_https",
+  "rpc_url": "https://api.coinset.org",
+  "rpc_output_sha256": "64a0a64b360be4484ef12e0960a228dde1aef93bc0b3ea58e0be2e88a234290c",
+  "network_id": "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb",
+  "funding_coin_id": "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+  "funding_puzzle_hash": "9f35a25beeebc2f19c7ddc82fb7ada89da703e6421f68ca3b4a34ec33f534820",
+  "funding_amount_mojo": 5,
+  "funding_birth_height": 9146971,
+  "live_peak_height": 9148374,
+  "confirmations": 1404,
+  "funding_coin_status": "CONFIRMED_UNSPENT",
+  "hypothetical_start_close_height": 9159459,
+  "blocks_until_hypothetical_start_close": 11085,
+  "closing_coin_observed": false,
+  "challenge_window_active": false,
+  "allowed_rpc_methods": [
+    "get_network_info",
+    "get_blockchain_state",
+    "get_coin_record_by_name",
+    "get_puzzle_and_solution"
+  ],
+  "live_rpc_methods_called": [
+    "get_network_info",
+    "get_blockchain_state",
+    "get_coin_record_by_name"
+  ],
+  "prohibited_rpc_methods": [
+    "push_tx"
+  ],
+  "rpc_contract_tests_passed": 3,
+  "failure_injection_cases": [
+    "HTTP_500",
+    "RPC_SUCCESS_FALSE",
+    "MALFORMED_JSON"
+  ],
+  "rpc_unknown_invalidation_tests_passed": 7,
+  "fail_closed_verified": true,
+  "rpc_write_request_created": false,
+  "push_tx_called": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false,
+  "status": "COINSET_READONLY_PREFLIGHT_AND_CONTRACTS_VERIFIED"
+}

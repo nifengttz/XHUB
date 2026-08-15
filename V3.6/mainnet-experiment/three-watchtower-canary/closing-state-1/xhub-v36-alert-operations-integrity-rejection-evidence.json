@@ -1,0 +1,18 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-operations-integrity-rejection-evidence-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T22:40:39Z",
+  "modified_manifest_copy_rejected": true,
+  "modified_source_file": "sqlite-online-backup.py",
+  "installed_files_modified": false,
+  "installed_manifest_modified": false,
+  "temporary_manifest_removed": true,
+  "automatic_repair_enabled": false,
+  "external_notification_enabled": false,
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

@@ -1,0 +1,20 @@
+[package]
+name = "xhub-protocol-v3-6"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+chia-bls = "=0.36.1"
+clvm-utils = "=0.36.1"
+hex = "0.4"
+serde_json = "1.0"
+sha2 = "0.10"
+thiserror = "2.0"
+
+[dev-dependencies]
+serde_json = "1.0"
+
+[[bin]]
+name = "generate-vectors"
+path = "src/bin/generate_vectors.rs"

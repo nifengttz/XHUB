@@ -1,0 +1,23 @@
+{
+  "schema": "xhub-v3-6-mainnet-canary-plan-1",
+  "protocol_version": "0x0360",
+  "environment": "mainnet-canary",
+  "funding_coin_id": "REPLACE_WITH_MAINNET_64_HEX_FUNDING_COIN_ID",
+  "funding_puzzle_hash": "REPLACE_WITH_64_HEX_FUNDING_PUZZLE_HASH",
+  "max_total_mojo": 1,
+  "broadcast_enabled": false,
+  "manual_approval_required": true,
+  "required_checks": [
+    "mainnet_rpc_preflight_verified",
+    "funding_coin_record_verified",
+    "puzzle_hash_and_module_hashes_verified",
+    "recovery_package_delivery_simulated",
+    "two_person_review_recorded"
+  ],
+  "prohibited_materials": [
+    "private_key",
+    "mnemonic",
+    "spend_bundle_canonical_hex",
+    "push_tx"
+  ]
+}

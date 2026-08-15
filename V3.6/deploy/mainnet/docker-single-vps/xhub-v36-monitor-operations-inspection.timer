@@ -1,0 +1,13 @@
+[Unit]
+Description=Periodic XHUB V3.6 monitor aggregate local operations inspection
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+RandomizedDelaySec=2m
+AccuracySec=30s
+Unit=xhub-v36-monitor-operations-inspection.service
+
+[Install]
+WantedBy=timers.target
+

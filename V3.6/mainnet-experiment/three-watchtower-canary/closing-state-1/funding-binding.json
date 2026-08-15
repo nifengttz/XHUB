@@ -1,0 +1,13 @@
+{
+    "schema":  "xhub-v3-6-mainnet-funding-binding-1",
+    "protocol_version":  "0x0360",
+    "plan_sha256":  "867068ac17e7aba51002543558d9c0da95cf70b6b39f6886cd4c7f52a35e9bf4",
+    "rpc_output_sha256":  "ae6f7234c1ed916ea68691ccbd552d6fef1a7f46613651f2790e15eb8ba7a96a",
+    "parameters_sha256":  "c346f3a6cc55b43b66e492a72f920a53cdb782e626edd7a007631515568d98b0",
+    "config_sha256":  "1f07ae0729fbdd1f2467fa1c7da28cee6aebb87acef6d05fd597757f38996881",
+    "funding_coin_id":  "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+    "funding_puzzle_hash":  "9f35a25beeebc2f19c7ddc82fb7ada89da703e6421f68ca3b4a34ec33f534820",
+    "funding_amount_mojo":  5,
+    "broadcast_enabled":  false,
+    "status":  "FUNDING_BINDING_VERIFIED"
+}

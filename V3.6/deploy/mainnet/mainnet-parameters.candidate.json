@@ -1,0 +1,17 @@
+{
+  "schema": "xhub-v3-6-mainnet-parameters-1",
+  "protocol_version": "0x0360",
+  "profile_id": "v3.6-mainnet-canary-candidate-1",
+  "acceptance_blocks": 12288,
+  "freeze_blocks": 200,
+  "close_delay_blocks": 12488,
+  "challenge_blocks": 6000,
+  "funding_confirmation_blocks": 32,
+  "merchant_delivery_confirmations_required": 1,
+  "custody_attestation_threshold": 2,
+  "custody_attestation_participants": 3,
+  "max_ledger_entries": 64,
+  "immutable_after_funding": true,
+  "challenge_safety_review_status": "PENDING_EXTERNAL_REVIEW",
+  "mainnet_approved": false
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "xhub-v3-6-mainnet-funding-result-1",
+  "release_status": "UNAUDITED_MAINNET_EXPERIMENT",
+  "mainnet_approved": false,
+  "network": "mainnet",
+  "rpc_url": "https://api.coinset.org",
+  "coin_id": "d8d089881dde12de0bdb8a078df9ab047da307d3f671b5b188b78448d570ea9d",
+  "parent_coin_info": "9d5032cdc36b4b994f4df4326afe08bcd6493a1d423e2577ad0595949f813e41",
+  "puzzle_hash": "4ba0b363a1d5144d1a9b29b7490eb92e5d259933d267bb2741f15527affcd447",
+  "amount_mojo": 10,
+  "confirmed_block_index": 9137586,
+  "spent": false,
+  "spent_block_index": 0,
+  "timestamp": 1786510811,
+  "verification": {
+    "method": "get_coin_record_by_name",
+    "success": true,
+    "observed_peak_height": 9137621,
+    "observed_confirmations": 36,
+    "observed_at": "2026-08-12T13:12:00+08:00"
+  },
+  "hub_registration": {
+    "registered": true,
+    "hub_url": "http://127.0.0.1:8737",
+    "protocol_version": "0x0360",
+    "channel_terms_hash": "410749d14e4c3610a64e93b4926c10ebb6019784e885cef408ac751176ecc9ca",
+    "funding_birth_height": 9137586,
+    "acceptance_cutoff_height": 9149874,
+    "scheduled_close_height": 9150074,
+    "confirmation_blocks": 32,
+    "chain_state": "ACTIVE"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-operations-inspection-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T22:40:39Z",
+  "status": "PASS",
+  "aggregate": {
+    "status": "READY",
+    "agreeing_count": 3,
+    "quorum_reached": true
+  },
+  "containers": [
+    {
+      "name": "xhub-v36-monitor-a",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-b",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-c",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-aggregate",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    }
+  ],
+  "event_count": 3,
+  "backup": {
+    "backup_id": "alerts-20260814T224038Z",
+    "database_sha256": "6b4f57e55056d9e0f067fc01cc019f7b78b2e335baa56f80eea3da93b62949ed",
+    "age_seconds": 1,
+    "maximum_age_seconds": 172800,
+    "fresh": true
+  },
+  "disk": {
+    "available_bytes": 27494055936,
+    "minimum_free_bytes": 1073741824,
+    "capacity_gate_passed": true
+  },
+  "timer": {
+    "enabled": "enabled",
+    "active": "active",
+    "next_run": "Sat 2026-08-15 11:28:46 CST"
+  },
+  "retention": {
+    "valid_backup_count": 7,
+    "candidate_count": 0,
+    "files_deleted": false,
+    "manual_review_required": true
+  },
+  "integrity": {
+    "status": "PASS",
+    "manifest_sha256": "aef7b0d276b615b367f7c2855d641a24cf5b38b19a7dd977066043e977957c7a",
+    "verified_file_count": 17,
+    "all_files_match": true,
+    "automatic_repair_enabled": false
+  },
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

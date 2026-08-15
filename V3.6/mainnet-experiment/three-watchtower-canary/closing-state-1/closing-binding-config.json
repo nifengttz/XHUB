@@ -1,0 +1,11 @@
+{
+    "schema":  "xhub-v3-6-three-watchtower-closing-binding-1",
+    "protocol_version":  "0x0360",
+    "rpc_mode":  "trusted_public_https",
+    "chia_rpc_url":  "https://api.coinset.org",
+    "expected_network_id":  "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb",
+    "funding_coin_id":  "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+    "test_only":  true,
+    "production_ready":  false,
+    "production_broadcast":  false
+}

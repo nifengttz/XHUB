@@ -1,0 +1,122 @@
+{
+  "schema": "xhub-v3-6-mainnet-readonly-monitor-aggregate-evidence-1",
+  "protocol_version": "0x0360",
+  "network": "mainnet",
+  "captured_at_utc": "2026-08-14T16:13:03Z",
+  "host": "43.156.47.252",
+  "deployment_model": "single_vps_docker_test",
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "funding_coin_id": "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+  "image": {
+    "tag": "xhub-watchtower-v3-6:readonly-monitor",
+    "id": "sha256:be80ef71288919e0e6a7ce6858b45f19b397659a86fccd494c9229c33aecda9d",
+    "created_at": "2026-08-15T00:05:22.613920919+08:00"
+  },
+  "source_sha256": {
+    "rpc.rs": "ab57ac3711163975fae64f666ee152671a20b5718e5240c9fa11a3be1b01b26d",
+    "monitor.rs": "be68b5c5967815ff588fe76a82a3ab6d577ebfd2a913efd433519e3f50274abb",
+    "monitor_aggregate.rs": "d1e3829a7e7ffbc34638731ed1db102e2e8e548ad6082105397cac8d487a103b",
+    "watchtower.Cargo.toml": "97661870a90a41a1c5d22c09608f529479779354c61b49014060d85824f85a7d",
+    "Dockerfile": "63ecaadb489d4db36a251483665290896b15e54a1dcdaa4579defc6b3f938833",
+    "compose.readonly-monitors.yaml": "90ed34b10e3af7bd647db077db26f94daf853f19ca1c30358c5b41662b1f1821",
+    "install-readonly-monitors.sh": "85ab8d1574b10a66df226a79cc0eaa3ad7fe0953536c0ff4f1792c6fc0053e48",
+    "verify-aggregator-failover.sh": "371fd813c5a2d31fe96f3b0c59fe1b082632c917f341d06d5579f166b26f82f4"
+  },
+  "backup_path": "/opt/xhub-v3.6-test/deploy-backups/readonly-monitor-20260814T155919Z",
+  "aggregator": {
+    "container": "xhub-v36-monitor-aggregate",
+    "started_at": "2026-08-14T16:05:39.168863692Z",
+    "listen": "127.0.0.1:18744",
+    "publicly_exposed": false,
+    "poll_interval_seconds": 60,
+    "max_staleness_seconds": 180,
+    "restart_count": 0,
+    "health": "healthy",
+    "uid_gid": "65532:65532",
+    "root_filesystem_read_only": true,
+    "mount_count": 0,
+    "capabilities_dropped": [
+      "ALL"
+    ],
+    "no_new_privileges": true,
+    "api_token_mounted": false,
+    "private_key_mounted": false
+  },
+  "normal_observation": {
+    "status": "READY",
+    "endpoint_count": 3,
+    "eligible_count": 3,
+    "agreeing_count": 3,
+    "quorum_required": 2,
+    "quorum_reached": true,
+    "consensus_action": "FUNDING_OPEN",
+    "consensus_peak_height": 9148889,
+    "alert_level": "NONE",
+    "operator_attention_required": false,
+    "successful_aggregate_polls_at_capture": 8
+  },
+  "controlled_failover": {
+    "method": "pause_xhub-v36-monitor-c_with_exit_trap",
+    "maximum_pause_seconds": 90,
+    "status": "DEGRADED",
+    "eligible_count": 2,
+    "agreeing_count": 2,
+    "quorum_reached": true,
+    "consensus_action": "FUNDING_OPEN",
+    "alert_level": "WARNING",
+    "operator_attention_required": true,
+    "monitor_c_restored": true
+  },
+  "post_failover_recovery": {
+    "status": "READY",
+    "eligible_count": 3,
+    "agreeing_count": 3,
+    "quorum_reached": true,
+    "consensus_action": "FUNDING_OPEN",
+    "consensus_peak_height": 9148906,
+    "alert_level": "NONE",
+    "monitor_c_restart_count": 0,
+    "monitor_c_health": "healthy",
+    "aggregator_restart_count": 0,
+    "aggregator_health": "healthy"
+  },
+  "failure_policy": {
+    "two_of_three_same_action": "DEGRADED_WARNING",
+    "no_two_of_three_quorum": "UNKNOWN_CRITICAL",
+    "closing_current": "WARNING",
+    "challenge_planned": "CRITICAL",
+    "deadline_passed": "CRITICAL",
+    "reorg_pending": "CRITICAL",
+    "rpc_unknown_or_stale": "CRITICAL",
+    "prohibited_broadcast_field_true": "ENDPOINT_INELIGIBLE"
+  },
+  "execution_gate": "DUAL_APPROVAL_AND_FINAL_RECHECK_REQUIRED",
+  "manual_approval_required": true,
+  "spend_bundle_created": false,
+  "push_tx_called": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false,
+  "wrong_protocol_version_http_status": 400,
+  "tests": {
+    "aggregator_unit_and_http_tests_passed": 5,
+    "strict_clippy_passed": true,
+    "all_bins_cargo_check_passed": true,
+    "single_vps_docker_tests_passed": true,
+    "prohibited_runtime_field_scan_passed": true,
+    "remote_compose_config_passed": true,
+    "controlled_failover_passed": true,
+    "post_failover_recovery_passed": true
+  },
+  "existing_services": {
+    "xhub-v36-hub": "healthy",
+    "xhub-v36-wt-a": "healthy",
+    "xhub-v36-wt-b": "healthy",
+    "xhub-v36-wt-c": "healthy",
+    "xhub-v36-monitor-a": "healthy",
+    "xhub-v36-monitor-b": "healthy",
+    "xhub-v36-monitor-c": "healthy"
+  },
+  "status": "THREE_MONITOR_QUORUM_AGGREGATOR_AND_FAILOVER_VERIFIED"
+}

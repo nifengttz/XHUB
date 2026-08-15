@@ -1,0 +1,17 @@
+{
+  "schema": "xhub-v3-6-testnet-deployment-1",
+  "wallet_listen": "127.0.0.1:18736",
+  "hub_listen": "127.0.0.1:18737",
+  "watchtower_listen": "127.0.0.1:18738",
+  "hub_db": "./data/smoke-hub.sqlite3",
+  "watchtower_db": "./data/smoke-watchtower.sqlite3",
+  "hub_api_token_file": "./secrets/smoke-hub-api-token.txt",
+  "watchtower_api_token_file": "./secrets/smoke-watchtower-api-token.txt",
+  "hub_bls_secret_file": "./secrets/smoke-hub-bls-secret.hex",
+  "watchtower_confirmers_file": "./confirmers.example.json",
+  "watchtower_custody_attesters_file": "./custody-attesters.example.json",
+  "watchtower_url": "http://127.0.0.1:18738",
+  "watchtower_recipient_id": "watchtower-smoke-1",
+  "chia_rpc_url": "http://127.0.0.1:19999",
+  "expected_network_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

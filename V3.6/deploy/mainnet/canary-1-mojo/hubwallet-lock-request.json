@@ -1,0 +1,7 @@
+{
+  "request_id": "xhub-v36-mainnet-canary-001",
+  "network": "mainnet",
+  "target_address": "xch19sqxt3zqugv5t4lhsq5qvuelnjlz3wfgyp6c4asypnqfxakhx0pqtq9gv5",
+  "amount_mojo": 1,
+  "memo": "xhub-v3.6-mainnet-canary-funding"
+}

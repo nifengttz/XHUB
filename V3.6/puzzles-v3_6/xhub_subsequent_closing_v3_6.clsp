@@ -1,0 +1,137 @@
+(mod (
+    CURRENT_COMMITMENT
+    mode challenge_deadline_height
+    network_id acceptance_blocks freeze_blocks close_delay_blocks challenge_blocks
+    user_public_key hub_public_key state_rules_hash_value funding_amount
+    user_remainder_puzzle_hash max_ledger_entries initial_closing_mod_hash
+    subsequent_closing_mod_hash payment_mod_hash funding_coin_id
+    current_sequence current_previous_checkpoint_hash current_manifest_root
+    current_entry_count current_reserved_total current_user_remainder current_entries
+    new_sequence new_previous_checkpoint_hash new_manifest_root new_entry_count
+    new_reserved_total new_user_remainder new_entries
+  )
+  (include *standard-cl-23*)
+  (include xhub_v3_6_common.clib)
+
+  (require (= (strlen CURRENT_COMMITMENT) 32)
+    (require
+      (channel-terms-valid network_id acceptance_blocks freeze_blocks
+        close_delay_blocks challenge_blocks user_public_key hub_public_key
+        state_rules_hash_value funding_amount user_remainder_puzzle_hash
+        max_ledger_entries initial_closing_mod_hash subsequent_closing_mod_hash
+        payment_mod_hash
+        (terms-hash network_id acceptance_blocks freeze_blocks close_delay_blocks
+          challenge_blocks user_public_key hub_public_key state_rules_hash_value
+          funding_amount user_remainder_puzzle_hash max_ledger_entries))
+      (require (= (strlen funding_coin_id) 32)
+        (require (= (strlen challenge_deadline_height) 8)
+          (require (> (+ challenge_deadline_height 0) 0)
+            (require
+              (state-valid network_id funding_coin_id
+                (terms-hash network_id acceptance_blocks freeze_blocks
+                  close_delay_blocks challenge_blocks user_public_key
+                  hub_public_key state_rules_hash_value funding_amount
+                  user_remainder_puzzle_hash max_ledger_entries)
+                funding_amount user_remainder_puzzle_hash current_sequence
+                current_previous_checkpoint_hash current_manifest_root
+                current_entry_count current_reserved_total current_user_remainder
+                current_entries)
+              (require (= CURRENT_COMMITMENT
+                (closing-state-hash network_id funding_coin_id
+                  (terms-hash network_id acceptance_blocks freeze_blocks
+                    close_delay_blocks challenge_blocks user_public_key
+                    hub_public_key state_rules_hash_value funding_amount
+                    user_remainder_puzzle_hash max_ledger_entries)
+                  challenge_deadline_height
+                  (current-state-hash network_id funding_coin_id
+                    (terms-hash network_id acceptance_blocks freeze_blocks
+                      close_delay_blocks challenge_blocks user_public_key
+                      hub_public_key state_rules_hash_value funding_amount
+                      user_remainder_puzzle_hash max_ledger_entries)
+                    funding_amount user_remainder_puzzle_hash current_sequence
+                    current_previous_checkpoint_hash current_manifest_root
+                    current_entry_count current_reserved_total
+                    current_user_remainder)))
+                (append-list
+                  (state-signature-conditions network_id funding_coin_id
+                    (terms-hash network_id acceptance_blocks freeze_blocks
+                      close_delay_blocks challenge_blocks user_public_key
+                      hub_public_key state_rules_hash_value funding_amount
+                      user_remainder_puzzle_hash max_ledger_entries)
+                    funding_amount user_remainder_puzzle_hash user_public_key
+                    hub_public_key current_sequence current_previous_checkpoint_hash
+                    current_manifest_root current_entry_count current_reserved_total
+                    current_user_remainder current_entries)
+                  (if (= mode MODE_CHALLENGE)
+                    (require (> (+ new_sequence 0) (+ current_sequence 0))
+                      (require
+                        (state-valid network_id funding_coin_id
+                          (terms-hash network_id acceptance_blocks freeze_blocks
+                            close_delay_blocks challenge_blocks user_public_key
+                            hub_public_key state_rules_hash_value funding_amount
+                            user_remainder_puzzle_hash max_ledger_entries)
+                          funding_amount user_remainder_puzzle_hash new_sequence
+                          new_previous_checkpoint_hash new_manifest_root
+                          new_entry_count new_reserved_total new_user_remainder
+                          new_entries)
+                        (append-list
+                          (state-signature-conditions network_id funding_coin_id
+                            (terms-hash network_id acceptance_blocks freeze_blocks
+                              close_delay_blocks challenge_blocks user_public_key
+                              hub_public_key state_rules_hash_value funding_amount
+                              user_remainder_puzzle_hash max_ledger_entries)
+                            funding_amount user_remainder_puzzle_hash
+                            user_public_key hub_public_key new_sequence
+                            new_previous_checkpoint_hash new_manifest_root
+                            new_entry_count new_reserved_total new_user_remainder
+                            new_entries)
+                          (list
+                            (list ASSERT_MY_AMOUNT (+ funding_amount 0))
+                            (list ASSERT_BEFORE_HEIGHT_ABSOLUTE
+                              (+ challenge_deadline_height 0))
+                            (list CREATE_COIN
+                              (curry-hash subsequent_closing_mod_hash
+                                (list
+                                  (atom-hash
+                                    (closing-state-hash network_id funding_coin_id
+                                      (terms-hash network_id acceptance_blocks
+                                        freeze_blocks close_delay_blocks
+                                        challenge_blocks user_public_key
+                                        hub_public_key state_rules_hash_value
+                                        funding_amount user_remainder_puzzle_hash
+                                        max_ledger_entries)
+                                      challenge_deadline_height
+                                      (current-state-hash network_id
+                                        funding_coin_id
+                                        (terms-hash network_id acceptance_blocks
+                                          freeze_blocks close_delay_blocks
+                                          challenge_blocks user_public_key
+                                          hub_public_key state_rules_hash_value
+                                          funding_amount
+                                          user_remainder_puzzle_hash
+                                          max_ledger_entries)
+                                        funding_amount user_remainder_puzzle_hash
+                                        new_sequence new_previous_checkpoint_hash
+                                        new_manifest_root new_entry_count
+                                        new_reserved_total new_user_remainder)))))
+                              (+ funding_amount 0))))))
+                    (require (= mode MODE_FINALIZE)
+                      (append-list
+                        (list
+                          (list ASSERT_MY_AMOUNT (+ funding_amount 0))
+                          (list ASSERT_HEIGHT_ABSOLUTE
+                            (+ challenge_deadline_height 0)))
+                        (append-list
+                          (payment-conditions payment_mod_hash network_id
+                            funding_coin_id
+                            (terms-hash network_id acceptance_blocks freeze_blocks
+                              close_delay_blocks challenge_blocks user_public_key
+                              hub_public_key state_rules_hash_value funding_amount
+                              user_remainder_puzzle_hash max_ledger_entries)
+                            current_entries)
+                          (if (> (+ current_user_remainder 0) 0)
+                            (list
+                              (list CREATE_COIN user_remainder_puzzle_hash
+                                (+ current_user_remainder 0)))
+                            ())))))))))))))
+)

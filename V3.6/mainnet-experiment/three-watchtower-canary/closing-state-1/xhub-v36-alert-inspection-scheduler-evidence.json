@@ -1,0 +1,25 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-inspection-scheduler-evidence-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T18:39:18Z",
+  "report_sha256": "20ec4a91f359a15a33a6a57d5174a790221b955794638dadd9d31f695426200f",
+  "report_age_seconds": 0,
+  "maximum_report_age_seconds": 1200,
+  "report_fresh": true,
+  "report_atomic_publish": true,
+  "failure_marker_present": false,
+  "service_result": "success",
+  "timer": {
+    "enabled": "enabled",
+    "active": "active",
+    "next_run": "Sat 2026-08-15 02:45:26 CST"
+  },
+  "automatic_remediation_enabled": false,
+  "external_notification_enabled": false,
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

@@ -1,0 +1,7 @@
+{
+  "request_id": "xhub-v36-three-watchtower-5mojo-20260814-1",
+  "network": "mainnet",
+  "target_address": "xch1nu66yklwa0p0r8ramjp0k7k638d8q0nyy8mgega55d8vx06nfqsqhg2ffp",
+  "amount_mojo": 5,
+  "memo": "xhub-v3.6-mainnet-canary-funding"
+}

@@ -1,0 +1,71 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-operations-inspection-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T18:26:54Z",
+  "status": "PASS",
+  "aggregate": {
+    "status": "READY",
+    "agreeing_count": 3,
+    "quorum_reached": true
+  },
+  "containers": [
+    {
+      "name": "xhub-v36-monitor-a",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-b",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-c",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-aggregate",
+      "running": true,
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    }
+  ],
+  "event_count": 3,
+  "backup": {
+    "backup_id": "alerts-20260814T182616Z",
+    "database_sha256": "071bdd413f121e231dc476daa80285f9625940044d298c1ede2e86832080aa6e",
+    "age_seconds": 38,
+    "maximum_age_seconds": 172800,
+    "fresh": true
+  },
+  "disk": {
+    "available_bytes": 27464056832,
+    "minimum_free_bytes": 1073741824,
+    "capacity_gate_passed": true
+  },
+  "timer": {
+    "enabled": "enabled",
+    "active": "active",
+    "next_run": "Sat 2026-08-15 11:24:18 CST"
+  },
+  "retention": {
+    "valid_backup_count": 3,
+    "candidate_count": 0,
+    "files_deleted": false,
+    "manual_review_required": true
+  },
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

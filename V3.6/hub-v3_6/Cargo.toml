@@ -1,0 +1,41 @@
+[package]
+name = "xhub-hub-v3-6"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+axum = "0.8"
+chia-bls = "=0.36.1"
+clvm-utils = "=0.36.1"
+clvmr = "=0.16.4"
+hex = "0.4"
+rand = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+rusqlite = { version = "0.38", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+tokio = { version = "1.53", features = ["macros", "net", "rt-multi-thread", "sync"] }
+xhub-protocol-v3-6 = { path = "../protocol-v3_6" }
+
+[dev-dependencies]
+tempfile = "3.27"
+tower = { version = "0.5", features = ["util"] }
+xhub-watchtower-v3-6 = { path = "../watchtower-v3_6" }
+
+[[bin]]
+name = "generate-hub-vectors"
+path = "src/bin/generate_vectors.rs"
+
+[[bin]]
+name = "hub-v3-6"
+path = "src/main.rs"
+
+[[bin]]
+name = "generate-hub-identity"
+path = "src/bin/generate_hub_identity.rs"
+
+[[bin]]
+name = "xhub-rpc-preflight"
+path = "src/bin/rpc_preflight.rs"

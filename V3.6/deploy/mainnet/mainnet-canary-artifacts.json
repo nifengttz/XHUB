@@ -1,0 +1,202 @@
+{
+    "schema":  "xhub-v3-6-mainnet-canary-artifacts-1",
+    "protocol_version":  "0x0360",
+    "production_broadcast":  false,
+    "artifacts":  [
+                      {
+                          "path":  "protocol-v3_6/protocol-v3_6.md",
+                          "size":  47980,
+                          "sha256":  "440b65d1aa38ceba447197d1a29c0731f004f680d9844fd83bfc8750347b618d"
+                      },
+                      {
+                          "path":  "protocol-v3_6/test-vectors/protocol-v3_6.json",
+                          "size":  14204,
+                          "sha256":  "76cb653f5c09b94b0b18c2d0912be817d7a17c1d9ce3411951001e0b1d751fc7"
+                      },
+                      {
+                          "path":  "puzzles-v3_6/module-hashes.json",
+                          "size":  2466,
+                          "sha256":  "d3826143a07faa4ec32999ad80a94fc6081b11ef2a036db914bbc206a4b8d67a"
+                      },
+                      {
+                          "path":  "deploy/mainnet/mainnet-parameters.candidate.json",
+                          "size":  565,
+                          "sha256":  "c346f3a6cc55b43b66e492a72f920a53cdb782e626edd7a007631515568d98b0"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-mainnet-parameters.ps1",
+                          "size":  2517,
+                          "sha256":  "db1b7e1a07f31dae1ca34f95a810ca21f6c367dc307137714190fcfe9cb91532"
+                      },
+                      {
+                          "path":  "deploy/mainnet/config.mainnet.example.json",
+                          "size":  1444,
+                          "sha256":  "77db6eecf655b42acbfd1f711f27521cb3940e95bde3d598df062d1071ad34b4"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-config.ps1",
+                          "size":  894,
+                          "sha256":  "bc3567e2e07e7463dfe9fa29f55028452921a78bede70ac69ac2bdd9235dd90d"
+                      },
+                      {
+                          "path":  "deploy/mainnet/rpc-preflight.ps1",
+                          "size":  1143,
+                          "sha256":  "b0db84a31808edf10ddd11f8e9e25cb75c2ecadf93443bc01b358691db54c5a1"
+                      },
+                      {
+                          "path":  "deploy/mainnet/canary-plan.example.json",
+                          "size":  682,
+                          "sha256":  "01d55505529ed6c926919c8e7864e086439f3ae08c1bb3ea068580c45af303f1"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-canary-plan.ps1",
+                          "size":  2564,
+                          "sha256":  "f7ab402dcd48903e36bb54144465014f781b733199419d22235af44c0cd539a2"
+                      },
+                      {
+                          "path":  "deploy/mainnet/canary-evidence.example.json",
+                          "size":  1322,
+                          "sha256":  "50ea6b661bd80bf75d74c60c4a4f1bcf06aa7f316fce8fa7f74423dbdff052d7"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-canary-evidence.ps1",
+                          "size":  4173,
+                          "sha256":  "026a56a202cc6b9ad901ccc0fbd69a331bf5a86354b62cd004272efb2dc1d8b8"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-rpc-preflight-output.ps1",
+                          "size":  1952,
+                          "sha256":  "43596f1effba70d1c9e657d124e6d1fe3e480dddbcd4bbed960887563af6015c"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-funding-binding.ps1",
+                          "size":  2438,
+                          "sha256":  "7b69499f5bfba91b40d4f6b921d7b809252ccb8382fd2affd9e6e8ba9db9effc"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-recovery-simulation.ps1",
+                          "size":  2583,
+                          "sha256":  "1f2d8444381dfa60cac4ef4696b6abf20353ca728edb186dbf0b66bd3b7fc86a"
+                      },
+                      {
+                          "path":  "deploy/mainnet/approval-records.example.json",
+                          "size":  645,
+                          "sha256":  "b94c2b4e0def9294416fe77fe9e8f62f7d02c0f56eeabbd1f9070f69da8df09f"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-approval-records.ps1",
+                          "size":  1893,
+                          "sha256":  "d2fa650afa24c5bbf2d644c34237ad56167b52934697e55b61e0054341d74b5f"
+                      },
+                      {
+                          "path":  "deploy/mainnet/run-canary-dry-run.ps1",
+                          "size":  3510,
+                          "sha256":  "38b94f156fe46be552e271c4f32f27f6f9a4723ac4ae4e080d4beaf0fc6e6d28"
+                      },
+                      {
+                          "path":  "deploy/mainnet/watchtower-identities.mainnet.example.json",
+                          "size":  1773,
+                          "sha256":  "9363a9e2b2d39842f8d2e98f520fac3844cb9bb337b27a7cd8004cfe36857783"
+                      },
+                      {
+                          "path":  "deploy/mainnet/custody-attesters.mainnet.example.json",
+                          "size":  543,
+                          "sha256":  "83d3b3a012a274b51a5f6f92fb76e7a5e4eb91e8e038336b6325fc6f47a37015"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-watchtower-identities.ps1",
+                          "size":  6299,
+                          "sha256":  "c9d11917113fa2e277d963d20d41db85ed0a8f9c5b3baee6213102201cd0651c"
+                      },
+                      {
+                          "path":  "deploy/mainnet/watchtower-tls-profile.mainnet.example.json",
+                          "size":  2207,
+                          "sha256":  "92b2a283d408c372e0ddc40525500c508846c2b27218ef57ffd708d128879f0b"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-watchtower-tls-profile.ps1",
+                          "size":  5928,
+                          "sha256":  "dcd6a3732d945fc0e675d3b3823731778b7a5b67e44338b40d457b1c3f534210"
+                      },
+                      {
+                          "path":  "deploy/mainnet/watchtower-endpoint-probe.mainnet.example.json",
+                          "size":  1734,
+                          "sha256":  "54c47fd1d14a2c2c179479bacacb1c31e01c6d7c00bce21fa39d398b7c043578"
+                      },
+                      {
+                          "path":  "deploy/mainnet/verify-watchtower-tls-endpoints.ps1",
+                          "size":  13186,
+                          "sha256":  "d65fa2369ad5d82797ea8596f3866e7fc981a3267ed09d355decb3f2b8dc583d"
+                      },
+                      {
+                          "path":  "deploy/mainnet/watchtower-deployment-evidence.mainnet.example.json",
+                          "size":  2269,
+                          "sha256":  "155c0981b1e83f42df3f5b5eacc5c1487658b44df1d017bc1cf1420dc63f7dd6"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-watchtower-deployment-evidence.ps1",
+                          "size":  9089,
+                          "sha256":  "1c27ccc1dbb7797c879e2da6eecba6c64c13f4f93de0197e0eb0e0c15e66c579"
+                      },
+                      {
+                          "path":  "deploy/mainnet/watchtower-runtime.mainnet.example.json",
+                          "size":  3022,
+                          "sha256":  "cb3f0252ce81561d5027f7890e0ff4ee7d5f4e5e5a5c3db4e388d42baf3ed520"
+                      },
+                      {
+                          "path":  "deploy/mainnet/validate-watchtower-runtime.ps1",
+                          "size":  6769,
+                          "sha256":  "73a00f46b5bcc8b7eac75f348aa9cbdda413557bf45e15f06302c9e2eb7b4ace"
+                      },
+                      {
+                          "path":  "deploy/mainnet/generate-watchtower-systemd-units.ps1",
+                          "size":  3607,
+                          "sha256":  "56d9cb61c310588f24a574a81e706f7c694f05036b35a17b9b1dd4db3149369d"
+                      },
+                      {
+                          "path":  "deploy/mainnet/generate-watchtower-nginx-configs.ps1",
+                          "size":  4143,
+                          "sha256":  "f668e2e573b5e8ff76db2e145e5bea7fbdebac3e2606f05d516b6e00f4c1b8ca"
+                      },
+                      {
+                          "path":  "deploy/mainnet/verify-watchtower-generated-configs.ps1",
+                          "size":  3883,
+                          "sha256":  "c5f9f8bcd7ee05299bd50f7418d6e3a5c5e2023c2f7b6c3c1b1a9c5f2329dba5"
+                      },
+                      {
+                          "path":  ".dockerignore",
+                          "size":  143,
+                          "sha256":  "ab5e32238af55afeb2917bcc5d33643fa5fc0d6005ad8036f7ea55d9aec8b7ec"
+                      },
+                      {
+                          "path":  "deploy/mainnet/docker-single-vps/Dockerfile",
+                          "size":  753,
+                          "sha256":  "d26d368f5796b212a7af9a11f09a80c1406e8cf364bce4d31b445013fb3b56f5"
+                      },
+                      {
+                          "path":  "deploy/mainnet/docker-single-vps/README.md",
+                          "size":  2256,
+                          "sha256":  "414b19d83372286c2c615fb64b30b7bc1dfa3bea7eb4bd4f293eea29711d3f9e"
+                      },
+                      {
+                          "path":  "deploy/mainnet/docker-single-vps/single-vps-docker-profile.example.json",
+                          "size":  1121,
+                          "sha256":  "416b23466610a4db5a7b4e8b34f88406349d6a5da45dac55104d98c7346c758d"
+                      },
+                      {
+                          "path":  "deploy/mainnet/docker-single-vps/custody-attesters.single-vps.example.json",
+                          "size":  426,
+                          "sha256":  "c85b0483197d1347748065fa89ff5ee754bdd531d7d8485b59f3a65fe1796e60"
+                      },
+                      {
+                          "path":  "deploy/mainnet/docker-single-vps/validate-single-vps-docker-profile.ps1",
+                          "size":  4530,
+                          "sha256":  "f7851d8bb4e15505a85c82c31988b0f9fafb2ff12f354ae3437cdf2e8fbec880"
+                      },
+                      {
+                          "path":  "deploy/mainnet/docker-single-vps/generate-single-vps-docker-compose.ps1",
+                          "size":  3846,
+                          "sha256":  "8b6a3c379f74fd1e5d044b79bde767888455296183685986181dfcee9d25745c"
+                      }
+                  ]
+}

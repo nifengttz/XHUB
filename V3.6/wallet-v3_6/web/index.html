@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XHUB Wallet V3.6</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="product">XHUB Wallet</p>
+      <h1>创建 Funding Coin</h1>
+    </div>
+    <div class="profile"><span class="status-dot"></span>V3.6 测试网向量配置</div>
+  </header>
+
+  <main class="workspace">
+    <form id="terms-form" class="form-pane" novalidate>
+      <section aria-labelledby="timing-title">
+        <div class="section-heading">
+          <h2 id="timing-title">通道时间参数</h2>
+          <span>创建后不可修改</span>
+        </div>
+        <div class="field-grid compact">
+          <label>接受窗口（区块）
+            <input name="acceptance_blocks" inputmode="numeric" value="12288" required>
+          </label>
+          <label>冻结缓冲（区块）
+            <input name="freeze_blocks" inputmode="numeric" value="200" required>
+          </label>
+          <label>挑战期（区块）
+            <input name="challenge_blocks" inputmode="numeric" value="6000" required>
+          </label>
+          <label>关闭延迟（自动）
+            <output id="close-delay" class="readonly-value">12488</output>
+          </label>
+        </div>
+      </section>
+
+      <section aria-labelledby="identity-title">
+        <div class="section-heading">
+          <h2 id="identity-title">网络与密钥</h2>
+          <span>定长十六进制</span>
+        </div>
+        <div class="field-grid">
+          <label>Network ID
+            <input name="network_id" spellcheck="false" value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" required>
+          </label>
+          <label>用户 BLS 公钥
+            <textarea name="user_public_key" spellcheck="false" rows="2" required>89d0608036649d3484b7cfe71cfbd7f13015081d6206aede1aed0a4c1ad1521233123c08f0870e9d9f605ed429d24419</textarea>
+          </label>
+          <label>HUB A 状态公钥
+            <textarea name="hub_state_public_key_a" spellcheck="false" rows="2" required>b61c4ee5d1cdd57ea615e6f3003e89afeee153d666562d0abec363d8b88c21c35e55f5622668b113e966564d04eb9fa1</textarea>
+          </label>
+          <label>State Rules Hash
+            <input name="state_rules_hash" spellcheck="false" value="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" required>
+          </label>
+        </div>
+      </section>
+
+      <section aria-labelledby="funding-title">
+        <div class="section-heading">
+          <h2 id="funding-title">资金条款</h2>
+          <span>最小单位</span>
+        </div>
+        <div class="field-grid">
+          <label>Funding 金额
+            <input name="funding_amount" inputmode="numeric" value="1000000" required>
+          </label>
+          <label>用户找零 Puzzle Hash
+            <input name="user_remainder_puzzle_hash" spellcheck="false" value="dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" required>
+          </label>
+        </div>
+      </section>
+
+      <div id="error" class="message error" role="alert" hidden></div>
+      <button id="prepare-button" class="primary" type="submit">校验并生成条款</button>
+    </form>
+
+    <aside class="summary-pane" aria-live="polite">
+      <div class="summary-header">
+        <div>
+          <p>条款摘要</p>
+          <h2 id="summary-state">等待校验</h2>
+        </div>
+        <span id="lock-state" class="tag">草稿</span>
+      </div>
+
+      <dl class="metrics">
+        <div><dt>协议版本</dt><dd>0x0360</dd></div>
+        <div><dt>配置</dt><dd>v3.6-testnet-vector-1</dd></div>
+        <div><dt>A = F + acceptance</dt><dd id="a-relation">F + 12288</dd></div>
+        <div><dt>S = A + freeze</dt><dd id="s-relation">A + 200</dd></div>
+        <div><dt>关闭延迟</dt><dd id="summary-close">12488 blocks</dd></div>
+        <div><dt>确认深度</dt><dd>32 blocks</dd></div>
+        <div><dt>交付绿灯</dt><dd>1-of-3（测试网）</dd></div>
+        <div><dt>主网批准</dt><dd class="not-approved">否</dd></div>
+      </dl>
+
+      <div class="hash-block">
+        <span>Channel Terms Hash</span>
+        <code id="terms-hash">校验后生成</code>
+      </div>
+      <details>
+        <summary>规范二进制编码</summary>
+        <code id="canonical-hex">校验后生成</code>
+      </details>
+
+      <label class="confirmation">
+        <input id="confirm-check" type="checkbox" disabled>
+        <span>我已核对完整条款，并理解确认后本 Funding Coin 的参数不可修改。</span>
+      </label>
+      <button id="confirm-button" class="confirm" type="button" disabled>确认并锁定条款</button>
+      <p class="notice">此配置只用于 V3.6 测试网向量，禁止用于主网。</p>
+    </aside>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

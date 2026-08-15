@@ -1,0 +1,17 @@
+[
+  {
+    "signer_id": "REPLACE_WITH_ATTESTER_A_ID",
+    "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_A",
+    "signer_public_key": "REPLACE_WITH_96_HEX_ATTESTER_A_PUBLIC_KEY"
+  },
+  {
+    "signer_id": "REPLACE_WITH_ATTESTER_B_ID",
+    "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_B",
+    "signer_public_key": "REPLACE_WITH_96_HEX_ATTESTER_B_PUBLIC_KEY"
+  },
+  {
+    "signer_id": "REPLACE_WITH_ATTESTER_C_ID",
+    "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_C",
+    "signer_public_key": "REPLACE_WITH_96_HEX_ATTESTER_C_PUBLIC_KEY"
+  }
+]

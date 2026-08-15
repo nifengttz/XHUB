@@ -1,0 +1,102 @@
+{
+  "schema": "xhub-v3-6-mainnet-readonly-monitor-deployment-evidence-1",
+  "protocol_version": "0x0360",
+  "network": "mainnet",
+  "captured_at_utc": "2026-08-14T14:38:11Z",
+  "host": "43.156.47.252",
+  "deployment_model": "single_vps_docker_test",
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "rpc_url": "https://api.coinset.org",
+  "rpc_mode": "trusted_public_https_readonly",
+  "funding_coin_id": "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+  "poll_interval_seconds": 300,
+  "successful_poll_count_per_monitor_at_capture": 2,
+  "image": {
+    "tag": "xhub-watchtower-v3-6:readonly-monitor",
+    "id": "sha256:f607856619028c760f9a551f0f03fa52521205cf8d91aede3288794ea6cd07f3",
+    "created_at": "2026-08-14T22:31:32.56866866+08:00"
+  },
+  "source_sha256": {
+    "rpc.rs": "43f5b2f5b98aa8e3e6bee854628d429cbe9e62ff3f56cbbe274a69629c513ec9",
+    "monitor.rs": "7bba486c8ecfd25f62e5b4615251056200644423129af28af57a143fa4c98e69",
+    "Dockerfile": "0f597acce9a04ca3641265f61bb4a37c4642902eeab5b78f59b135ba1e2e77c4",
+    "compose.readonly-monitors.yaml": "8d6b06f59960972719fcad059e165717f2a9f5867e1740634328b4f04530ced5",
+    "install-readonly-monitors.sh": "4064f7264f65d9b4ad451b3af06acb5e1ad1a581095d9bce8b8cdbb049d1b494"
+  },
+  "backup_path": "/opt/xhub-v3.6-test/deploy-backups/readonly-monitor-20260814T142543Z",
+  "containers": [
+    {
+      "name": "xhub-v36-monitor-a",
+      "started_at": "2026-08-14T14:31:33.222561736Z",
+      "status": "running",
+      "restart_count": 0,
+      "database_mount": "/opt/xhub-v3.6-test/data/wt-a:/var/lib/xhub-watchtower"
+    },
+    {
+      "name": "xhub-v36-monitor-b",
+      "started_at": "2026-08-14T14:31:33.225392874Z",
+      "status": "running",
+      "restart_count": 0,
+      "database_mount": "/opt/xhub-v3.6-test/data/wt-b:/var/lib/xhub-watchtower"
+    },
+    {
+      "name": "xhub-v36-monitor-c",
+      "started_at": "2026-08-14T14:31:33.217815959Z",
+      "status": "running",
+      "restart_count": 0,
+      "database_mount": "/opt/xhub-v3.6-test/data/wt-c:/var/lib/xhub-watchtower"
+    }
+  ],
+  "monitor_security": {
+    "uid_gid": "65532:65532",
+    "root_filesystem_read_only": true,
+    "capabilities_dropped": [
+      "ALL"
+    ],
+    "no_new_privileges": true,
+    "api_token_mounted": false,
+    "private_key_mounted": false
+  },
+  "database_states": [
+    {
+      "watchtower": "a",
+      "peak_height": 9148607,
+      "action": "FundingOpen",
+      "detail": "Funding Coin remains unspent",
+      "updated_at": 1786718193
+    },
+    {
+      "watchtower": "b",
+      "peak_height": 9148607,
+      "action": "FundingOpen",
+      "detail": "Funding Coin remains unspent",
+      "updated_at": 1786718193
+    },
+    {
+      "watchtower": "c",
+      "peak_height": 9148607,
+      "action": "FundingOpen",
+      "detail": "Funding Coin remains unspent",
+      "updated_at": 1786718193
+    }
+  ],
+  "existing_services": {
+    "xhub-v36-hub": "healthy",
+    "xhub-v36-wt-a": "healthy",
+    "xhub-v36-wt-b": "healthy",
+    "xhub-v36-wt-c": "healthy"
+  },
+  "allowed_rpc_methods": [
+    "get_network_info",
+    "get_blockchain_state",
+    "get_coin_record_by_name",
+    "get_puzzle_and_solution"
+  ],
+  "push_tx_called": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false,
+  "status": "THREE_READONLY_MONITORS_RUNNING_AND_PERSISTING_FUNDING_OPEN"
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "xhub-v3-6-mainnet-watchtower-monitor-1",
+  "release_status": "UNAUDITED_MAINNET_EXPERIMENT",
+  "mainnet_approved": false,
+  "network": "mainnet",
+  "rpc_url": "https://api.coinset.org",
+  "observed_at": "2026-08-12T19:48:37+08:00",
+  "action": "FUNDING_OPEN",
+  "funding_coin_id": "d8d089881dde12de0bdb8a078df9ab047da307d3f671b5b188b78448d570ea9d",
+  "peak_height": 9138761,
+  "latest_recovery_state_sequence": 1,
+  "funding_coin_unspent": true,
+  "challenge_plan_created": false,
+  "spend_bundle_created": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

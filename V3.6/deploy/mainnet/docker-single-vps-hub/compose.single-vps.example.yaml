@@ -1,0 +1,41 @@
+services:
+  hub:
+    image: xhub-hub-v3-6:test
+    container_name: xhub-v36-hub
+    network_mode: host
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    labels:
+      xhub.test-only: "true"
+      xhub.production-ready: "false"
+      xhub.production-broadcast: "false"
+    environment:
+      XHUB_HUB_LISTEN: 127.0.0.1:18737
+      XHUB_HUB_DB: /var/lib/xhub-hub/hub-v3_6.sqlite3
+      XHUB_HUB_BLS_SECRET_FILE: /run/secrets/hub-bls-secret.hex
+      XHUB_HUB_API_TOKEN_FILE: /run/secrets/hub-api-token.txt
+      XHUB_WATCHTOWERS_FILE: /run/config/watchtowers.json
+      XHUB_CHIA_RPC_URL: https://api.coinset.org
+    volumes:
+      - /opt/xhub-v3.6-hub-test/data:/var/lib/xhub-hub
+      - /opt/xhub-v3.6-hub-test/secrets/hub-bls-secret.hex:/run/secrets/hub-bls-secret.hex:ro
+      - /opt/xhub-v3.6-hub-test/secrets/hub-api-token.txt:/run/secrets/hub-api-token.txt:ro
+      - /opt/xhub-v3.6-hub-test/config/watchtowers.local.json:/run/config/watchtowers.json:ro
+      - /opt/xhub-v3.6-test/secrets/wt-a-api-token.txt:/run/watchtower-secrets/wt-a-token.txt:ro
+      - /opt/xhub-v3.6-test/secrets/wt-b-api-token.txt:/run/watchtower-secrets/wt-b-token.txt:ro
+      - /opt/xhub-v3.6-test/secrets/wt-c-api-token.txt:/run/watchtower-secrets/wt-c-token.txt:ro
+    mem_limit: 768m
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD-SHELL", "TOKEN=$$(cat /run/secrets/hub-api-token.txt); curl --fail --silent -H \"Authorization: Bearer $$TOKEN\" http://127.0.0.1:18737/api/v3.6/health >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

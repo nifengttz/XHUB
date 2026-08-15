@@ -1,0 +1,18 @@
+FROM rust:1.97-bookworm AS builder
+
+WORKDIR /build
+COPY protocol-v3_6 ./protocol-v3_6
+COPY puzzles-v3_6 ./puzzles-v3_6
+COPY watchtower-v3_6 ./watchtower-v3_6
+RUN cargo build --locked --release \
+    --manifest-path watchtower-v3_6/Cargo.toml \
+    --bin custody-attest-v3-6
+
+FROM debian:bookworm-slim
+
+RUN groupadd --gid 65532 xhub \
+    && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin xhub
+COPY --from=builder /build/watchtower-v3_6/target/release/custody-attest-v3-6 /usr/local/bin/custody-attest-v3-6
+
+USER 65532:65532
+ENTRYPOINT ["/usr/local/bin/custody-attest-v3-6"]

@@ -1,0 +1,315 @@
+(
+(defconstant AGG_SIG_UNSAFE 49)
+(defconstant CREATE_COIN 51)
+(defconstant ASSERT_MY_COIN_ID 70)
+(defconstant ASSERT_MY_AMOUNT 73)
+(defconstant ASSERT_MY_BIRTH_HEIGHT 75)
+(defconstant ASSERT_HEIGHT_RELATIVE 82)
+(defconstant ASSERT_HEIGHT_ABSOLUTE 83)
+(defconstant ASSERT_BEFORE_HEIGHT_ABSOLUTE 87)
+
+(defconstant MODE_CHALLENGE 1)
+(defconstant MODE_FINALIZE 2)
+(defconstant PROTOCOL_VERSION 0x0360)
+(defconstant MAX_LEDGER_ENTRIES_CONST 64)
+
+(defconstant TERMS_DOMAIN "XHUB_CHANNEL_TERMS_V3_6")
+(defconstant STATE_RULES_DOMAIN "XHUB_STATE_RULES_V3_6")
+(defconstant USER_AUTH_DOMAIN "XHUB_USER_AUTH_V3_6")
+(defconstant ENTRY_DOMAIN "XHUB_LEDGER_ENTRY_V3_6")
+(defconstant LEAF_DOMAIN "XHUB_LEDGER_LEAF_V3_6")
+(defconstant NODE_DOMAIN "XHUB_LEDGER_NODE_V3_6")
+(defconstant EMPTY_DOMAIN "XHUB_LEDGER_EMPTY_V3_6")
+(defconstant CHECKPOINT_DOMAIN "XHUB_LEDGER_CHECKPOINT_V3_6")
+(defconstant HUB_STATE_DOMAIN "XHUB_HUB_STATE_V3_6")
+(defconstant STATE_ZERO_DOMAIN "XHUB_STATE_ZERO_V3_6")
+(defconstant CLOSING_STATE_DOMAIN "XHUB_CLOSING_STATE_V3_6")
+
+(defconstant ZERO_8 0x0000000000000000)
+(defconstant ZERO_32 0x0000000000000000000000000000000000000000000000000000000000000000)
+(defconstant MAX_ENTRIES_U64 0x0000000000000040)
+(defconstant TWO 2)
+
+; Tree-hash constants used to calculate standard CLVM curry hashes.
+(defconstant CURRY_CONSTANTS
+  (0x4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a
+   0x9dcf97a184f32623d11a73124ceb99a5709b083721e878a16d78f596718ba7b2
+   0x02a12871fee210fb8619291eaea194581cbd2531e4b23759d225f6806923f63222
+   0x02a8d5dd63fba471ebcb1f3e8f7c1e1879b7152a6e7298a91ce119a63400ade7c5))
+
+(defun-inline require (condition value) (if condition value (x)))
+(defun-inline atom-hash (value) (sha256 1 value))
+(defun-inline sha256-one () (f CURRY_CONSTANTS))
+(defun-inline sha256-one-one () (f (r CURRY_CONSTANTS)))
+(defun-inline two-sha256-one-a () (f (r (r CURRY_CONSTANTS))))
+(defun-inline two-sha256-one-c () (f (r (r (r CURRY_CONSTANTS)))))
+(defun-inline hash-expression (a1 a2)
+  (sha256 TWO (sha256 TWO (sha256-one-one) a1)
+    (sha256 TWO a2 (sha256-one))))
+(defun-inline update-curry-hash (parameter-hash environment-hash)
+  (sha256 (two-sha256-one-c) (hash-expression parameter-hash environment-hash)))
+
+(defun curry-arguments-hash (argument-hashes)
+  (if argument-hashes
+    (update-curry-hash (f argument-hashes)
+      (curry-arguments-hash (r argument-hashes)))
+    (sha256-one-one)))
+
+(defun-inline curry-hash (mod-hash argument-hashes)
+  (sha256 (two-sha256-one-a)
+    (hash-expression mod-hash (curry-arguments-hash argument-hashes))))
+
+(defun-inline state-rules-hash
+  (initial-closing-mod-hash subsequent-closing-mod-hash payment-mod-hash)
+  (sha256 STATE_RULES_DOMAIN initial-closing-mod-hash
+    subsequent-closing-mod-hash payment-mod-hash))
+
+(defun-inline terms-hash
+  (network-id acceptance-blocks freeze-blocks close-delay-blocks challenge-blocks
+    user-public-key hub-public-key state-rules-hash-value funding-amount
+    user-remainder-puzzle-hash max-ledger-entries)
+  (sha256 TERMS_DOMAIN PROTOCOL_VERSION network-id acceptance-blocks freeze-blocks
+    close-delay-blocks challenge-blocks user-public-key hub-public-key
+    state-rules-hash-value funding-amount user-remainder-puzzle-hash
+    max-ledger-entries))
+
+(defun-inline state-zero-hash
+  (network-id funding-coin-id channel-terms-hash funding-amount
+    user-remainder-puzzle-hash)
+  (sha256 STATE_ZERO_DOMAIN PROTOCOL_VERSION network-id funding-coin-id
+    channel-terms-hash funding-amount user-remainder-puzzle-hash))
+
+(defun-inline authorization-hash
+  (network-id funding-coin-id channel-terms-hash merchant-puzzle-hash
+    merchant-receipt-public-key amount reservation-nonce)
+  (sha256 USER_AUTH_DOMAIN PROTOCOL_VERSION network-id funding-coin-id
+    channel-terms-hash merchant-puzzle-hash merchant-receipt-public-key amount
+    reservation-nonce))
+
+(defun-inline entry-hash
+  (network-id funding-coin-id channel-terms-hash entry-index merchant-puzzle-hash
+    merchant-receipt-public-key amount reservation-nonce)
+  (sha256 ENTRY_DOMAIN entry-index merchant-puzzle-hash merchant-receipt-public-key
+    amount reservation-nonce
+    (authorization-hash network-id funding-coin-id channel-terms-hash
+      merchant-puzzle-hash merchant-receipt-public-key amount reservation-nonce)))
+
+(defun-inline ledger-leaf-hash (entry-hash-value)
+  (sha256 LEAF_DOMAIN entry-hash-value))
+(defun-inline ledger-node-hash (left right)
+  (sha256 NODE_DOMAIN left right))
+(defun-inline ledger-empty-root () (sha256 EMPTY_DOMAIN))
+
+(defun-inline checkpoint-hash
+  (network-id funding-coin-id channel-terms-hash state-sequence
+    previous-checkpoint-hash manifest-root entry-count reserved-total user-remainder)
+  (sha256 CHECKPOINT_DOMAIN PROTOCOL_VERSION network-id funding-coin-id
+    channel-terms-hash state-sequence previous-checkpoint-hash manifest-root
+    entry-count reserved-total user-remainder))
+
+(defun-inline hub-state-hash (checkpoint-hash-value)
+  (sha256 HUB_STATE_DOMAIN checkpoint-hash-value))
+
+(defun-inline closing-state-hash
+  (network-id funding-coin-id channel-terms-hash challenge-deadline-height
+    current-state-hash)
+  (sha256 CLOSING_STATE_DOMAIN PROTOCOL_VERSION network-id funding-coin-id
+    channel-terms-hash challenge-deadline-height current-state-hash))
+
+(defun channel-terms-valid
+  (network-id acceptance-blocks freeze-blocks close-delay-blocks challenge-blocks
+    user-public-key hub-public-key state-rules-hash-value funding-amount
+    user-remainder-puzzle-hash max-ledger-entries initial-closing-mod-hash
+    subsequent-closing-mod-hash payment-mod-hash channel-terms-hash)
+  (require (= (strlen network-id) 32)
+    (require (= (strlen acceptance-blocks) 8)
+      (require (> (+ acceptance-blocks 0) 0)
+        (require (= (strlen freeze-blocks) 8)
+          (require (> (+ freeze-blocks 0) 0)
+            (require (= (strlen close-delay-blocks) 8)
+              (require (= (+ close-delay-blocks 0)
+                          (+ acceptance-blocks freeze-blocks))
+                (require (= (strlen challenge-blocks) 8)
+                  (require (> (+ challenge-blocks 0) 0)
+                    (require (= (strlen user-public-key) 48)
+                      (require (= (strlen hub-public-key) 48)
+                        (require (= (strlen state-rules-hash-value) 32)
+                          (require (= (strlen funding-amount) 8)
+                            (require (> (+ funding-amount 0) 0)
+                              (require (= (strlen user-remainder-puzzle-hash) 32)
+                                (require (= max-ledger-entries MAX_ENTRIES_U64)
+                                  (require (= (strlen initial-closing-mod-hash) 32)
+                                    (require (= (strlen subsequent-closing-mod-hash) 32)
+                                      (require (= (strlen payment-mod-hash) 32)
+                                        (require (= state-rules-hash-value
+                                          (state-rules-hash initial-closing-mod-hash
+                                            subsequent-closing-mod-hash payment-mod-hash))
+                                          (= channel-terms-hash
+                                            (terms-hash network-id acceptance-blocks
+                                              freeze-blocks close-delay-blocks challenge-blocks
+                                              user-public-key hub-public-key
+                                              state-rules-hash-value funding-amount
+                                              user-remainder-puzzle-hash
+                                              max-ledger-entries)))))))))))))))))))))))
+
+; Ledger entry = (index_u64 merchant_ph receipt_pk amount_u64 nonce)
+(defun-inline entry-index (entry) (f entry))
+(defun-inline entry-merchant (entry) (f (r entry)))
+(defun-inline entry-receipt-key (entry) (f (r (r entry))))
+(defun-inline entry-amount (entry) (f (r (r (r entry)))))
+(defun-inline entry-nonce (entry) (f (r (r (r (r entry))))))
+
+(defun nonce-absent (nonce entries)
+  (if entries
+    (require (not (= nonce (entry-nonce (f entries))))
+      (nonce-absent nonce (r entries)))
+    1))
+
+(defun entries-valid (entries expected-index)
+  (if entries
+    (require (> MAX_LEDGER_ENTRIES_CONST expected-index)
+      (require (= (strlen (entry-index (f entries))) 8)
+        (require (= (+ (entry-index (f entries)) 0) expected-index)
+          (require (= (strlen (entry-merchant (f entries))) 32)
+            (require (= (strlen (entry-receipt-key (f entries))) 48)
+              (require (= (strlen (entry-amount (f entries))) 8)
+                (require (> (+ (entry-amount (f entries)) 0) 0)
+                  (require (= (strlen (entry-nonce (f entries))) 32)
+                    (require (nonce-absent (entry-nonce (f entries)) (r entries))
+                      (entries-valid (r entries) (+ expected-index 1)))))))))))
+    1))
+
+(defun entries-count (entries)
+  (if entries (+ 1 (entries-count (r entries))) 0))
+
+(defun entries-sum (entries)
+  (if entries
+    (+ (entry-amount (f entries)) (entries-sum (r entries)))
+    0))
+
+(defun entry-leaves (network-id funding-coin-id channel-terms-hash entries)
+  (if entries
+    (c
+      (ledger-leaf-hash
+        (entry-hash network-id funding-coin-id channel-terms-hash
+          (entry-index (f entries)) (entry-merchant (f entries))
+          (entry-receipt-key (f entries)) (entry-amount (f entries))
+          (entry-nonce (f entries))))
+      (entry-leaves network-id funding-coin-id channel-terms-hash (r entries)))
+    ()))
+
+(defun hash-merkle-level (nodes)
+  (if nodes
+    (if (r nodes)
+      (c (ledger-node-hash (f nodes) (f (r nodes)))
+        (hash-merkle-level (r (r nodes))))
+      (list (ledger-node-hash (f nodes) (f nodes))))
+    ()))
+
+(defun collapse-merkle (nodes)
+  (if (r nodes)
+    (collapse-merkle (hash-merkle-level nodes))
+    (f nodes)))
+
+(defun manifest-root (network-id funding-coin-id channel-terms-hash entries)
+  (if entries
+    (collapse-merkle
+      (entry-leaves network-id funding-coin-id channel-terms-hash entries))
+    (ledger-empty-root)))
+
+(defun authorization-conditions
+  (network-id funding-coin-id channel-terms-hash user-public-key entries)
+  (if entries
+    (c
+      (list AGG_SIG_UNSAFE user-public-key
+        (authorization-hash network-id funding-coin-id channel-terms-hash
+          (entry-merchant (f entries)) (entry-receipt-key (f entries))
+          (entry-amount (f entries)) (entry-nonce (f entries))))
+      (authorization-conditions network-id funding-coin-id channel-terms-hash
+        user-public-key (r entries)))
+    ()))
+
+(defun-inline current-state-hash
+  (network-id funding-coin-id channel-terms-hash funding-amount
+    user-remainder-puzzle-hash state-sequence previous-checkpoint-hash
+    manifest-root-value entry-count reserved-total user-remainder)
+  (if (= (+ state-sequence 0) 0)
+    (state-zero-hash network-id funding-coin-id channel-terms-hash funding-amount
+      user-remainder-puzzle-hash)
+    (checkpoint-hash network-id funding-coin-id channel-terms-hash state-sequence
+      previous-checkpoint-hash manifest-root-value entry-count reserved-total
+      user-remainder)))
+
+(defun state-valid
+  (network-id funding-coin-id channel-terms-hash funding-amount
+    user-remainder-puzzle-hash state-sequence previous-checkpoint-hash
+    manifest-root-value entry-count reserved-total user-remainder entries)
+  (require (= (strlen state-sequence) 8)
+    (require (= (strlen previous-checkpoint-hash) 32)
+      (require (= (strlen manifest-root-value) 32)
+        (require (= (strlen entry-count) 8)
+          (require (= (strlen reserved-total) 8)
+            (require (= (strlen user-remainder) 8)
+              (require (not (> 0 (+ reserved-total 0)))
+                (require (not (> 0 (+ user-remainder 0)))
+                  (require (= (+ reserved-total user-remainder) (+ funding-amount 0))
+                    (if (= (+ state-sequence 0) 0)
+                      (require (= previous-checkpoint-hash ZERO_32)
+                        (require (= manifest-root-value (ledger-empty-root))
+                          (require (= (+ entry-count 0) 0)
+                            (require (= (+ reserved-total 0) 0)
+                              (require (= user-remainder funding-amount)
+                                (not entries))))))
+                      (require (> (+ state-sequence 0) 0)
+                        (require (entries-valid entries 0)
+                          (require (= (+ entry-count 0) (entries-count entries))
+                            (require (= (+ reserved-total 0) (entries-sum entries))
+                              (= manifest-root-value
+                                (manifest-root network-id funding-coin-id
+                                   channel-terms-hash entries)))))))))))))))))
+
+(defun state-signature-conditions
+  (network-id funding-coin-id channel-terms-hash funding-amount
+    user-remainder-puzzle-hash user-public-key hub-public-key state-sequence
+    previous-checkpoint-hash manifest-root-value entry-count reserved-total
+    user-remainder entries)
+  (if (= (+ state-sequence 0) 0)
+    ()
+    (c
+      (list AGG_SIG_UNSAFE hub-public-key
+        (hub-state-hash
+          (checkpoint-hash network-id funding-coin-id channel-terms-hash
+            state-sequence previous-checkpoint-hash manifest-root-value entry-count
+            reserved-total user-remainder)))
+      (authorization-conditions network-id funding-coin-id channel-terms-hash
+        user-public-key entries))))
+
+(defun-inline payment-puzzle-hash
+  (payment-mod-hash network-id funding-coin-id channel-terms-hash entry-index-value
+    reservation-nonce merchant-puzzle-hash)
+  (curry-hash payment-mod-hash
+    (list
+      (atom-hash PROTOCOL_VERSION)
+      (atom-hash network-id)
+      (atom-hash funding-coin-id)
+      (atom-hash channel-terms-hash)
+      (atom-hash entry-index-value)
+      (atom-hash reservation-nonce)
+      (atom-hash merchant-puzzle-hash))))
+
+(defun payment-conditions
+  (payment-mod-hash network-id funding-coin-id channel-terms-hash entries)
+  (if entries
+    (c
+      (list CREATE_COIN
+        (payment-puzzle-hash payment-mod-hash network-id funding-coin-id
+          channel-terms-hash (entry-index (f entries)) (entry-nonce (f entries))
+          (entry-merchant (f entries)))
+        (+ (entry-amount (f entries)) 0))
+      (payment-conditions payment-mod-hash network-id funding-coin-id
+        channel-terms-hash (r entries)))
+    ()))
+
+(defun append-list (left right)
+  (if left (c (f left) (append-list (r left) right)) right))
+)

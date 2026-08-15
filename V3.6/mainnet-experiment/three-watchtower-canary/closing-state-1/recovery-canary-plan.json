@@ -1,0 +1,26 @@
+{
+    "schema":  "xhub-v3-6-mainnet-recovery-canary-plan-1",
+    "protocol_version":  "0x0360",
+    "environment":  "mainnet-recovery-canary",
+    "funding_coin_id":  "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+    "funding_puzzle_hash":  "9f35a25beeebc2f19c7ddc82fb7ada89da703e6421f68ca3b4a34ec33f534820",
+    "max_total_mojo":  5,
+    "initial_payment_mojo":  1,
+    "minimum_user_remainder_mojo":  1,
+    "broadcast_enabled":  false,
+    "manual_approval_required":  true,
+    "required_checks":  [
+                            "mainnet_rpc_preflight_verified",
+                            "funding_coin_record_verified",
+                            "puzzle_hash_and_module_hashes_verified",
+                            "recovery_package_generated_and_verified",
+                            "recovery_package_delivery_simulated",
+                            "two_person_review_recorded"
+                        ],
+    "prohibited_materials":  [
+                                 "private_key",
+                                 "mnemonic",
+                                 "spend_bundle_canonical_hex",
+                                 "push_tx"
+                             ]
+}

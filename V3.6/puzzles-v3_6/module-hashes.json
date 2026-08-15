@@ -1,0 +1,38 @@
+{
+    "schema":  "xhub-v3-6-clvm-modules-1",
+    "protocol_version":  "0x0360",
+    "compiler":  {
+                     "run":  "0.4.0",
+                     "opc":  "0.4.0",
+                     "flags":  [
+                                   "--strict",
+                                   "--optimize"
+                               ]
+                 },
+    "modules":  {
+                    "xhub_funding_v3_6":  {
+                                              "source":  "xhub_funding_v3_6.clsp",
+                                              "hex":  "xhub_funding_v3_6.clsp.hex",
+                                              "byte_length":  5413,
+                                              "module_hash":  "e2945105091602fb91db08af00525153604007791be6e673372e33880eb2e6ce"
+                                          },
+                    "xhub_initial_closing_v3_6":  {
+                                                      "source":  "xhub_initial_closing_v3_6.clsp",
+                                                      "hex":  "xhub_initial_closing_v3_6.clsp.hex",
+                                                      "byte_length":  7763,
+                                                      "module_hash":  "95d2aa194ef302ac4637280031e3492736e231490a4883cc2ace090551c18b59"
+                                                  },
+                    "xhub_subsequent_closing_v3_6":  {
+                                                         "source":  "xhub_subsequent_closing_v3_6.clsp",
+                                                         "hex":  "xhub_subsequent_closing_v3_6.clsp.hex",
+                                                         "byte_length":  7573,
+                                                         "module_hash":  "e1a73c7381c56817159558594e13558c22d5d7ac8a8c5c81a53132335e8d1e29"
+                                                     },
+                    "xhub_merchant_payment_v3_6":  {
+                                                       "source":  "xhub_merchant_payment_v3_6.clsp",
+                                                       "hex":  "xhub_merchant_payment_v3_6.clsp.hex",
+                                                       "byte_length":  357,
+                                                       "module_hash":  "b53e39fa4960713ced442f21331672ea38d73c763cc690f37089ebd3aee5ffe1"
+                                                   }
+                }
+}

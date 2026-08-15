@@ -1,0 +1,15 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-token-rotation-evidence-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T17:49:11Z",
+  "container": "xhub-v36-monitor-aggregate",
+  "health": "healthy",
+  "old_token_http_status": 401,
+  "new_token_http_status": 404,
+  "token_present_in_output": false,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "xhub-v3-6-watchtower-tls-profile-1",
+  "protocol_version": "0x0360",
+  "nodes": [
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_A_ID",
+      "public_base_url": "https://REPLACE_WITH_WATCHTOWER_A_HOST",
+      "upstream_url": "http://127.0.0.1:8738",
+      "server_certificate_file": "REPLACE_WITH_SERVER_A_CERTIFICATE_FILE",
+      "server_private_key_file": "REPLACE_WITH_SERVER_A_PRIVATE_KEY_FILE",
+      "trusted_client_ca_file": "REPLACE_WITH_CLIENT_CA_A_FILE",
+      "server_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_A_SHA256",
+      "minimum_tls_version": "TLS1.3",
+      "client_certificate_mode": "require_and_verify",
+      "hsts_max_age_seconds": 31536000,
+      "rate_limit_requests_per_minute": 120,
+      "max_request_body_bytes": 1048576
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_B_ID",
+      "public_base_url": "https://REPLACE_WITH_WATCHTOWER_B_HOST",
+      "upstream_url": "http://127.0.0.1:8738",
+      "server_certificate_file": "REPLACE_WITH_SERVER_B_CERTIFICATE_FILE",
+      "server_private_key_file": "REPLACE_WITH_SERVER_B_PRIVATE_KEY_FILE",
+      "trusted_client_ca_file": "REPLACE_WITH_CLIENT_CA_B_FILE",
+      "server_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_B_SHA256",
+      "minimum_tls_version": "TLS1.3",
+      "client_certificate_mode": "require_and_verify",
+      "hsts_max_age_seconds": 31536000,
+      "rate_limit_requests_per_minute": 120,
+      "max_request_body_bytes": 1048576
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_C_ID",
+      "public_base_url": "https://REPLACE_WITH_WATCHTOWER_C_HOST",
+      "upstream_url": "http://127.0.0.1:8738",
+      "server_certificate_file": "REPLACE_WITH_SERVER_C_CERTIFICATE_FILE",
+      "server_private_key_file": "REPLACE_WITH_SERVER_C_PRIVATE_KEY_FILE",
+      "trusted_client_ca_file": "REPLACE_WITH_CLIENT_CA_C_FILE",
+      "server_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_C_SHA256",
+      "minimum_tls_version": "TLS1.3",
+      "client_certificate_mode": "require_and_verify",
+      "hsts_max_age_seconds": 31536000,
+      "rate_limit_requests_per_minute": 120,
+      "max_request_body_bytes": 1048576
+    }
+  ],
+  "production_approved": false
+}

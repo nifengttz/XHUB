@@ -1,0 +1,69 @@
+{
+  "schema": "xhub-v3-6-readonly-monitor-alert-lifecycle-evidence-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T17:30:16Z",
+  "deployment": {
+    "physical_failure_domain_count": 1,
+    "production_ready": false
+  },
+  "containers": [
+    {
+      "name": "xhub-v36-monitor-a",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-b",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-c",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    },
+    {
+      "name": "xhub-v36-monitor-aggregate",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc"
+    }
+  ],
+  "baseline": {
+    "status": "READY",
+    "agreeing_count": 3,
+    "event_id": 1,
+    "fingerprint": "5843ce25d1e9aca4145348596143e716eb09b79ffe3810d9741ef910596978d8",
+    "occurrence_before": 6,
+    "occurrence_after": 7
+  },
+  "controlled_degradation": {
+    "status": "DEGRADED",
+    "agreeing_count": 2,
+    "event_id": 2,
+    "missing_token_http_status": 401,
+    "wrong_token_http_status": 401,
+    "wrong_protocol_http_status": 400,
+    "acknowledgement_persisted": true,
+    "resolved_after_recovery": true
+  },
+  "recovery": {
+    "status": "READY",
+    "agreeing_count": 3,
+    "event_id": 3
+  },
+  "persistence": {
+    "event_count_before_recreate": 3,
+    "sqlite_inode_before": "1615136",
+    "sqlite_inode_after": "1615136",
+    "acknowledged_event_present_after_recreate": true
+  },
+  "token_present_in_logs": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

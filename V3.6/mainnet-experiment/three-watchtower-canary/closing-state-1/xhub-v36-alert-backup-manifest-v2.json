@@ -1,0 +1,26 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-alert-backup-1",
+  "protocol_version": "0x0360",
+  "backup_id": "alerts-20260814T175458Z",
+  "created_at": "2026-08-14T17:54:58Z",
+  "database_file": "alerts.sqlite3",
+  "database_sha256": "71d3c43c083c55118553e33e4af1348074362f2f4fc8f772e9ee28b4388e857e",
+  "database_size": 24576,
+  "event_ids": [
+    3,
+    2,
+    1
+  ],
+  "event_count": 3,
+  "latest_event_id": 3,
+  "source_image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc",
+  "sqlite_online_backup": true,
+  "quick_check": "ok",
+  "consistent_shutdown": false,
+  "contains_api_token": false,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

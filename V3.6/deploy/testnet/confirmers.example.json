@@ -1,0 +1,7 @@
+[
+  {
+    "signer_id": "merchant-vector-1",
+    "failure_domain": "test-domain-a",
+    "signer_public_key": "97b418875a833bded791b93b592d6cbff91d9a51cc1fe375e9eb44e379751a48f974ead8948542d31b066229aca6fca5"
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "funding_coin": {
+    "amount": 5,
+    "birth_height": 9146971,
+    "confirmations": 1404,
+    "puzzle_hash": "9f35a25beeebc2f19c7ddc82fb7ada89da703e6421f68ca3b4a34ec33f534820",
+    "status": "CONFIRMED"
+  },
+  "network_id": "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb",
+  "peak_height": 9148374,
+  "protocol_version": "0x0360",
+  "ready": true,
+  "required_funding_confirmations": 32,
+  "schema": "xhub-v3-6-rpc-preflight-1",
+  "synced": true
+}
