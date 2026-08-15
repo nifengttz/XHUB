@@ -1,0 +1,34 @@
+services:
+  wallet:
+    image: xhub-wallet-v3-6:mainnet-gateway-v1
+    container_name: xhub-v36-wallet
+    network_mode: host
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    labels:
+      org.opencontainers.image.source: https://github.com/nifengttz/XHUB.git
+      xhub.production-ready: "false"
+      xhub.production-broadcast: "false"
+      xhub.test-only: "true"
+    environment:
+      XHUB_WALLET_LISTEN: 127.0.0.1:18736
+      XHUB_WALLET_HUB_BASE_URL: http://127.0.0.1:18737
+      XHUB_WALLET_HUB_API_TOKEN_FILE: /run/secrets/hub-api-token.txt
+      XHUB_WALLET_HUB_STATE_PUBLIC_KEY_A: a35388f0b8fa4d11a2dfbe832a609229585dce39c0bcbde87ec621391876fdc58b0b7648dc469fa1aa73e47bffb38553
+    volumes:
+      - /opt/xhub-v3.6-hub-test/secrets/hub-api-token.txt:/run/secrets/hub-api-token.txt:ro
+    mem_limit: 256m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:18736/api/v3.6/health >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

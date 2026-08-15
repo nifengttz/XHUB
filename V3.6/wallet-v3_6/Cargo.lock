@@ -3125,6 +3125,7 @@ dependencies = [
  "chia-bls 0.36.1",
  "hex",
  "rand 0.8.7",
+ "reqwest",
  "serde",
  "serde_json",
  "thiserror 2.0.20",

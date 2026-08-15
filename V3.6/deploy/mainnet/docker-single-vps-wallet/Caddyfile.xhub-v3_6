@@ -1,0 +1,38 @@
+wallet.chiagame.top {
+    encode zstd gzip
+    request_body {
+        max_size 1MB
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Permissions-Policy "camera=(), geolocation=(), microphone=()"
+        Content-Security-Policy "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+        -Server
+    }
+    reverse_proxy 127.0.0.1:18736
+}
+
+hub.chiagame.top {
+    encode zstd gzip
+    request_body {
+        max_size 256KB
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Permissions-Policy "camera=(), geolocation=(), microphone=()"
+        Content-Security-Policy "default-src 'none'; frame-ancestors 'none'"
+        -Server
+    }
+    handle / {
+        redir https://wallet.chiagame.top/ 302
+    }
+    handle {
+        reverse_proxy 127.0.0.1:18737
+    }
+}

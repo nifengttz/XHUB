@@ -14,12 +14,12 @@ fn prepare_body() -> Value {
     );
     json!({
         "protocol_version": "0x0360",
-        "network_id": "aa".repeat(32),
+        "network_id": xhub_wallet_v3_6::MAINNET_NETWORK_ID,
         "acceptance_blocks": "12288",
         "freeze_blocks": "200",
         "challenge_blocks": "6000",
         "user_public_key": "89d0608036649d3484b7cfe71cfbd7f13015081d6206aede1aed0a4c1ad1521233123c08f0870e9d9f605ed429d24419",
-        "hub_state_public_key_a": "b61c4ee5d1cdd57ea615e6f3003e89afeee153d666562d0abec363d8b88c21c35e55f5622668b113e966564d04eb9fa1",
+        "hub_state_public_key_a": xhub_wallet_v3_6::api::DEFAULT_HUB_STATE_PUBLIC_KEY_A,
         "state_rules_hash": hex::encode(state_rules_hash),
         "funding_amount": "1000000",
         "user_remainder_puzzle_hash": "dd".repeat(32)
@@ -127,4 +127,143 @@ async fn rejects_wrong_version_and_invalid_terms() {
     let (status, body) = call("POST", "/api/v3.6/funding-drafts", Some(invalid)).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert_eq!(body["code"], "INVALID_TERMS");
+}
+
+#[tokio::test]
+async fn exposes_the_mainnet_canary_profile_without_secrets() {
+    let (status, body) = call("GET", "/api/v3.6/config", None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["network"], "mainnet");
+    assert_eq!(body["network_id"], xhub_wallet_v3_6::MAINNET_NETWORK_ID);
+    assert_eq!(body["profile_id"], "v3.6-mainnet-canary-1");
+    assert_eq!(body["delivery_threshold"], 2);
+    assert_eq!(body["delivery_participants"], 3);
+    assert_eq!(body["mainnet_approved"], false);
+    assert_eq!(body["production_ready"], false);
+    assert_eq!(body["hub_gateway_enabled"], false);
+    assert!(body.get("bearer_token").is_none());
+    assert!(body.get("hub_base_url").is_none());
+}
+
+#[tokio::test]
+async fn gateway_adds_the_hub_token_server_side_and_preserves_upstream_status() {
+    use std::sync::{Arc, Mutex};
+
+    use axum::{
+        Json, Router,
+        http::HeaderMap,
+        routing::{get, post},
+    };
+
+    let seen = Arc::new(Mutex::new(Vec::<(String, String, Option<Value>)>::new()));
+    let health_seen = Arc::clone(&seen);
+    let reservation_seen = Arc::clone(&seen);
+    let upstream = Router::new()
+        .route(
+            "/api/v3.6/health",
+            get(move |headers: HeaderMap| {
+                let seen = Arc::clone(&health_seen);
+                async move {
+                    seen.lock().expect("seen").push((
+                        headers
+                            .get("authorization")
+                            .and_then(|value| value.to_str().ok())
+                            .unwrap_or_default()
+                            .to_string(),
+                        headers
+                            .get("x-xhub-protocol-version")
+                            .and_then(|value| value.to_str().ok())
+                            .unwrap_or_default()
+                            .to_string(),
+                        None,
+                    ));
+                    Json(json!({"protocol_version":"0x0360","service":"hub","status":"READY"}))
+                }
+            }),
+        )
+        .route(
+            "/api/v3.6/reservations",
+            post(move |headers: HeaderMap, Json(body): Json<Value>| {
+                let seen = Arc::clone(&reservation_seen);
+                async move {
+                    seen.lock().expect("seen").push((
+                        headers
+                            .get("authorization")
+                            .and_then(|value| value.to_str().ok())
+                            .unwrap_or_default()
+                            .to_string(),
+                        headers
+                            .get("x-xhub-protocol-version")
+                            .and_then(|value| value.to_str().ok())
+                            .unwrap_or_default()
+                            .to_string(),
+                        Some(body),
+                    ));
+                    (StatusCode::ACCEPTED, Json(json!({"status":"PENDING"})))
+                }
+            }),
+        );
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener");
+    let address = listener.local_addr().expect("address");
+    let server = tokio::spawn(async move {
+        axum::serve(listener, upstream).await.expect("mock HUB");
+    });
+
+    let token = "gateway-test-token-with-at-least-32-characters";
+    let gateway = xhub_wallet_v3_6::api::HubGatewayConfig::new(format!("http://{address}"), token)
+        .expect("gateway config");
+    let app = xhub_wallet_v3_6::api::router_with_gateway(
+        xhub_wallet_v3_6::api::DEFAULT_HUB_STATE_PUBLIC_KEY_A,
+        gateway,
+    )
+    .expect("router");
+
+    let health = app
+        .clone()
+        .oneshot(
+            Request::get("/api/v3.6/hub/health")
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("health");
+    assert_eq!(health.status(), StatusCode::OK);
+    let health_body = to_bytes(health.into_body(), usize::MAX)
+        .await
+        .expect("health body");
+    assert!(!String::from_utf8_lossy(&health_body).contains(token));
+
+    let reservation_body = json!({"protocol_version":"0x0360","signed":"opaque"});
+    let reservation = app
+        .oneshot(
+            Request::post("/api/v3.6/hub/reservations")
+                .header("content-type", "application/json")
+                .header("authorization", "Bearer browser-must-not-control-this")
+                .body(Body::from(reservation_body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("reservation");
+    assert_eq!(reservation.status(), StatusCode::ACCEPTED);
+
+    let seen = seen.lock().expect("seen");
+    assert_eq!(seen.len(), 2);
+    for (authorization, version, _) in seen.iter() {
+        assert_eq!(authorization, &format!("Bearer {token}"));
+        assert_eq!(version, "0x0360");
+    }
+    assert_eq!(seen[1].2.as_ref(), Some(&reservation_body));
+    server.abort();
+}
+
+#[test]
+fn gateway_rejects_non_loopback_upstreams() {
+    let error = xhub_wallet_v3_6::api::HubGatewayConfig::new(
+        "https://hub.chiagame.top",
+        "gateway-test-token-with-at-least-32-characters",
+    )
+    .expect_err("public upstream must be rejected");
+    assert!(error.contains("loopback"));
 }

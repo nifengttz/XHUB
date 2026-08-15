@@ -3,7 +3,9 @@ const prepareButton = document.querySelector("#prepare-button");
 const confirmButton = document.querySelector("#confirm-button");
 const confirmCheck = document.querySelector("#confirm-check");
 const errorBox = document.querySelector("#error");
+const gatewayDot = document.querySelector("#gateway-dot");
 let activeDraft = null;
+let profile = null;
 
 const values = () => Object.fromEntries(new FormData(form).entries());
 
@@ -46,6 +48,43 @@ async function request(url, options) {
   return body;
 }
 
+function setGatewayState(state, healthy) {
+  document.querySelector("#gateway-state").textContent = state;
+  gatewayDot.classList.toggle("pending", !healthy);
+  gatewayDot.classList.toggle("error", state === "不可用");
+}
+
+async function loadProfile() {
+  try {
+    profile = await request("/api/v3.6/config");
+    form.elements.network_id.value = profile.network_id;
+    form.elements.acceptance_blocks.value = profile.acceptance_blocks;
+    form.elements.freeze_blocks.value = profile.freeze_blocks;
+    form.elements.challenge_blocks.value = profile.challenge_blocks;
+    form.elements.hub_state_public_key_a.value = profile.hub_state_public_key_a;
+    form.elements.state_rules_hash.value = profile.state_rules_hash;
+    document.querySelector("#profile-label").textContent = "V3.6 主网 Canary";
+    document.querySelector("#profile-id").textContent = profile.profile_id;
+    document.querySelector("#confirmation-blocks").textContent = `${profile.funding_confirmation_blocks} blocks`;
+    document.querySelector("#delivery-threshold").textContent = `${profile.delivery_threshold}-of-${profile.delivery_participants}（单 VPS）`;
+    prepareButton.disabled = false;
+    updateTiming();
+  } catch (error) {
+    document.querySelector("#profile-label").textContent = "主网配置载入失败";
+    setGatewayState("不可用", false);
+    showError(error.message);
+    return;
+  }
+
+  try {
+    const hub = await request("/api/v3.6/hub/health");
+    setGatewayState(hub.status === "READY" ? "READY" : "异常", hub.status === "READY");
+  } catch (error) {
+    setGatewayState("不可用", false);
+    showError(`HUB 网关：${error.message}`);
+  }
+}
+
 form.addEventListener("input", updateTiming);
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -68,7 +107,7 @@ form.addEventListener("submit", async (event) => {
   } catch (error) {
     showError(error.message);
   } finally {
-    if (!activeDraft?.confirmed) prepareButton.disabled = false;
+    if (!activeDraft?.confirmed && profile) prepareButton.disabled = false;
     prepareButton.textContent = "校验并生成条款";
   }
 });
@@ -111,4 +150,4 @@ function lockForm() {
   lockState.classList.add("locked");
 }
 
-updateTiming();
+loadProfile();

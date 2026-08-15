@@ -8,13 +8,15 @@ use xhub_protocol_v3_6::{
 
 pub mod api;
 
-pub const PROFILE_ID: &str = "v3.6-testnet-vector-1";
+pub const PROFILE_ID: &str = "v3.6-mainnet-canary-1";
+pub const MAINNET_NETWORK_ID: &str =
+    "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb";
 pub const DEFAULT_ACCEPTANCE_BLOCKS: u64 = 12_288;
 pub const DEFAULT_FREEZE_BLOCKS: u64 = 200;
 pub const DEFAULT_CHALLENGE_BLOCKS: u64 = 6_000;
 pub const FUNDING_CONFIRMATION_BLOCKS_TEST: u64 = 32;
-pub const TEST_DELIVERY_THRESHOLD: u16 = 1;
-pub const TEST_DELIVERY_PARTICIPANTS: u16 = 3;
+pub const CANARY_DELIVERY_THRESHOLD: u16 = 2;
+pub const CANARY_DELIVERY_PARTICIPANTS: u16 = 3;
 
 #[derive(Debug, Error)]
 pub enum WalletError {
