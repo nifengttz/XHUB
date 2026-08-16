@@ -7,6 +7,8 @@ publish = false
 [dependencies]
 axum = "0.8"
 bech32 = "0.9"
+bip39 = { version = "2.2.2", features = ["rand"] }
+chia-puzzle-types = "=0.36.1"
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -42,3 +44,7 @@ path = "src/bin/mainnet_closing.rs"
 [[bin]]
 name = "xhub-local-signer-v3-6"
 path = "src/bin/local_payment_signer.rs"
+
+[[bin]]
+name = "xhub-wallet-core-v3-6"
+path = "src/bin/wallet_core.rs"
