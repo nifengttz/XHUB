@@ -1,0 +1,31 @@
+[Unit]
+Description=XHUB V3.6 monitor aggregate latest alert backup restore drill
+After=docker.service network-online.target xhub-v36-monitor-alert-backup.service
+Wants=network-online.target
+Requires=docker.service
+ConditionPathExists=/opt/xhub-v3.6-test/backups/monitor-aggregate-alerts
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/xhub-v3.6-test/operations/publish-latest-monitor-aggregate-restore-drill.sh
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=CAP_DAC_OVERRIDE CAP_CHOWN CAP_FOWNER
+AmbientCapabilities=CAP_DAC_OVERRIDE CAP_CHOWN CAP_FOWNER
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadOnlyPaths=/opt/xhub-v3.6-test/backups/monitor-aggregate-alerts
+ReadOnlyPaths=/opt/xhub-v3.6-test/secrets/monitor-aggregate-api-token.txt
+ReadWritePaths=/opt/xhub-v3.6-test/restore-drills
+ReadWritePaths=/opt/xhub-v3.6-test/operations-reports/monitor-aggregate-restore
+

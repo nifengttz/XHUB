@@ -1,0 +1,40 @@
+[package]
+name = "xhub-wallet-v3-6"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+axum = "0.8"
+bech32 = "0.9"
+hex = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { version = "1.53", features = ["macros", "net", "rt-multi-thread", "sync"] }
+xhub-protocol-v3-6 = { path = "../protocol-v3_6" }
+xhub-puzzles-v3-6 = { path = "../puzzles-v3_6" }
+chia-bls = "=0.36.1"
+rand = "0.8"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+xhub-hub-v3-6 = { path = "../hub-v3_6" }
+xhub-watchtower-v3-6 = { path = "../watchtower-v3_6" }
+
+[[bin]]
+name = "wallet-v3-6"
+path = "src/main.rs"
+
+[[bin]]
+name = "mainnet-experiment"
+path = "src/bin/mainnet_experiment.rs"
+
+[[bin]]
+name = "mainnet-payment"
+path = "src/bin/mainnet_payment.rs"
+
+[[bin]]
+name = "mainnet-closing"
+path = "src/bin/mainnet_closing.rs"

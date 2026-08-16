@@ -1,0 +1,75 @@
+{
+  "chain_gate": {
+    "a": {
+      "ledger_written": false,
+      "observed_peak_height": 200,
+      "status": 100
+    },
+    "a_minus_1": {
+      "ledger_written": true,
+      "observed_peak_height": 199,
+      "status": 1
+    },
+    "active_reorg": {
+      "chain_state": "REORG_PENDING",
+      "effective_acceptance_cutoff_height": 200,
+      "new_birth_height": 150,
+      "new_scheduled_close_height": 260,
+      "status": 203
+    }
+  },
+  "channel": {
+    "acceptance_cutoff_height": 200,
+    "channel_terms_hash": "9c728558dbd1aabbb1b7a4a8ef7994958c096aaa5d2af8a0a072341cee5ca0af",
+    "funding_coin_id": "4242424242424242424242424242424242424242424242424242424242424242",
+    "scheduled_close_height": 210,
+    "state_zero_hash": "42c14a85a3d901d99957a005fb3fd3e683741264a55d10783a69fdc705ecc15e"
+  },
+  "decisions": {
+    "chain_commit_snapshot": "second provider snapshot while holding BEGIN IMMEDIATE",
+    "effective_a": "min(old_A, new_A) after activation",
+    "idempotency_key": "(funding_coin_id, reservation_nonce)",
+    "persistence_key": "(funding_coin_id, latest_sequence, latest_checkpoint_hash)",
+    "signing_order": "durable PREPARED intent before BLS signing",
+    "sqlite": "WAL + synchronous=FULL + BEGIN IMMEDIATE"
+  },
+  "final_snapshot": {
+    "entry_count": 3,
+    "intent_count": 3,
+    "latest_sequence": 3
+  },
+  "freezing_rejection": {
+    "ledger_written": false,
+    "reservation_result_canonical_hex": "0360aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8989898989898989898989898989898989898989898989898989898989898989424242424242424242424242424242424242424242424242424242424242424209090909090909090909090909090909090909090909090909090909090909092cd0df09b4f082df09e9061fbbc5a519f9bccc83a95520d007d900e3661aa7320064000000000000000000c800000000000000c800000000000000d200946effe3ef87c52219750e5e5adff107659df3a1b37e5edbd0a498b4addbce93d80ba376c9cddfbd2bf6e497d09cae0d19c029a970dbe12713c910ea829699ab56594278cf54c0abf74741bc482e80259ddb37538abed8ce1befbbc94bcc08b9",
+    "status": 100
+  },
+  "nonce_conflict": {
+    "detected": true,
+    "latest_sequence_unchanged_before_state_2": 1
+  },
+  "protocol_version": "0x0360",
+  "schema": "xhub-v3-6-hub-vectors-1",
+  "state_1": {
+    "checkpoint_canonical_hex": "42424242424242424242424242424242424242424242424242424242424242429c728558dbd1aabbb1b7a4a8ef7994958c096aaa5d2af8a0a072341cee5ca0af000000000000000142c14a85a3d901d99957a005fb3fd3e683741264a55d10783a69fdc705ecc15e39b04dcf7d2fa2bc44bc81365bfda1eb5ac173536df270e34e43173642b6ce05000000000000000100000000000000640000000000000384",
+    "checkpoint_hash": "bbfafe2a01fccbb99fec3b9927e6d0ae1fdc1e077fea9854e73a3339db426336",
+    "idempotent_retry_byte_equal": true,
+    "official_state_canonical_hex": "42424242424242424242424242424242424242424242424242424242424242429c728558dbd1aabbb1b7a4a8ef7994958c096aaa5d2af8a0a072341cee5ca0af000000000000000142c14a85a3d901d99957a005fb3fd3e683741264a55d10783a69fdc705ecc15e39b04dcf7d2fa2bc44bc81365bfda1eb5ac173536df270e34e43173642b6ce05000000000000000100000000000000640000000000000384a018cafc37264f7ac446c4130540f03df4347f9f0213bf0ca8567e98feb61d31faa2079cbb3ad3a5b3dc17d7dd8fbf2010d847987d06a5f7bd97f2b588653ea4c8d64aa278af5b64ba1339d55f297f8f970fdc2eb591205f463c4bb3652a66a7",
+    "recovery_package_content_hash": "21e89106f1628a8295b81fa204d545e5b376cc75c82a8cd81010e30fbe5d38ee",
+    "reservation_result_canonical_hex": "0360aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8181818181818181818181818181818181818181818181818181818181818181424242424242424242424242424242424242424242424242424242424242424201010101010101010101010101010101010101010101010101010101010101018c9bd5da379034663388fbe6ede828fa7f16c662bec30ff146b870eef542bf86000101000000000000000101bbfafe2a01fccbb99fec3b9927e6d0ae1fdc1e077fea9854e73a3339db426336000000000000009600000000000000c800000000000000d201aa7faa877d483c2011731e6be269ba1ea5291a6235a7ce7c83169630cdda77d697bc969ea2db7e7537c257c86d6d94220a98a1fbb90c0eeee64a79894e318a73a9d8858245a381713734dfa36613335d3109e3e61fe18e00a533e8c492d96421"
+  },
+  "state_2": {
+    "checkpoint_hash": "8ad70c8a27b9796df65797203c7e45190e029801480f1346fc212076d640d7f2",
+    "entry_count": 2,
+    "previous_checkpoint_hash": "bbfafe2a01fccbb99fec3b9927e6d0ae1fdc1e077fea9854e73a3339db426336",
+    "recovery_package_content_hash": "4febb9df93d87ab98d1dc89fc14ee70b190aa1a065291a65022af4e750b7786e",
+    "reservation_result_canonical_hex": "0360aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8282828282828282828282828282828282828282828282828282828282828282424242424242424242424242424242424242424242424242424242424242424202020202020202020202020202020202020202020202020202020202020202029dd5c0ade4102ef4fb0c8eba46070b27f8b50bf817abb2c81eeab8272e2916de0001010000000000000002018ad70c8a27b9796df65797203c7e45190e029801480f1346fc212076d640d7f2000000000000009800000000000000c800000000000000d2018255d180df9f22ea4ce17631094d6e79e0edd7987a4a8a6496f099f5a2d55df852e391b55c8c53c14b96d6bf254c68c516e461e2c9f2ce2d7e6830df33436cffba6e9de736c3dea1a1b9bf8e97e1ee0b6414683c61b917d3ee8261dae8076e80"
+  },
+  "state_3_after_recovery": {
+    "checkpoint_hash": "19c5c0aeb4ba36bd6be297060e66ebce6869f940624a38cda4e63e12ec02cbaf",
+    "crash_injected": true,
+    "entry_count": 3,
+    "pending_before_recovery": true,
+    "recovered_count": 1,
+    "recovery_package_content_hash": "9faeaff30f11f29e5d5200c04ff4a7ada96a018435a9d4014ddf16e379078182"
+  }
+}

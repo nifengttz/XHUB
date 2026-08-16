@@ -1,0 +1,63 @@
+(mod (
+    NETWORK_ID ACCEPTANCE_BLOCKS FREEZE_BLOCKS CLOSE_DELAY_BLOCKS CHALLENGE_BLOCKS
+    USER_PUBLIC_KEY HUB_PUBLIC_KEY STATE_RULES_HASH FUNDING_AMOUNT
+    USER_REMAINDER_PUZZLE_HASH MAX_LEDGER_ENTRIES INITIAL_CLOSING_MOD_HASH
+    SUBSEQUENT_CLOSING_MOD_HASH PAYMENT_MOD_HASH
+    funding_coin_id state_sequence previous_checkpoint_hash manifest_root_value
+    entry_count reserved_total user_remainder entries
+  )
+  (include *standard-cl-23*)
+  (include xhub_v3_6_common.clib)
+
+  (require
+    (channel-terms-valid NETWORK_ID ACCEPTANCE_BLOCKS FREEZE_BLOCKS
+      CLOSE_DELAY_BLOCKS CHALLENGE_BLOCKS USER_PUBLIC_KEY HUB_PUBLIC_KEY
+      STATE_RULES_HASH FUNDING_AMOUNT USER_REMAINDER_PUZZLE_HASH
+      MAX_LEDGER_ENTRIES INITIAL_CLOSING_MOD_HASH SUBSEQUENT_CLOSING_MOD_HASH
+      PAYMENT_MOD_HASH
+      (terms-hash NETWORK_ID ACCEPTANCE_BLOCKS FREEZE_BLOCKS CLOSE_DELAY_BLOCKS
+        CHALLENGE_BLOCKS USER_PUBLIC_KEY HUB_PUBLIC_KEY STATE_RULES_HASH
+        FUNDING_AMOUNT USER_REMAINDER_PUZZLE_HASH MAX_LEDGER_ENTRIES))
+    (require (= (strlen funding_coin_id) 32)
+      (require
+        (state-valid NETWORK_ID funding_coin_id
+          (terms-hash NETWORK_ID ACCEPTANCE_BLOCKS FREEZE_BLOCKS
+            CLOSE_DELAY_BLOCKS CHALLENGE_BLOCKS USER_PUBLIC_KEY HUB_PUBLIC_KEY
+            STATE_RULES_HASH FUNDING_AMOUNT USER_REMAINDER_PUZZLE_HASH
+            MAX_LEDGER_ENTRIES)
+          FUNDING_AMOUNT USER_REMAINDER_PUZZLE_HASH state_sequence
+          previous_checkpoint_hash manifest_root_value entry_count reserved_total
+          user_remainder entries)
+        (append-list
+          (state-signature-conditions NETWORK_ID funding_coin_id
+            (terms-hash NETWORK_ID ACCEPTANCE_BLOCKS FREEZE_BLOCKS
+              CLOSE_DELAY_BLOCKS CHALLENGE_BLOCKS USER_PUBLIC_KEY HUB_PUBLIC_KEY
+              STATE_RULES_HASH FUNDING_AMOUNT USER_REMAINDER_PUZZLE_HASH
+              MAX_LEDGER_ENTRIES)
+            FUNDING_AMOUNT USER_REMAINDER_PUZZLE_HASH USER_PUBLIC_KEY HUB_PUBLIC_KEY
+            state_sequence previous_checkpoint_hash manifest_root_value entry_count
+            reserved_total user_remainder entries)
+          (list
+            (list ASSERT_MY_COIN_ID funding_coin_id)
+            (list ASSERT_MY_AMOUNT (+ FUNDING_AMOUNT 0))
+            (list ASSERT_HEIGHT_RELATIVE (+ CLOSE_DELAY_BLOCKS 0))
+            (list CREATE_COIN
+              (curry-hash INITIAL_CLOSING_MOD_HASH
+                (list
+                  (atom-hash
+                    (closing-state-hash NETWORK_ID funding_coin_id
+                      (terms-hash NETWORK_ID ACCEPTANCE_BLOCKS FREEZE_BLOCKS
+                        CLOSE_DELAY_BLOCKS CHALLENGE_BLOCKS USER_PUBLIC_KEY
+                        HUB_PUBLIC_KEY STATE_RULES_HASH FUNDING_AMOUNT
+                        USER_REMAINDER_PUZZLE_HASH MAX_LEDGER_ENTRIES)
+                      ZERO_8
+                      (current-state-hash NETWORK_ID funding_coin_id
+                        (terms-hash NETWORK_ID ACCEPTANCE_BLOCKS FREEZE_BLOCKS
+                          CLOSE_DELAY_BLOCKS CHALLENGE_BLOCKS USER_PUBLIC_KEY
+                          HUB_PUBLIC_KEY STATE_RULES_HASH FUNDING_AMOUNT
+                          USER_REMAINDER_PUZZLE_HASH MAX_LEDGER_ENTRIES)
+                        FUNDING_AMOUNT USER_REMAINDER_PUZZLE_HASH state_sequence
+                        previous_checkpoint_hash manifest_root_value entry_count
+                        reserved_total user_remainder)))))
+              (+ FUNDING_AMOUNT 0)))))))
+)

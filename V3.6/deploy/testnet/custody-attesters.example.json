@@ -1,0 +1,12 @@
+[
+  {
+    "signer_id": "custody-vector-1",
+    "failure_domain": "test-custody-domain-a",
+    "signer_public_key": "89d0608036649d3484b7cfe71cfbd7f13015081d6206aede1aed0a4c1ad1521233123c08f0870e9d9f605ed429d24419"
+  },
+  {
+    "signer_id": "custody-vector-2",
+    "failure_domain": "test-custody-domain-b",
+    "signer_public_key": "b61c4ee5d1cdd57ea615e6f3003e89afeee153d666562d0abec363d8b88c21c35e55f5622668b113e966564d04eb9fa1"
+  }
+]

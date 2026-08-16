@@ -1,0 +1,18 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-alert-retention-candidates-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T18:26:54Z",
+  "keep_latest": 7,
+  "minimum_age_seconds": 604800,
+  "valid_backup_count": 3,
+  "candidate_count": 0,
+  "candidates": [],
+  "files_deleted": false,
+  "automatic_deletion_enabled": false,
+  "manual_review_required": true,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

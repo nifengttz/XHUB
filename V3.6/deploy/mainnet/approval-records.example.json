@@ -1,0 +1,20 @@
+{
+  "schema": "xhub-v3-6-mainnet-canary-approvals-1",
+  "protocol_version": "0x0360",
+  "evidence_sha256": "REPLACE_WITH_64_HEX_EVIDENCE_SHA256",
+  "records": [
+    {
+      "reviewer_id": "REPLACE_WITH_REVIEWER_A_ID",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_A",
+      "decision": "APPROVED",
+      "reviewed_evidence_sha256": "REPLACE_WITH_64_HEX_EVIDENCE_SHA256"
+    },
+    {
+      "reviewer_id": "REPLACE_WITH_REVIEWER_B_ID",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_B",
+      "decision": "APPROVED",
+      "reviewed_evidence_sha256": "REPLACE_WITH_64_HEX_EVIDENCE_SHA256"
+    }
+  ],
+  "broadcast_authorized": false
+}

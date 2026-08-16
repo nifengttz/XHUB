@@ -1,0 +1,20 @@
+{
+  "schema": "xhub-v3-6-mainnet-canary-deployment-1",
+  "wallet_listen": "127.0.0.1:18736",
+  "hub_listen": "127.0.0.1:18737",
+  "watchtower_listen": "127.0.0.1:18738",
+  "hub_db": "./not-used/hub.sqlite3",
+  "watchtower_db": "./not-used/watchtower.sqlite3",
+  "hub_api_token_file": "./not-used/hub-api-token.txt",
+  "watchtower_api_token_file": "./not-used/watchtower-api-token.txt",
+  "hub_bls_secret_file": "./not-used/hub-bls.hex",
+  "watchtower_confirmers_file": "./not-used/confirmers.json",
+  "watchtower_url": "http://127.0.0.1:18738",
+  "watchtower_recipient_id": "three-watchtower-mainnet-canary",
+  "rpc_mode": "trusted_public_https",
+  "chia_rpc_url": "https://api.coinset.org",
+  "chia_rpc_cert_file": null,
+  "chia_rpc_key_file": null,
+  "expected_network_id": "ccd5bb71183532bff220ba46c268991a3ff07eb358e8255a65c30a2dce0e5fbb",
+  "funding_coin_id": "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989"
+}

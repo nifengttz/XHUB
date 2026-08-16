@@ -1,0 +1,54 @@
+{
+  "schema": "xhub-v3-6-watchtower-deployment-evidence-1",
+  "protocol_version": "0x0360",
+  "identity_manifest_sha256": "REPLACE_WITH_64_HEX_IDENTITY_MANIFEST_SHA256",
+  "tls_endpoint_report_sha256": "REPLACE_WITH_64_HEX_TLS_ENDPOINT_REPORT_SHA256",
+  "funding_coin_id": "REPLACE_WITH_64_HEX_FUNDING_COIN_ID",
+  "state_sequence": 1,
+  "checkpoint_hash": "REPLACE_WITH_64_HEX_CHECKPOINT_HASH",
+  "recovery_package_content_hash": "REPLACE_WITH_64_HEX_RECOVERY_PACKAGE_CONTENT_HASH",
+  "operator_verifications": [
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_A_ID",
+      "operator_id": "REPLACE_WITH_OPERATOR_A",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_A",
+      "deployment_id": "REPLACE_WITH_DEPLOYMENT_A_ID",
+      "evidence_reference": "REPLACE_WITH_OPERATOR_A_EVIDENCE_REFERENCE",
+      "status": "VERIFIED"
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_B_ID",
+      "operator_id": "REPLACE_WITH_OPERATOR_B",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_B",
+      "deployment_id": "REPLACE_WITH_DEPLOYMENT_B_ID",
+      "evidence_reference": "REPLACE_WITH_OPERATOR_B_EVIDENCE_REFERENCE",
+      "status": "VERIFIED"
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_C_ID",
+      "operator_id": "REPLACE_WITH_OPERATOR_C",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_C",
+      "deployment_id": "REPLACE_WITH_DEPLOYMENT_C_ID",
+      "evidence_reference": "REPLACE_WITH_OPERATOR_C_EVIDENCE_REFERENCE",
+      "status": "VERIFIED"
+    }
+  ],
+  "reviewers": [
+    {
+      "reviewer_id": "REPLACE_WITH_REVIEWER_A_ID",
+      "failure_domain": "REPLACE_WITH_REVIEWER_FAILURE_DOMAIN_A",
+      "decision": "APPROVED",
+      "reviewed_identity_manifest_sha256": "REPLACE_WITH_64_HEX_IDENTITY_MANIFEST_SHA256",
+      "reviewed_tls_endpoint_report_sha256": "REPLACE_WITH_64_HEX_TLS_ENDPOINT_REPORT_SHA256"
+    },
+    {
+      "reviewer_id": "REPLACE_WITH_REVIEWER_B_ID",
+      "failure_domain": "REPLACE_WITH_REVIEWER_FAILURE_DOMAIN_B",
+      "decision": "APPROVED",
+      "reviewed_identity_manifest_sha256": "REPLACE_WITH_64_HEX_IDENTITY_MANIFEST_SHA256",
+      "reviewed_tls_endpoint_report_sha256": "REPLACE_WITH_64_HEX_TLS_ENDPOINT_REPORT_SHA256"
+    }
+  ],
+  "production_approved": false,
+  "production_broadcast": false
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-operations-integrity-1",
+  "protocol_version": "0x0360",
+  "files": [
+    {"source_file":"sqlite-online-backup.py","install_path":"/opt/xhub-v3.6-test/operations/sqlite-online-backup.py","sha256":"7670585236676706f454ff787cd8c70fa45b4b929bca24a4c67bcddb41dfefc5"},
+    {"source_file":"backup-monitor-aggregate-alerts.sh","install_path":"/opt/xhub-v3.6-test/operations/backup-monitor-aggregate-alerts.sh","sha256":"0f2ba35beae51aba0461daddb7045a29d965b4ef78ac59c923269182a88ed45a"},
+    {"source_file":"rotate-monitor-aggregate-token.sh","install_path":"/opt/xhub-v3.6-test/operations/rotate-monitor-aggregate-token.sh","sha256":"7671ea3b8550ad953a470caa65b12dc6d461810a7482c834c49c663ffba682f4"},
+    {"source_file":"verify-monitor-aggregate-alert-backup.sh","install_path":"/opt/xhub-v3.6-test/operations/verify-monitor-aggregate-alert-backup.sh","sha256":"2373b70616050e96c0e72ce3abc40305102357b796df4ac71454c0780ac7abda"},
+    {"source_file":"list-monitor-aggregate-backup-retention-candidates.sh","install_path":"/opt/xhub-v3.6-test/operations/list-monitor-aggregate-backup-retention-candidates.sh","sha256":"26bce44388258bea18c308b98dfb63df0be9ffad849ce29c38ad60755e9e6672"},
+    {"source_file":"inspect-monitor-aggregate-operations.sh","install_path":"/opt/xhub-v3.6-test/operations/inspect-monitor-aggregate-operations.sh","sha256":"3cb146c83181133f89a8fbff528dc19b69ad3be343384becf08644a1e836f6fb"},
+    {"source_file":"publish-monitor-aggregate-operations-inspection.sh","install_path":"/opt/xhub-v3.6-test/operations/publish-monitor-aggregate-operations-inspection.sh","sha256":"1abf0715ef49fc806857b97ad4093c5a5d29eee38d5ce1e10111cf2183e9ef8f"},
+    {"source_file":"verify-monitor-aggregate-inspection-scheduler.sh","install_path":"/opt/xhub-v3.6-test/operations/verify-monitor-aggregate-inspection-scheduler.sh","sha256":"1ee409f587ee48da58be6cbb72a1766dd80f99db0e2c239a9dbd59a74555a948"},
+    {"source_file":"publish-latest-monitor-aggregate-restore-drill.sh","install_path":"/opt/xhub-v3.6-test/operations/publish-latest-monitor-aggregate-restore-drill.sh","sha256":"fb56dfa4cd7c0afac262e78f7d3b4be9869c5258f6273cce855415aebd5c4bcf"},
+    {"source_file":"verify-monitor-aggregate-restore-scheduler.sh","install_path":"/opt/xhub-v3.6-test/operations/verify-monitor-aggregate-restore-scheduler.sh","sha256":"7f2455b579355731d786cab5d2b25a24eeb594fcb40fd206588231d8e130dced"},
+    {"source_file":"verify-monitor-aggregate-operations-integrity.sh","install_path":"/opt/xhub-v3.6-test/operations/verify-monitor-aggregate-operations-integrity.sh","sha256":"4726f6f6b8b1d0dc09d301fff8572e7dfba127d086965cacf30dee8698f457b4"},
+    {"source_file":"xhub-v36-monitor-alert-backup.service","install_path":"/etc/systemd/system/xhub-v36-monitor-alert-backup.service","sha256":"4955df2a1f529282b34ce08de72cbe8f010c51215b6c7f0b1bb6345587384b26"},
+    {"source_file":"xhub-v36-monitor-alert-backup.timer","install_path":"/etc/systemd/system/xhub-v36-monitor-alert-backup.timer","sha256":"f531670e0ab4e2da32edf39874fe04750ddbfe047008dfd0e85483eec9c339b0"},
+    {"source_file":"xhub-v36-monitor-operations-inspection.service","install_path":"/etc/systemd/system/xhub-v36-monitor-operations-inspection.service","sha256":"2b1ced52af8d16a1d261bd4ad4bdf36ac145172882c27db8944a4cc70373f0c4"},
+    {"source_file":"xhub-v36-monitor-operations-inspection.timer","install_path":"/etc/systemd/system/xhub-v36-monitor-operations-inspection.timer","sha256":"4c0a3698b19f5d9c0115a8c98140c521b76d02feed649abc6cebbb3ec53adde3"},
+    {"source_file":"xhub-v36-monitor-alert-restore-drill.service","install_path":"/etc/systemd/system/xhub-v36-monitor-alert-restore-drill.service","sha256":"51c6ed77269016c90d6e9c4bf3d2f93c9e2d443d30fbada73f3a6776790eb9c0"},
+    {"source_file":"xhub-v36-monitor-alert-restore-drill.timer","install_path":"/etc/systemd/system/xhub-v36-monitor-alert-restore-drill.timer","sha256":"1608ee723b39b6690796fccfa6bfa272c155d1d7daea1ff36b8b2533c72da0af"}
+  ],
+  "automatic_repair_enabled": false,
+  "external_notification_enabled": false,
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

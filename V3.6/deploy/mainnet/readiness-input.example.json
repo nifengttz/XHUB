@@ -1,0 +1,22 @@
+{
+  "schema": "xhub-v3-6-mainnet-readiness-input-1",
+  "protocol_version": "0x0360",
+  "parameter_validation": "VALID_CANDIDATE_ONLY",
+  "artifact_validation": "ARTIFACTS_VERIFIED",
+  "config_validation": "PENDING_EXTERNAL_INPUT",
+  "rpc_preflight": "PENDING_EXTERNAL_INPUT",
+  "funding_binding": "PENDING_EXTERNAL_INPUT",
+  "recovery_simulation": "PENDING_EXTERNAL_INPUT",
+  "canary_plan_validation": "PENDING_EXTERNAL_INPUT",
+  "canary_evidence_validation": "PENDING_EXTERNAL_INPUT",
+  "two_person_review": "PENDING_EXTERNAL_INPUT",
+  "secret_isolation": "PENDING_EXTERNAL_INPUT",
+  "identity_manifest_validation": "PENDING_EXTERNAL_INPUT",
+  "tls_profile_validation": "PENDING_EXTERNAL_INPUT",
+  "runtime_plan_validation": "PENDING_EXTERNAL_INPUT",
+  "deployment_config_validation": "PENDING_EXTERNAL_INPUT",
+  "watchtower_deployment_verification": "PENDING_EXTERNAL_INPUT",
+  "tls_endpoint_verification": "PENDING_EXTERNAL_INPUT",
+  "external_security_review": "PENDING_EXTERNAL_REVIEW",
+  "production_broadcast": false
+}

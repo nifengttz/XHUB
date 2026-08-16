@@ -1,0 +1,37 @@
+{
+  "schema": "xhub-v3-6-watchtower-endpoint-probe-1",
+  "protocol_version": "0x0360",
+  "funding_coin_id": "REPLACE_WITH_64_HEX_FUNDING_COIN_ID",
+  "expected_state_sequence": 1,
+  "expected_checkpoint_hash": "REPLACE_WITH_64_HEX_CHECKPOINT_HASH",
+  "expected_recovery_package_content_hash": "REPLACE_WITH_64_HEX_RECOVERY_PACKAGE_CONTENT_HASH",
+  "timeout_seconds": 20,
+  "nodes": [
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_A_ID",
+      "api_base_url": "https://REPLACE_WITH_WATCHTOWER_A_HOST",
+      "tls_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_A_SHA256",
+      "api_token_file": "REPLACE_WITH_WATCHTOWER_A_API_TOKEN_FILE",
+      "client_certificate_pfx_file": "REPLACE_WITH_CLIENT_A_PFX_FILE",
+      "client_certificate_password_file": "REPLACE_WITH_CLIENT_A_PFX_PASSWORD_FILE"
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_B_ID",
+      "api_base_url": "https://REPLACE_WITH_WATCHTOWER_B_HOST",
+      "tls_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_B_SHA256",
+      "api_token_file": "REPLACE_WITH_WATCHTOWER_B_API_TOKEN_FILE",
+      "client_certificate_pfx_file": "REPLACE_WITH_CLIENT_B_PFX_FILE",
+      "client_certificate_password_file": "REPLACE_WITH_CLIENT_B_PFX_PASSWORD_FILE"
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_C_ID",
+      "api_base_url": "https://REPLACE_WITH_WATCHTOWER_C_HOST",
+      "tls_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_C_SHA256",
+      "api_token_file": "REPLACE_WITH_WATCHTOWER_C_API_TOKEN_FILE",
+      "client_certificate_pfx_file": "REPLACE_WITH_CLIENT_C_PFX_FILE",
+      "client_certificate_password_file": "REPLACE_WITH_CLIENT_C_PFX_PASSWORD_FILE"
+    }
+  ],
+  "production_approved": false,
+  "production_broadcast": false
+}

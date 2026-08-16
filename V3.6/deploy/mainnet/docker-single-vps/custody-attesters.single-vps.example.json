@@ -1,0 +1,17 @@
+[
+  {
+    "signer_id": "wt-a",
+    "failure_domain": "single-tencent-vps",
+    "signer_public_key": "REPLACE_WITH_96_HEX_WT_A_PUBLIC_KEY"
+  },
+  {
+    "signer_id": "wt-b",
+    "failure_domain": "single-tencent-vps",
+    "signer_public_key": "REPLACE_WITH_96_HEX_WT_B_PUBLIC_KEY"
+  },
+  {
+    "signer_id": "wt-c",
+    "failure_domain": "single-tencent-vps",
+    "signer_public_key": "REPLACE_WITH_96_HEX_WT_C_PUBLIC_KEY"
+  }
+]

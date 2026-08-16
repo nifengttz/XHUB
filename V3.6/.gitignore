@@ -1,0 +1,9 @@
+**/target/
+.target-*/
+local-secrets/
+mainnet-experiment/private/
+mainnet-experiment/**/private/
+mainnet-experiment/**/*.local.json
+mainnet-experiment/**/*.sqlite3
+mainnet-experiment/**/*.sqlite3-wal
+mainnet-experiment/**/*.sqlite3-shm

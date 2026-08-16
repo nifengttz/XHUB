@@ -1,0 +1,156 @@
+services:
+  monitor-a:
+    image: xhub-watchtower-v3-6:readonly-monitor
+    container_name: xhub-v36-monitor-a
+    network_mode: host
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    entrypoint: ["/usr/local/bin/watchtower-monitor-v3-6"]
+    command:
+      - /var/lib/xhub-watchtower/watchtower-v3_6.sqlite3
+      - https://api.coinset.org
+      - 08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989
+      - "300"
+      - 127.0.0.1:18741
+    volumes:
+      - /opt/xhub-v3.6-test/data/wt-a:/var/lib/xhub-watchtower
+    mem_limit: 256m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:18741/api/v3.6/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    labels:
+      xhub.test-only: "true"
+      xhub.production-ready: "false"
+      xhub.rpc-mode: "readonly"
+      xhub.status-api: "127.0.0.1:18741"
+
+  monitor-b:
+    image: xhub-watchtower-v3-6:readonly-monitor
+    container_name: xhub-v36-monitor-b
+    network_mode: host
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    entrypoint: ["/usr/local/bin/watchtower-monitor-v3-6"]
+    command:
+      - /var/lib/xhub-watchtower/watchtower-v3_6.sqlite3
+      - https://api.coinset.org
+      - 08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989
+      - "300"
+      - 127.0.0.1:18742
+    volumes:
+      - /opt/xhub-v3.6-test/data/wt-b:/var/lib/xhub-watchtower
+    mem_limit: 256m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:18742/api/v3.6/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    labels:
+      xhub.test-only: "true"
+      xhub.production-ready: "false"
+      xhub.rpc-mode: "readonly"
+      xhub.status-api: "127.0.0.1:18742"
+
+  monitor-c:
+    image: xhub-watchtower-v3-6:readonly-monitor
+    container_name: xhub-v36-monitor-c
+    network_mode: host
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    entrypoint: ["/usr/local/bin/watchtower-monitor-v3-6"]
+    command:
+      - /var/lib/xhub-watchtower/watchtower-v3_6.sqlite3
+      - https://api.coinset.org
+      - 08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989
+      - "300"
+      - 127.0.0.1:18743
+    volumes:
+      - /opt/xhub-v3.6-test/data/wt-c:/var/lib/xhub-watchtower
+    mem_limit: 256m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:18743/api/v3.6/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    labels:
+      xhub.test-only: "true"
+      xhub.production-ready: "false"
+      xhub.rpc-mode: "readonly"
+      xhub.status-api: "127.0.0.1:18743"
+
+  monitor-aggregate:
+    image: xhub-watchtower-v3-6:readonly-monitor
+    container_name: xhub-v36-monitor-aggregate
+    network_mode: host
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    entrypoint: ["/usr/local/bin/watchtower-monitor-aggregate-v3-6"]
+    command:
+      - /var/lib/xhub-monitor-aggregate/alerts.sqlite3
+      - /run/secrets/monitor-aggregate-api-token.txt
+      - 08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989
+      - "60"
+      - 127.0.0.1:18744
+      - http://127.0.0.1:18741
+      - http://127.0.0.1:18742
+      - http://127.0.0.1:18743
+    volumes:
+      - /opt/xhub-v3.6-test/data/monitor-aggregate:/var/lib/xhub-monitor-aggregate
+      - /opt/xhub-v3.6-test/secrets/monitor-aggregate-api-token.txt:/run/secrets/monitor-aggregate-api-token.txt:ro
+    depends_on:
+      monitor-a:
+        condition: service_healthy
+      monitor-b:
+        condition: service_healthy
+      monitor-c:
+        condition: service_healthy
+    mem_limit: 128m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:18744/api/v3.6/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    labels:
+      xhub.test-only: "true"
+      xhub.production-ready: "false"
+      xhub.rpc-mode: "none"
+      xhub.status-api: "127.0.0.1:18744"
+      xhub.broadcast-enabled: "false"

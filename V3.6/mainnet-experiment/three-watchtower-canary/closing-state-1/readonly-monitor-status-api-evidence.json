@@ -1,0 +1,106 @@
+{
+  "schema": "xhub-v3-6-mainnet-readonly-monitor-status-api-evidence-1",
+  "protocol_version": "0x0360",
+  "network": "mainnet",
+  "captured_at_utc": "2026-08-14T15:18:23Z",
+  "host": "43.156.47.252",
+  "deployment_model": "single_vps_docker_test",
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "funding_coin_id": "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+  "rpc_url": "https://api.coinset.org",
+  "rpc_mode": "READ_ONLY",
+  "poll_interval_seconds": 300,
+  "max_staleness_seconds": 900,
+  "successful_poll_count_per_monitor_at_capture": 2,
+  "image": {
+    "tag": "xhub-watchtower-v3-6:readonly-monitor",
+    "id": "sha256:887617370353a2d51d1e95ae97cb445375f34755297a317fb497886bda56d11e",
+    "created_at": "2026-08-14T23:12:02.688453657+08:00"
+  },
+  "source_sha256": {
+    "monitor.rs": "be68b5c5967815ff588fe76a82a3ab6d577ebfd2a913efd433519e3f50274abb",
+    "compose.readonly-monitors.yaml": "077e7246db62148dfe9a0308f7c3f27eddacd5948b3ebf0613933ea5b45416a3",
+    "install-readonly-monitors.sh": "e0b6e1dcafe0edffdaed13b56bc0200638dc87ed1d867ee85cfb3d1dfc3f8a87"
+  },
+  "backup_path": "/opt/xhub-v3.6-test/deploy-backups/readonly-monitor-20260814T150613Z",
+  "status_endpoints": [
+    {
+      "watchtower": "a",
+      "listen": "127.0.0.1:18741",
+      "container": "xhub-v36-monitor-a",
+      "health": "healthy",
+      "restart_count": 0
+    },
+    {
+      "watchtower": "b",
+      "listen": "127.0.0.1:18742",
+      "container": "xhub-v36-monitor-b",
+      "health": "healthy",
+      "restart_count": 0
+    },
+    {
+      "watchtower": "c",
+      "listen": "127.0.0.1:18743",
+      "container": "xhub-v36-monitor-c",
+      "health": "healthy",
+      "restart_count": 0
+    }
+  ],
+  "status_api": {
+    "path": "/api/v3.6/funding-coins/{funding_coin_id}/monitor-status",
+    "protocol_version_required": true,
+    "wrong_protocol_version_http_status": 400,
+    "publicly_exposed": false,
+    "status": "READY",
+    "fresh": true,
+    "action": "FUNDING_OPEN",
+    "alert_level": "NONE",
+    "operator_attention_required": false,
+    "peak_height": 9148747,
+    "last_poll_at": 1786720633,
+    "latest_state_sequence": 1,
+    "detail": "Funding Coin remains unspent"
+  },
+  "database_consistency": {
+    "watchtower_count": 3,
+    "all_match": true,
+    "peak_height": 9148747,
+    "updated_at": 1786720633,
+    "action": "FundingOpen"
+  },
+  "alert_policy": {
+    "FUNDING_OPEN": "NONE",
+    "FINALIZED": "NONE",
+    "CLOSING_CURRENT": "WARNING",
+    "CHALLENGE_PLANNED": "CRITICAL",
+    "CHALLENGE_ALREADY_PLANNED": "CRITICAL",
+    "DEADLINE_PASSED": "CRITICAL",
+    "REORG_PENDING": "CRITICAL",
+    "UNKNOWN": "CRITICAL"
+  },
+  "execution_gate": "DUAL_APPROVAL_AND_FINAL_RECHECK_REQUIRED",
+  "manual_approval_required": true,
+  "spend_bundle_created": false,
+  "push_tx_called": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false,
+  "tests": {
+    "monitor_unit_and_http_tests_passed": 4,
+    "all_bins_cargo_check_passed": true,
+    "strict_clippy_passed": true,
+    "single_vps_docker_tests_passed": true,
+    "prohibited_runtime_field_scan_passed": true,
+    "installer_bash_syntax_passed": true,
+    "installer_waits_for_healthy": true,
+    "installer_backs_up_previous_overlay": true
+  },
+  "existing_services": {
+    "xhub-v36-hub": "healthy",
+    "xhub-v36-wt-a": "healthy",
+    "xhub-v36-wt-b": "healthy",
+    "xhub-v36-wt-c": "healthy"
+  },
+  "status": "THREE_LOOPBACK_STATUS_APIS_HEALTHY_AND_FAIL_CLOSED"
+}

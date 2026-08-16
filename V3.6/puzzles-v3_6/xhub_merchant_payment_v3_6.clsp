@@ -1,0 +1,26 @@
+(mod (
+    PROTOCOL_VERSION_ARG NETWORK_ID FUNDING_COIN_ID CHANNEL_TERMS_HASH ENTRY_INDEX
+    RESERVATION_NONCE MERCHANT_PUZZLE_HASH payment_coin_amount
+  )
+  (include *standard-cl-23*)
+
+  (defconstant ASSERT_MY_AMOUNT 73)
+  (defconstant CREATE_COIN 51)
+  (defconstant PROTOCOL_VERSION 0x0360)
+  (defun-inline require (condition value) (if condition value (x)))
+
+  (require (= PROTOCOL_VERSION_ARG PROTOCOL_VERSION)
+    (require (= (strlen NETWORK_ID) 32)
+      (require (= (strlen FUNDING_COIN_ID) 32)
+        (require (= (strlen CHANNEL_TERMS_HASH) 32)
+          (require (= (strlen ENTRY_INDEX) 8)
+            (require (= (strlen RESERVATION_NONCE) 32)
+              (require (= (strlen MERCHANT_PUZZLE_HASH) 32)
+                (require (= (strlen payment_coin_amount) 8)
+                  (require (> (+ payment_coin_amount 0) 0)
+                    (list
+                      (list ASSERT_MY_AMOUNT (+ payment_coin_amount 0))
+                      (list CREATE_COIN MERCHANT_PUZZLE_HASH
+                        (+ payment_coin_amount 0))))))))))))
+)
+

@@ -1,0 +1,11 @@
+{
+    "schema":  "xhub-v3-6-mainnet-recovery-simulation-evidence-1",
+    "protocol_version":  "0x0360",
+    "simulation_sha256":  "16feeaa9a71fcc70dea9834cd4920bcd39de6d3113c64817645adbbcfbdfbf23",
+    "plan_sha256":  "867068ac17e7aba51002543558d9c0da95cf70b6b39f6886cd4c7f52a35e9bf4",
+    "binding_sha256":  "1d8ab5adf839f62d1c7fe4cd8cf913f59dee0a2ba4f3576b77ee762950ee04c6",
+    "funding_coin_id":  "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+    "recovery_package_content_hash":  "694776c665d16a5860f353e3ecf904a23c505b9b38bc63babcfb218c491d5f44",
+    "broadcast_enabled":  false,
+    "status":  "RECOVERY_SIMULATION_VERIFIED"
+}

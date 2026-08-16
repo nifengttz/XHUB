@@ -1,0 +1,17 @@
+{
+  "schema": "xhub-v3-6-source-control-candidate-manifest-verification-1",
+  "protocol_version": "0x0360",
+  "status": "VERIFIED",
+  "candidate_file_count": 288,
+  "candidate_total_bytes": 2227040,
+  "tree_sha256": "8e23c8685a35139f21a709d3730fca213b92603b4f99bc6c81dacc51b4cdff1b",
+  "all_entries_match": true,
+  "commit_created": false,
+  "automatic_staging_enabled": false,
+  "manual_review_required": true,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

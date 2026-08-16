@@ -1,0 +1,34 @@
+{
+  "schema": "xhub-v3-6-single-vps-docker-test-1",
+  "protocol_version": "0x0360",
+  "mode": "single-vps-docker-test",
+  "image": "xhub-watchtower-v3-6:local",
+  "failure_domain": "single-tencent-vps",
+  "custody_threshold": 2,
+  "confirmers_file": "/opt/xhub-v3.6/config/confirmers.mainnet.local.json",
+  "custody_attesters_file": "/opt/xhub-v3.6/config/custody-attesters.single-vps.local.json",
+  "instances": [
+    {
+      "attester_id": "wt-a",
+      "listen_port": 18738,
+      "database_directory": "/opt/xhub-v3.6/data/wt-a",
+      "api_token_file": "/opt/xhub-v3.6/secrets/wt-a-api-token.txt"
+    },
+    {
+      "attester_id": "wt-b",
+      "listen_port": 18739,
+      "database_directory": "/opt/xhub-v3.6/data/wt-b",
+      "api_token_file": "/opt/xhub-v3.6/secrets/wt-b-api-token.txt"
+    },
+    {
+      "attester_id": "wt-c",
+      "listen_port": 18740,
+      "database_directory": "/opt/xhub-v3.6/data/wt-c",
+      "api_token_file": "/opt/xhub-v3.6/secrets/wt-c-api-token.txt"
+    }
+  ],
+  "failure_domain_enforced": false,
+  "test_only": true,
+  "production_ready": false,
+  "production_broadcast": false
+}

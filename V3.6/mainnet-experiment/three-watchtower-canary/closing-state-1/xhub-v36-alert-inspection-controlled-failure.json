@@ -1,0 +1,16 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-inspection-failure-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T18:38:40Z",
+  "status": "FAIL",
+  "inspection_exit_code": 1,
+  "error_detail_stored": false,
+  "operator_attention_required": true,
+  "automatic_remediation_enabled": false,
+  "external_notification_enabled": false,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

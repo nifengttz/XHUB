@@ -1,0 +1,33 @@
+{
+    "schema":  "xhub-v3-6-mainnet-payment-result-1",
+    "protocol_version":  "0x0360",
+    "network":  "mainnet",
+    "mainnet_approved":  false,
+    "chain_broadcast":  false,
+    "funding_coin_id":  "d8d089881dde12de0bdb8a078df9ab047da307d3f671b5b188b78448d570ea9d",
+    "amount":  "1",
+    "reservation_nonce":  "143737d1d63f5d29d28cf9305ee34d6f91116a4e1fb3091b2b077ac5fcff5e2a",
+    "authorization_hash":  "d4f6e22fb3e9e3d5914afc1c40360d846366473f4a35328fb96898a0258acce4",
+    "state_sequence":  1,
+    "checkpoint_hash":  "2c8a4deab87225efa6c92d1bc836a1bd18645008e4b884edc451e71e82915d7e",
+    "recovery_package_content_hash":  "81654a62db7ca538851a3958342c54c1a0c06e4e21a25591bf02638ec1cfb6e0",
+    "hub_status":  "SIGNED",
+    "ledger_written":  true,
+    "delivery_status":  "DELIVERED",
+    "delivery_attempt_count":  1,
+    "confirmation_status":  "ACCEPTED",
+    "greenlight":  {
+                       "protocol_version":  "0x0360",
+                       "funding_coin_id":  "d8d089881dde12de0bdb8a078df9ab047da307d3f671b5b188b78448d570ea9d",
+                       "state_sequence":  1,
+                       "checkpoint_hash":  "2c8a4deab87225efa6c92d1bc836a1bd18645008e4b884edc451e71e82915d7e",
+                       "recovery_package_content_hash":  "81654a62db7ca538851a3958342c54c1a0c06e4e21a25591bf02638ec1cfb6e0",
+                       "entry_index":  0,
+                       "authorization_hash":  "d4f6e22fb3e9e3d5914afc1c40360d846366473f4a35328fb96898a0258acce4",
+                       "threshold":  1,
+                       "signer_count":  1,
+                       "failure_domain_count":  1,
+                       "delivered":  true
+                   },
+    "completed_at_utc":  "2026-08-12T09:05:26.5696633Z"
+}

@@ -1,0 +1,183 @@
+{
+    "schema":  "xhub-v3-6-testnet-release-1",
+    "release_id":  "v3.6-testnet-vector-1",
+    "protocol_version":  "0x0360",
+    "release_status":  "VECTOR_READY",
+    "mainnet_approved":  false,
+    "sources":  {
+                    "protocol_document":  {
+                                              "path":  "protocol-v3_6/protocol-v3_6.md",
+                                              "sha256":  "440b65d1aa38ceba447197d1a29c0731f004f680d9844fd83bfc8750347b618d"
+                                          },
+                    "protocol_vectors":  {
+                                             "path":  "protocol-v3_6/test-vectors/protocol-v3_6.json",
+                                             "sha256":  "76cb653f5c09b94b0b18c2d0912be817d7a17c1d9ce3411951001e0b1d751fc7"
+                                         },
+                    "testnet_profile":  {
+                                            "path":  "wallet-v3_6/config/testnet-vector-profile-v1.json",
+                                            "sha256":  "348d60a54e93e2fd1cceba0d332f94ccb116aa41b4d0bbcc9d0d06e8d4a477f2"
+                                        }
+                },
+    "source_commits":  {
+                           "protocol":  "UNCOMMITTED",
+                           "puzzles":  "UNCOMMITTED",
+                           "hub":  "UNCOMMITTED",
+                           "watchtower":  "UNCOMMITTED",
+                           "wallet":  "UNCOMMITTED"
+                       },
+    "clvm":  {
+                 "compiler":  {
+                                  "run":  "0.4.0",
+                                  "opc":  "0.4.0",
+                                  "flags":  [
+                                                "--strict",
+                                                "--optimize"
+                                            ]
+                              },
+                 "build_script":  "puzzles-v3_6/compile-puzzles.ps1",
+                 "build_script_sha256":  "7cf224d34257da75d135cf59712c01d944725fd786293ab031577dc190af4796",
+                 "modules":  {
+                                 "xhub_funding_v3_6":  {
+                                                           "source":  "xhub_funding_v3_6.clsp",
+                                                           "source_sha256":  "480721236f7988b83c8f84317eff005e8c18d2f7148083bca5b9aee8de442f33",
+                                                           "hex":  "xhub_funding_v3_6.clsp.hex",
+                                                           "hex_sha256":  "da4b1f4b5e015f5a3317156a8f229d0802059fdd54f05b8c1370f40d1cc48b91",
+                                                           "byte_length":  5413,
+                                                           "module_hash":  "e2945105091602fb91db08af00525153604007791be6e673372e33880eb2e6ce"
+                                                       },
+                                 "xhub_initial_closing_v3_6":  {
+                                                                   "source":  "xhub_initial_closing_v3_6.clsp",
+                                                                   "source_sha256":  "37a3633841cff7f4f09e99bf630f2cc5ed8da604949e916721cce245175a91b1",
+                                                                   "hex":  "xhub_initial_closing_v3_6.clsp.hex",
+                                                                   "hex_sha256":  "677c0def0b9a374f90108daebf9d2ec69c6a36ac314d35be79d4e9c72b3e5027",
+                                                                   "byte_length":  7763,
+                                                                   "module_hash":  "95d2aa194ef302ac4637280031e3492736e231490a4883cc2ace090551c18b59"
+                                                               },
+                                 "xhub_subsequent_closing_v3_6":  {
+                                                                      "source":  "xhub_subsequent_closing_v3_6.clsp",
+                                                                      "source_sha256":  "ded72d163f0b10477e412e7179b78b970510fbe924edde0db2f3095740457af7",
+                                                                      "hex":  "xhub_subsequent_closing_v3_6.clsp.hex",
+                                                                      "hex_sha256":  "a4ecbea5a281a8019633bf27f7759c23123d861555c134bc1d733680056bf7ad",
+                                                                      "byte_length":  7573,
+                                                                      "module_hash":  "e1a73c7381c56817159558594e13558c22d5d7ac8a8c5c81a53132335e8d1e29"
+                                                                  },
+                                 "xhub_merchant_payment_v3_6":  {
+                                                                    "source":  "xhub_merchant_payment_v3_6.clsp",
+                                                                    "source_sha256":  "cbec7ef34ae93cc4cfd6c8ec5b3483a7450c60d8c34bdeedc4184236aac6672d",
+                                                                    "hex":  "xhub_merchant_payment_v3_6.clsp.hex",
+                                                                    "hex_sha256":  "b9ca9c574c9e57838ccb6147f8e4082130a5294f9b03283c2429f306d631d1ca",
+                                                                    "byte_length":  357,
+                                                                    "module_hash":  "b53e39fa4960713ced442f21331672ea38d73c763cc690f37089ebd3aee5ffe1"
+                                                                }
+                             }
+             },
+    "http_api":  {
+                     "prefix":  "/api/v3.6",
+                     "protocol_version":  "0x0360",
+                     "wallet_funding_drafts":  "/api/v3.6/funding-drafts"
+                 },
+    "defaults":  {
+                     "acceptance_blocks":  12288,
+                     "freeze_blocks":  200,
+                     "close_delay_blocks":  12488,
+                     "challenge_blocks":  6000,
+                     "funding_confirmation_blocks":  32,
+                     "merchant_delivery_confirmations_required":  1,
+                     "custody_attestation_threshold":  "1-of-3",
+                     "max_ledger_entries":  64
+                 },
+    "test_public_keys":  {
+                             "wallet_user":  "89d0608036649d3484b7cfe71cfbd7f13015081d6206aede1aed0a4c1ad1521233123c08f0870e9d9f605ed429d24419",
+                             "hub_a":  "b61c4ee5d1cdd57ea615e6f3003e89afeee153d666562d0abec363d8b88c21c35e55f5622668b113e966564d04eb9fa1",
+                             "merchant_receipt":  "97b418875a833bded791b93b592d6cbff91d9a51cc1fe375e9eb44e379751a48f974ead8948542d31b066229aca6fca5"
+                         },
+    "compatibility_test":  {
+                               "path":  "wallet-v3_6/tests/cross_repo.rs",
+                               "sha256":  "74e62843725f09fd0608efc2525bacaf1fde80c59c604f1103f00b1916f3b1da",
+                               "covers":  [
+                                              "channel_terms_hash",
+                                              "checkpoint_hash",
+                                              "recovery_package_content_hash",
+                                              "authorization_hash",
+                                              "delivery_confirmation_1_of_3"
+                                          ]
+                           },
+    "testnet_deployment":  {
+                               "status":  "VECTOR_READY",
+                               "directory":  "deploy/testnet",
+                               "config_schema":  "xhub-v3-6-testnet-deployment-1",
+                               "hub_binary":  "hub-v3-6",
+                               "watchtower_binary":  "watchtower-v3-6",
+                               "wallet_binary":  "wallet-v3-6",
+                               "rpc_preflight_binary":  "xhub-rpc-preflight",
+                               "authenticated_http_delivery_test":  {
+                                                                        "path":  "hub-v3_6/tests/watchtower_transport.rs",
+                                                                        "sha256":  "4fc4ba035f247572c76c21572ee0b724459f8c0396e51895dc5255f280bb1d3a"
+                                                                    },
+                               "local_smoke":  {
+                                                   "script":  "deploy/testnet/smoke-test.ps1",
+                                                   "script_sha256":  "92c36088c2893f7304346ceae6353653196c0c9e1c45ab6961f00edb85a43c40",
+                                                   "result":  "wallet/hub/watchtower READY; unauthenticated HUB/watchtower requests rejected"
+                                               },
+                               "config_validation":  {
+                                                         "script":  "deploy/testnet/validate-config.ps1",
+                                                         "script_sha256":  "651f4683d9eebe012ba686d530571f0ad79db3d4c4484838b71702cb2a064d6b",
+                                                         "tests":  "deploy/testnet/test-config-validation.ps1",
+                                                         "tests_sha256":  "46112fa3734f34f4a86345ae165c8a3d0e8ebb2cecadc339b07cee25266dd365",
+                                                         "result":  "fail-closed static deployment configuration gate"
+                                                     },
+                               "real_full_node_preflight":  "PENDING_EXTERNAL_TESTNET_INPUT",
+                               "real_funding_coin_registration":  "PENDING_EXTERNAL_TESTNET_INPUT"
+                           },
+    "mainnet_canary_precheck":  {
+                                    "status":  "VECTOR_READY_READ_ONLY",
+                                    "directory":  "deploy/mainnet",
+                                    "config_schema":  "xhub-v3-6-mainnet-canary-deployment-1",
+                                    "config_example":  "deploy/mainnet/config.mainnet.example.json",
+                                    "validation_script":  "deploy/mainnet/validate-config.ps1",
+                                    "validation_script_sha256":  "bc3567e2e07e7463dfe9fa29f55028452921a78bede70ac69ac2bdd9235dd90d",
+                                    "rpc_preflight_script":  "deploy/mainnet/rpc-preflight.ps1",
+                                    "rpc_preflight_script_sha256":  "b0db84a31808edf10ddd11f8e9e25cb75c2ecadf93443bc01b358691db54c5a1",
+                                    "canary_plan_schema":  "xhub-v3-6-mainnet-canary-plan-1",
+                                    "canary_plan_example":  "deploy/mainnet/canary-plan.example.json",
+                                    "canary_plan_validator":  "deploy/mainnet/validate-canary-plan.ps1",
+                                    "canary_plan_validator_sha256":  "f7ab402dcd48903e36bb54144465014f781b733199419d22235af44c0cd539a2",
+                                    "canary_plan_tests":  "deploy/mainnet/test-canary-plan.ps1",
+                                    "canary_plan_tests_sha256":  "fa5fa0aae0455ce1ac459cc899721ff13fc58c0b73136efd714d63a8760dcf26",
+                                    "canary_max_total_mojo":  1,
+                                    "evidence_template":  "deploy/mainnet/canary-evidence.example.json",
+                                    "evidence_validator":  "deploy/mainnet/validate-canary-evidence.ps1",
+                                    "evidence_validator_sha256":  "026a56a202cc6b9ad901ccc0fbd69a331bf5a86354b62cd004272efb2dc1d8b8",
+                                    "evidence_tests":  "deploy/mainnet/test-canary-evidence.ps1",
+                                    "evidence_tests_sha256":  "5e67607dbceb24ef33698a08da9b981ae37096130976b65e91104d16aa29ab20",
+                                    "parameter_profile":  "deploy/mainnet/mainnet-parameters.candidate.json",
+                                    "parameter_profile_sha256":  "c346f3a6cc55b43b66e492a72f920a53cdb782e626edd7a007631515568d98b0",
+                                    "artifact_manifest":  "deploy/mainnet/mainnet-canary-artifacts.json",
+                                    "artifact_manifest_sha256":  "cef937f1d59e9a7e1a0125d549c0324fa0c209dc78f3041d54a228e781a86c44",
+                                    "readiness_evaluator":  "deploy/mainnet/evaluate-readiness.ps1",
+                                    "readiness_evaluator_sha256":  "53ea5eb1546bb1e24a9999025f6899c7b276ddded884f709bbb386d4b243dfec",
+                                    "candidate_release_generator":  "deploy/mainnet/generate-candidate-release.ps1",
+                                    "candidate_release_generator_sha256":  "7dc713f84f7624a9043c9056008fe12e933d76611b9259067bceb5ac77638d56",
+                                    "current_readiness":  "BLOCKED_EXTERNAL_INPUT",
+                                    "rpc_evidence_validator":  "deploy/mainnet/validate-rpc-preflight-output.ps1",
+                                    "rpc_evidence_validator_sha256":  "43596f1effba70d1c9e657d124e6d1fe3e480dddbcd4bbed960887563af6015c",
+                                    "funding_binding_validator":  "deploy/mainnet/validate-funding-binding.ps1",
+                                    "funding_binding_validator_sha256":  "7b69499f5bfba91b40d4f6b921d7b809252ccb8382fd2affd9e6e8ba9db9effc",
+                                    "recovery_simulation_validator":  "deploy/mainnet/validate-recovery-simulation.ps1",
+                                    "recovery_simulation_validator_sha256":  "1f2d8444381dfa60cac4ef4696b6abf20353ca728edb186dbf0b66bd3b7fc86a",
+                                    "approval_validator":  "deploy/mainnet/validate-approval-records.ps1",
+                                    "approval_validator_sha256":  "d2fa650afa24c5bbf2d644c34237ad56167b52934697e55b61e0054341d74b5f",
+                                    "dry_run_orchestrator":  "deploy/mainnet/run-canary-dry-run.ps1",
+                                    "dry_run_orchestrator_sha256":  "38b94f156fe46be552e271c4f32f27f6f9a4723ac4ae4e080d4beaf0fc6e6d28",
+                                    "production_broadcast":  false
+                                },
+    "known_limitations":  [
+                              "This release is a testnet vector baseline and is prohibited for mainnet use.",
+                              "Mainnet timing safety ranges and challenge_blocks remain OPEN.",
+                              "The production DeliveryConfirmation threshold remains OPEN; 1-of-3 is testnet-only.",
+                              "CLVM module hashes are VECTOR_READY candidates, not final mainnet hashes.",
+                              "Independent security review and two-machine reproducible-build evidence are incomplete.",
+                              "Authentication, TLS termination, rate limiting, and production key custody are outside this test release.",
+                              "Bearer authentication and a TLS reverse-proxy template are implemented, but external TLS and rate-limit load tests are not yet evidenced."
+                          ]
+}

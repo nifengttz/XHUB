@@ -1,0 +1,25 @@
+{
+  "schema": "xhub-v3-6-testnet-vector-profile-1",
+  "protocol_version": "0x0360",
+  "profile_id": "v3.6-testnet-vector-1",
+  "network_id_source": "connected_full_node_genesis_challenge",
+  "defaults": {
+    "acceptance_blocks": 12288,
+    "freeze_blocks": 200,
+    "challenge_blocks": 6000,
+    "funding_confirmation_blocks": 32,
+    "merchant_delivery_confirmations_required": 1,
+    "custody_attestation_threshold": 1,
+    "custody_attestation_participants": 3
+  },
+  "protocol_valid_ranges": {
+    "acceptance_blocks": { "min": 1, "max": 9223372036854775807 },
+    "freeze_blocks": { "min": 1, "max": 9223372036854775807 },
+    "challenge_blocks": { "min": 1, "max": 9223372036854775807 }
+  },
+  "mainnet_approved": false,
+  "notes": [
+    "Ranges express protocol validity for test instances, not audited mainnet safety limits.",
+    "The actual network_id and all terms are immutable after a Funding draft is confirmed."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "xhub-v3-6-watchtower-identities-1",
+  "protocol_version": "0x0360",
+  "network": "mainnet",
+  "merchant_receipt_public_key": "REPLACE_WITH_96_HEX_MERCHANT_RECEIPT_PUBLIC_KEY",
+  "custody_attestation_threshold": 2,
+  "custody_attestation_participants": 3,
+  "attesters": [
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_A_ID",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_A",
+      "operator_id": "REPLACE_WITH_OPERATOR_A",
+      "infrastructure_provider": "REPLACE_WITH_PROVIDER_A",
+      "region": "REPLACE_WITH_REGION_A",
+      "attester_public_key": "REPLACE_WITH_96_HEX_ATTESTER_A_PUBLIC_KEY",
+      "api_base_url": "https://REPLACE_WITH_WATCHTOWER_A_HOST",
+      "tls_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_A_SHA256"
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_B_ID",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_B",
+      "operator_id": "REPLACE_WITH_OPERATOR_B",
+      "infrastructure_provider": "REPLACE_WITH_PROVIDER_B",
+      "region": "REPLACE_WITH_REGION_B",
+      "attester_public_key": "REPLACE_WITH_96_HEX_ATTESTER_B_PUBLIC_KEY",
+      "api_base_url": "https://REPLACE_WITH_WATCHTOWER_B_HOST",
+      "tls_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_B_SHA256"
+    },
+    {
+      "attester_id": "REPLACE_WITH_ATTESTER_C_ID",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_C",
+      "operator_id": "REPLACE_WITH_OPERATOR_C",
+      "infrastructure_provider": "REPLACE_WITH_PROVIDER_C",
+      "region": "REPLACE_WITH_REGION_C",
+      "attester_public_key": "REPLACE_WITH_96_HEX_ATTESTER_C_PUBLIC_KEY",
+      "api_base_url": "https://REPLACE_WITH_WATCHTOWER_C_HOST",
+      "tls_certificate_sha256": "REPLACE_WITH_64_HEX_CERTIFICATE_C_SHA256"
+    }
+  ],
+  "production_approved": false
+}

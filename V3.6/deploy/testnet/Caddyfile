@@ -1,0 +1,24 @@
+{
+    email ops@example.invalid
+}
+
+wallet.testnet.example.invalid {
+    request_body {
+        max_size 1MB
+    }
+    reverse_proxy 127.0.0.1:8736
+}
+
+hub.testnet.example.invalid {
+    request_body {
+        max_size 2MB
+    }
+    reverse_proxy 127.0.0.1:8737
+}
+
+watchtower.testnet.example.invalid {
+    request_body {
+        max_size 4MB
+    }
+    reverse_proxy 127.0.0.1:8738
+}

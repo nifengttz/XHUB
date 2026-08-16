@@ -1,0 +1,16 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-inspection-publication-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T22:40:39Z",
+  "status": "PUBLISHED",
+  "report_path": "/opt/xhub-v3.6-test/operations-reports/monitor-aggregate/latest.json",
+  "report_sha256": "3d46c3c5519d1d85745c55868fc1379a137b11a004291c34fbb1302b97573b7e",
+  "failure_marker_present": false,
+  "automatic_remediation_enabled": false,
+  "external_notification_enabled": false,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

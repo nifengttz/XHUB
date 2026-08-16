@@ -1,0 +1,17 @@
+[
+  {
+    "recipient_id": "wt-a",
+    "base_url": "http://127.0.0.1:18738",
+    "api_token_file": "/run/watchtower-secrets/wt-a-token.txt"
+  },
+  {
+    "recipient_id": "wt-b",
+    "base_url": "http://127.0.0.1:18739",
+    "api_token_file": "/run/watchtower-secrets/wt-b-token.txt"
+  },
+  {
+    "recipient_id": "wt-c",
+    "base_url": "http://127.0.0.1:18740",
+    "api_token_file": "/run/watchtower-secrets/wt-c-token.txt"
+  }
+]

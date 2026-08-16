@@ -1,0 +1,1466 @@
+{
+    "schema":  "xhub-v3-6-source-control-candidate-manifest-1",
+    "protocol_version":  "0x0360",
+    "candidate_root":  "V3.6",
+    "candidate_file_count":  288,
+    "candidate_total_bytes":  2227040,
+    "tree_sha256":  "8e23c8685a35139f21a709d3730fca213b92603b4f99bc6c81dacc51b4cdff1b",
+    "excluded_reports":  [
+                             "V3.6/source-control-readiness-evidence.json",
+                             "V3.6/source-control-candidate-manifest.json",
+                             "V3.6/source-control-candidate-manifest-verification-evidence.json"
+                         ],
+    "files":  [
+                  {
+                      "path":  "V3.6/.dockerignore",
+                      "size":  143,
+                      "sha256":  "ab5e32238af55afeb2917bcc5d33643fa5fc0d6005ad8036f7ea55d9aec8b7ec"
+                  },
+                  {
+                      "path":  "V3.6/.gitignore",
+                      "size":  235,
+                      "sha256":  "52ae2048c4e04420426ff14f83ecbe5e2ebbc68bba610a14dc56db9a507197cd"
+                  },
+                  {
+                      "path":  "V3.6/audit-source-control-readiness.ps1",
+                      "size":  4316,
+                      "sha256":  "d4ba39dbc8a340fed9bf5a337531b32066d48d1cd90c577412dadba928d6c68a"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/approval-records.example.json",
+                      "size":  645,
+                      "sha256":  "b94c2b4e0def9294416fe77fe9e8f62f7d02c0f56eeabbd1f9070f69da8df09f"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/canary-1-mojo/funding-candidate.json",
+                      "size":  13408,
+                      "sha256":  "f55cca912ee6d81ed3b050767c3c850e7ecc170fde50bb6e09b778704c76f18d"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/canary-1-mojo/hubwallet-lock-request.json",
+                      "size":  226,
+                      "sha256":  "4419f79586e0c58355d9a47147b7e747d2f534b1b034e6493cdf2ad267999aa8"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/canary-5-mojo/funding-candidate.json",
+                      "size":  13417,
+                      "sha256":  "f096d79e4e0103a3ab6a834b108e2ea6e47440eb3191c25ab7032d8f6328aa33"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/canary-5-mojo/hubwallet-lock-request.json",
+                      "size":  235,
+                      "sha256":  "ca906ba52301b99b20c529d3469aa9f8f85b284ab4ca62f0c9d35cf2a2cf6d95"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/canary-evidence.example.json",
+                      "size":  1322,
+                      "sha256":  "50ea6b661bd80bf75d74c60c4a4f1bcf06aa7f316fce8fa7f74423dbdff052d7"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/canary-plan.example.json",
+                      "size":  682,
+                      "sha256":  "01d55505529ed6c926919c8e7864e086439f3ae08c1bb3ea068580c45af303f1"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/check-secret-isolation.ps1",
+                      "size":  3241,
+                      "sha256":  "d4af0f508bf59ee47cdbd9220ebe09e069d6fab6b3395be5bb87e001321a98a0"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/common.ps1",
+                      "size":  1767,
+                      "sha256":  "205a0974f67f37c06a59e9518f71201b3c711f4e451d8afdb1ded5660fb627bb"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/config.mainnet.example.json",
+                      "size":  1444,
+                      "sha256":  "77db6eecf655b42acbfd1f711f27521cb3940e95bde3d598df062d1071ad34b4"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/custody-attesters.mainnet.example.json",
+                      "size":  543,
+                      "sha256":  "83d3b3a012a274b51a5f6f92fb76e7a5e4eb91e8e038336b6325fc6f47a37015"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/backup-monitor-aggregate-alerts.sh",
+                      "size":  4122,
+                      "sha256":  "0f2ba35beae51aba0461daddb7045a29d965b4ef78ac59c923269182a88ed45a"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/compose.readonly-monitors.yaml",
+                      "size":  4676,
+                      "sha256":  "f4084af97e053a80078bf72c35b9f216b50515bcc743f135636da22933c73021"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/custody-attesters.single-vps.example.json",
+                      "size":  426,
+                      "sha256":  "c85b0483197d1347748065fa89ff5ee754bdd531d7d8485b59f3a65fe1796e60"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/Dockerfile",
+                      "size":  1097,
+                      "sha256":  "63ecaadb489d4db36a251483665290896b15e54a1dcdaa4579defc6b3f938833"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/Dockerfile.custody-signer",
+                      "size":  602,
+                      "sha256":  "e4b54222adb6a32d3a3799ddf2242fd04dd1e8edd0716f6d5d974f828f61aae1"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/generate-single-vps-docker-compose.ps1",
+                      "size":  3850,
+                      "sha256":  "b0556aca6ff82c40abcaffc17854a674a09665e91be98064a27081c0564c141e"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/inspect-monitor-aggregate-operations.sh",
+                      "size":  5556,
+                      "sha256":  "3cb146c83181133f89a8fbff528dc19b69ad3be343384becf08644a1e836f6fb"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/install-monitor-aggregate-operations.sh",
+                      "size":  4938,
+                      "sha256":  "482803f387cbafd8befe439e1b116a92f60bca89fe102faef375608c3eb22ed8"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/install-readonly-monitors.sh",
+                      "size":  2934,
+                      "sha256":  "11774beffe8ca0ebdf7d7e5083d273bd90b2a7fc788a9d5cad15b28e497d0cb7"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/list-monitor-aggregate-backup-retention-candidates.sh",
+                      "size":  3083,
+                      "sha256":  "26bce44388258bea18c308b98dfb63df0be9ffad849ce29c38ad60755e9e6672"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/OPERATIONS.md",
+                      "size":  4674,
+                      "sha256":  "ac55969862ef149f0651e3bd30d07db56c425cfd48ab9eb6b7265c437bcc6e6f"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/operations-integrity-manifest.json",
+                      "size":  4270,
+                      "sha256":  "aef7b0d276b615b367f7c2855d641a24cf5b38b19a7dd977066043e977957c7a"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/publish-latest-monitor-aggregate-restore-drill.sh",
+                      "size":  3725,
+                      "sha256":  "fb56dfa4cd7c0afac262e78f7d3b4be9869c5258f6273cce855415aebd5c4bcf"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/publish-monitor-aggregate-operations-inspection.sh",
+                      "size":  3356,
+                      "sha256":  "1abf0715ef49fc806857b97ad4093c5a5d29eee38d5ce1e10111cf2183e9ef8f"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/README.md",
+                      "size":  2563,
+                      "sha256":  "9bae0dd4cb4add7882b0f5b5fcdf3f77b3c1ad1bac28f6f3017b937c261d586c"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/rotate-monitor-aggregate-token.sh",
+                      "size":  3335,
+                      "sha256":  "7671ea3b8550ad953a470caa65b12dc6d461810a7482c834c49c663ffba682f4"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/single-vps-docker-profile.example.json",
+                      "size":  1121,
+                      "sha256":  "416b23466610a4db5a7b4e8b34f88406349d6a5da45dac55104d98c7346c758d"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/sqlite-online-backup.py",
+                      "size":  1407,
+                      "sha256":  "7670585236676706f454ff787cd8c70fa45b4b929bca24a4c67bcddb41dfefc5"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/test-single-vps-docker.ps1",
+                      "size":  19021,
+                      "sha256":  "46bb50bf99e312ad5d8f78408fa634a2f232b835fdb3b2cd93cbc0fa1ba18e31"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/validate-single-vps-docker-profile.ps1",
+                      "size":  4530,
+                      "sha256":  "f7851d8bb4e15505a85c82c31988b0f9fafb2ff12f354ae3437cdf2e8fbec880"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-aggregator-failover.sh",
+                      "size":  955,
+                      "sha256":  "371fd813c5a2d31fe96f3b0c59fe1b082632c917f341d06d5579f166b26f82f4"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-alert-lifecycle.sh",
+                      "size":  9383,
+                      "sha256":  "313c4b37692695fdac805f9b7f5a86ca61c6e1235c52d22a8b5b7370b4ca7061"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-monitor-aggregate-alert-backup.sh",
+                      "size":  4968,
+                      "sha256":  "2373b70616050e96c0e72ce3abc40305102357b796df4ac71454c0780ac7abda"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-monitor-aggregate-inspection-scheduler.sh",
+                      "size":  2671,
+                      "sha256":  "1ee409f587ee48da58be6cbb72a1766dd80f99db0e2c239a9dbd59a74555a948"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-monitor-aggregate-operations-integrity.sh",
+                      "size":  2461,
+                      "sha256":  "4726f6f6b8b1d0dc09d301fff8572e7dfba127d086965cacf30dee8698f457b4"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-monitor-aggregate-operations-integrity-fail-closed.sh",
+                      "size":  1262,
+                      "sha256":  "b4e73971497f96fe282961ce03e763e8b51c0ae7e7dbc238a421eb5ee88d22ab"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-monitor-aggregate-restore-scheduler.sh",
+                      "size":  2849,
+                      "sha256":  "7f2455b579355731d786cab5d2b25a24eeb594fcb40fd206588231d8e130dced"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/verify-readonly-monitor-state.py",
+                      "size":  1491,
+                      "sha256":  "4d0eca461d68e0db7b4ae51152112d35a201e56f80d80cca8e18a4db3f0c0e4e"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/xhub-v36-monitor-alert-backup.service",
+                      "size":  883,
+                      "sha256":  "4955df2a1f529282b34ce08de72cbe8f010c51215b6c7f0b1bb6345587384b26"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/xhub-v36-monitor-alert-backup.timer",
+                      "size":  246,
+                      "sha256":  "f531670e0ab4e2da32edf39874fe04750ddbfe047008dfd0e85483eec9c339b0"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/xhub-v36-monitor-alert-restore-drill.service",
+                      "size":  1090,
+                      "sha256":  "51c6ed77269016c90d6e9c4bf3d2f93c9e2d443d30fbada73f3a6776790eb9c0"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/xhub-v36-monitor-alert-restore-drill.timer",
+                      "size":  270,
+                      "sha256":  "1608ee723b39b6690796fccfa6bfa272c155d1d7daea1ff36b8b2533c72da0af"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/xhub-v36-monitor-operations-inspection.service",
+                      "size":  973,
+                      "sha256":  "2b1ced52af8d16a1d261bd4ad4bdf36ac145172882c27db8944a4cc70373f0c4"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps/xhub-v36-monitor-operations-inspection.timer",
+                      "size":  252,
+                      "sha256":  "4c0a3698b19f5d9c0115a8c98140c521b76d02feed649abc6cebbb3ec53adde3"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/complete-single-vps-greenlight.sh",
+                      "size":  6524,
+                      "sha256":  "f6cad0fc314d1522bbfb573c019bceaeefd877ab95cbb6122cc1d9f9f9075759"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/compose.single-vps.example.yaml",
+                      "size":  1720,
+                      "sha256":  "dcdaf4fe2b749d08966feb65be0db2113d6a86676b51fa254054751e6dc026f6"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/Dockerfile",
+                      "size":  729,
+                      "sha256":  "4b42d22371eb87880c11b5e56c17393fab269cd4278faf5bdf03ad409d0aa3b2"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/install-canary-confirmer.sh",
+                      "size":  1496,
+                      "sha256":  "0574a04c0dd2714d48fe23b61aca855b4c9137422270163c316473ccefe5f3f3"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/README.md",
+                      "size":  3035,
+                      "sha256":  "09930f9d22a3486d25159e6a393343e631ede043f2a875fdf53a501e4893bca7"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/register-funding-coin.sh",
+                      "size":  1834,
+                      "sha256":  "ef680e6248c74789d5441b85d1e4619e758513f138d5063b05ef6bd31510f09d"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/rotate-hub-api-token.sh",
+                      "size":  692,
+                      "sha256":  "4cf29b68549f7f05cfb05aaec6edffa260d6f5ad4d6b0ba207cb64b5efdbf931"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/run-three-watchtower-canary.sh",
+                      "size":  5842,
+                      "sha256":  "2963e10d477dc52ed62293c8688b898ed0d85ff9f5807c5cc4e9bf7719fe2e78"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/test-single-vps-hub-docker.ps1",
+                      "size":  1908,
+                      "sha256":  "432f0130674a87ca1a051c6d781ce60296751e2e4123924ca1b74087b4d32650"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/docker-single-vps-hub/watchtowers.single-vps.example.json",
+                      "size":  429,
+                      "sha256":  "595786f111e077ccf0833c80cdde27f249cc4f0c3c35cc944058acac698b072f"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/evaluate-readiness.ps1",
+                      "size":  2047,
+                      "sha256":  "53ea5eb1546bb1e24a9999025f6899c7b276ddded884f709bbb386d4b243dfec"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/generate-artifact-manifest.ps1",
+                      "size":  3206,
+                      "sha256":  "c361686e94f0665bf03511e91753284e488dbe6a9fbc4d8a884c98d68c112514"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/generate-candidate-release.ps1",
+                      "size":  4169,
+                      "sha256":  "7dc713f84f7624a9043c9056008fe12e933d76611b9259067bceb5ac77638d56"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/generate-watchtower-nginx-configs.ps1",
+                      "size":  4143,
+                      "sha256":  "f668e2e573b5e8ff76db2e145e5bea7fbdebac3e2606f05d516b6e00f4c1b8ca"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/generate-watchtower-systemd-units.ps1",
+                      "size":  3607,
+                      "sha256":  "56d9cb61c310588f24a574a81e706f7c694f05036b35a17b9b1dd4db3149369d"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/mainnet-canary-artifacts.json",
+                      "size":  11333,
+                      "sha256":  "cef937f1d59e9a7e1a0125d549c0324fa0c209dc78f3041d54a228e781a86c44"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/mainnet-parameters.candidate.json",
+                      "size":  565,
+                      "sha256":  "c346f3a6cc55b43b66e492a72f920a53cdb782e626edd7a007631515568d98b0"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/readiness-input.example.json",
+                      "size":  1026,
+                      "sha256":  "f420e0628f190b9adcfb10c259b13c0b7e8d335f9b264d22a6fff80193d2ea67"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/README.md",
+                      "size":  10752,
+                      "sha256":  "1adfeca5e7850d27fbc320e0971c471414a9129dd043c14acc7a9d3742528148"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/rpc-preflight.ps1",
+                      "size":  1143,
+                      "sha256":  "b0db84a31808edf10ddd11f8e9e25cb75c2ecadf93443bc01b358691db54c5a1"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/run-canary-dry-run.ps1",
+                      "size":  3510,
+                      "sha256":  "38b94f156fe46be552e271c4f32f27f6f9a4723ac4ae4e080d4beaf0fc6e6d28"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-approval-records.ps1",
+                      "size":  1952,
+                      "sha256":  "9074ce5e34f8f45e6f1dd24989f6e7fd7edb24a3ada5cd1bc0f74e7fcda2f5bf"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-artifact-manifest.ps1",
+                      "size":  1327,
+                      "sha256":  "f1607ed0555b950ef6f3b9e9bd6297134e62a461d34e08c83977a7255885c761"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-canary-evidence.ps1",
+                      "size":  3278,
+                      "sha256":  "5e67607dbceb24ef33698a08da9b981ae37096130976b65e91104d16aa29ab20"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-canary-plan.ps1",
+                      "size":  2402,
+                      "sha256":  "fa5fa0aae0455ce1ac459cc899721ff13fc58c0b73136efd714d63a8760dcf26"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-candidate-release.ps1",
+                      "size":  1189,
+                      "sha256":  "5e67ef8aaf7a42d474e67fcd9955282e65487cb9e25e5b23c50a99a961944bdd"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-chain-evidence.ps1",
+                      "size":  3909,
+                      "sha256":  "06efebf977e747baf16da588f409060f2e888d63b35914168864d1d3600491ca"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-dry-run-orchestrator.ps1",
+                      "size":  5649,
+                      "sha256":  "aae86dc84b706e6bf346c63ec13382b2e29e2a1594a7402cc049e02c98a4e75e"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-mainnet-parameters.ps1",
+                      "size":  1820,
+                      "sha256":  "761ffbdd8baf4d022a5f08b664febc3fec7f46c18b6bc0577f6bcf1e3c39de54"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-readiness.ps1",
+                      "size":  2063,
+                      "sha256":  "170c78d4b4df80ccc90034fbfb7b749e7229b188da0eae9ba6f635febf5a8e73"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-rpc-modes.ps1",
+                      "size":  2521,
+                      "sha256":  "66e54ea3a383b260f86eec41a7a2fd86a1251e9ab3cf40adef572742dabc15cd"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-secret-isolation.ps1",
+                      "size":  653,
+                      "sha256":  "e646fe2713dd65a37a7439803af2bfdb04a794f0f99ac06608c56fbdc1188c87"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-single-vps-docker.ps1",
+                      "size":  233,
+                      "sha256":  "836a864bf483a161f396a17b5853653272caf0d3ab2ee1dd7765498b24006731"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-watchtower-deployment-evidence.ps1",
+                      "size":  6828,
+                      "sha256":  "509589f84eb6d29289915dc8a24e877a318f4589bc7f42be76b7b5e452bb5ab0"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-watchtower-deployment-generation.ps1",
+                      "size":  6140,
+                      "sha256":  "42e01b43f7074eb67a3b03fd1e1c991299e7c0398996ded0abe2cd031e00466a"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-watchtower-endpoint-probe.ps1",
+                      "size":  4903,
+                      "sha256":  "6ed225cc83dc5a6bd7aeaaa70609b9311b93435fe9e3a7c1bbb31e63deb607ab"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-watchtower-identities.ps1",
+                      "size":  3552,
+                      "sha256":  "c9fbc0a75a2a8e75d811a007770f4aa765f94911a3437005bacc27884788b289"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-watchtower-runtime.ps1",
+                      "size":  4531,
+                      "sha256":  "890e4e1b66ca91f32e05feaffec134452ec32f7ec29cc3899d084b523707d87d"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/test-watchtower-tls-profile.ps1",
+                      "size":  4357,
+                      "sha256":  "30b089e865e80b4956fc50535353820ae6478d3d626ea42a9f1b688985c0ab10"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-approval-records.ps1",
+                      "size":  1893,
+                      "sha256":  "d2fa650afa24c5bbf2d644c34237ad56167b52934697e55b61e0054341d74b5f"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-canary-evidence.ps1",
+                      "size":  4173,
+                      "sha256":  "026a56a202cc6b9ad901ccc0fbd69a331bf5a86354b62cd004272efb2dc1d8b8"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-canary-plan.ps1",
+                      "size":  2564,
+                      "sha256":  "f7ab402dcd48903e36bb54144465014f781b733199419d22235af44c0cd539a2"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-config.ps1",
+                      "size":  894,
+                      "sha256":  "bc3567e2e07e7463dfe9fa29f55028452921a78bede70ac69ac2bdd9235dd90d"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-funding-binding.ps1",
+                      "size":  2438,
+                      "sha256":  "7b69499f5bfba91b40d4f6b921d7b809252ccb8382fd2affd9e6e8ba9db9effc"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-mainnet-parameters.ps1",
+                      "size":  2517,
+                      "sha256":  "db1b7e1a07f31dae1ca34f95a810ca21f6c367dc307137714190fcfe9cb91532"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-recovery-canary-plan.ps1",
+                      "size":  3024,
+                      "sha256":  "c71587e70002d0822abd1efefa784b8454ef3753db07bfcef845cbaacd86fc8f"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-recovery-simulation.ps1",
+                      "size":  2583,
+                      "sha256":  "1f2d8444381dfa60cac4ef4696b6abf20353ca728edb186dbf0b66bd3b7fc86a"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-rpc-preflight-output.ps1",
+                      "size":  1952,
+                      "sha256":  "43596f1effba70d1c9e657d124e6d1fe3e480dddbcd4bbed960887563af6015c"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-watchtower-deployment-evidence.ps1",
+                      "size":  9089,
+                      "sha256":  "1c27ccc1dbb7797c879e2da6eecba6c64c13f4f93de0197e0eb0e0c15e66c579"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-watchtower-identities.ps1",
+                      "size":  6299,
+                      "sha256":  "c9d11917113fa2e277d963d20d41db85ed0a8f9c5b3baee6213102201cd0651c"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-watchtower-runtime.ps1",
+                      "size":  6769,
+                      "sha256":  "73a00f46b5bcc8b7eac75f348aa9cbdda413557bf45e15f06302c9e2eb7b4ace"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/validate-watchtower-tls-profile.ps1",
+                      "size":  5928,
+                      "sha256":  "dcd6a3732d945fc0e675d3b3823731778b7a5b67e44338b40d457b1c3f534210"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/verify-artifact-manifest.ps1",
+                      "size":  1582,
+                      "sha256":  "71fc16eaacffcb9d47ebac8e4e1299a872083085922f0ce2819e0d199225a660"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/verify-candidate-release.ps1",
+                      "size":  1929,
+                      "sha256":  "e7e5b3c4480fbaeb172cbf91a2afeecb88b594dd50fd56afc64c40e1c949db0a"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/verify-watchtower-generated-configs.ps1",
+                      "size":  3883,
+                      "sha256":  "c5f9f8bcd7ee05299bd50f7418d6e3a5c5e2023c2f7b6c3c1b1a9c5f2329dba5"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/verify-watchtower-tls-endpoints.ps1",
+                      "size":  13186,
+                      "sha256":  "d65fa2369ad5d82797ea8596f3866e7fc981a3267ed09d355decb3f2b8dc583d"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/watchtower-deployment-evidence.mainnet.example.json",
+                      "size":  2269,
+                      "sha256":  "155c0981b1e83f42df3f5b5eacc5c1487658b44df1d017bc1cf1420dc63f7dd6"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/watchtower-endpoint-probe.mainnet.example.json",
+                      "size":  1734,
+                      "sha256":  "54c47fd1d14a2c2c179479bacacb1c31e01c6d7c00bce21fa39d398b7c043578"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/watchtower-identities.mainnet.example.json",
+                      "size":  1773,
+                      "sha256":  "9363a9e2b2d39842f8d2e98f520fac3844cb9bb337b27a7cd8004cfe36857783"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/watchtower-runtime.mainnet.example.json",
+                      "size":  3022,
+                      "sha256":  "cb3f0252ce81561d5027f7890e0ff4ee7d5f4e5e5a5c3db4e388d42baf3ed520"
+                  },
+                  {
+                      "path":  "V3.6/deploy/mainnet/watchtower-tls-profile.mainnet.example.json",
+                      "size":  2207,
+                      "sha256":  "92b2a283d408c372e0ddc40525500c508846c2b27218ef57ffd708d128879f0b"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/.gitignore",
+                      "size":  43,
+                      "sha256":  "8da0662edc12355494700806adfcba16d83206527cb6d47a73d683f777e4df4a"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/Caddyfile",
+                      "size":  380,
+                      "sha256":  "1cf80122b4c303bcd7d6a2622abcbd8f12f3256726fccadf5df16c316e5ceae9"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/common.ps1",
+                      "size":  4676,
+                      "sha256":  "f2ebda81bc87d4b87aec36c4de75c3c10cddf121b498396c58c9602882fbea25"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/config.example.json",
+                      "size":  970,
+                      "sha256":  "30366a5bccb1769ecf01bcc93f9bfeb5a90d7aa9b30cc832071d0b0c6593ac72"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/config.smoke.json",
+                      "size":  827,
+                      "sha256":  "eb3d482a2e0e0d8673584c3bdc65f99189aa39cb451defe316e6682d29141ba5"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/confirmers.example.json",
+                      "size":  213,
+                      "sha256":  "df9a54123fa902a37f4611f753c75b8050337285abbf0a4892364cad51e90504"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/custody-attesters.example.json",
+                      "size":  437,
+                      "sha256":  "d1515a27e4ba8e5649c7d1a8a25891cf91fc8c60884fc9638b37f79708f61c22"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/funding-registration.example.json",
+                      "size":  238,
+                      "sha256":  "4153b6064ed55191e5159ca2a37dc805dad68c76dc639b8b0fcdfd08a960743f"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/README.md",
+                      "size":  2541,
+                      "sha256":  "85a8e3eb152ed072c9d959e871918e06db8680e58fd61e2a1707da6e7e9902e2"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/rpc-preflight.ps1",
+                      "size":  1295,
+                      "sha256":  "d45f9806ee113b7b987f2954164cfd69fc9f1d29df2ce7631cb20bee16a84aa8"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/smoke-test.ps1",
+                      "size":  2180,
+                      "sha256":  "92c36088c2893f7304346ceae6353653196c0c9e1c45ab6961f00edb85a43c40"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/start-local.ps1",
+                      "size":  4413,
+                      "sha256":  "c4998c4536415040cff8a4a551c9e1f6d475a0da98778c4bc0342e8f85bb9c95"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/test-config-validation.ps1",
+                      "size":  2262,
+                      "sha256":  "46112fa3734f34f4a86345ae165c8a3d0e8ebb2cecadc339b07cee25266dd365"
+                  },
+                  {
+                      "path":  "V3.6/deploy/testnet/validate-config.ps1",
+                      "size":  644,
+                      "sha256":  "651f4683d9eebe012ba686d530571f0ad79db3d4c4484838b71702cb2a064d6b"
+                  },
+                  {
+                      "path":  "V3.6/generate-source-control-candidate-manifest.ps1",
+                      "size":  3351,
+                      "sha256":  "35a75735ae160785c33023769d931d6858eaa5ef7f206094225e780c783f532b"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/.gitignore",
+                      "size":  9,
+                      "sha256":  "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/Cargo.lock",
+                      "size":  80418,
+                      "sha256":  "cdb8db78254f05c09cd14abd418c78987070ffd1b3efa17c213a4447db3e6c26"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/Cargo.toml",
+                      "size":  1004,
+                      "sha256":  "6a3cc2330cc216f54eada917b9f1848499594f97ccd5db6dfb38fc7d1f5d3937"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/HTTP-API.md",
+                      "size":  4001,
+                      "sha256":  "943f05181cd7948e318edecd26b4278f300e38310fddaaa77a49cd1e8acf9ca4"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/README.md",
+                      "size":  6716,
+                      "sha256":  "a4ce81d7a42b24f869eacbeca3e80b43f6e3c5fdc6afc25771da941b9afd46fa"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/api.rs",
+                      "size":  37377,
+                      "sha256":  "f3ab5f735dcb09ab534a39248a215210dd40621fd27eaaac7cf0027c7659fb2d"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/bin/generate_hub_identity.rs",
+                      "size":  1654,
+                      "sha256":  "191271429b690cd2e1afe81d7ccd374f64df6c51dd416cb5d44d3eb66a0e8641"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/bin/generate_vectors.rs",
+                      "size":  597,
+                      "sha256":  "2609cf4509eb0db013a5c9f028631626b3f90b9e53144008ecb152b339033cc0"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/bin/mainnet_recovery_canary.rs",
+                      "size":  9477,
+                      "sha256":  "8313e4b31aad1cd700f67e98258073b662e5c8c519f41fccc81c63f6805ba99d"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/bin/rpc_preflight.rs",
+                      "size":  3632,
+                      "sha256":  "e1315519c4d53966248c144ed445421951a11fa9b644333a1a47159aa8a40044"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/chain.rs",
+                      "size":  15516,
+                      "sha256":  "b3de18e3825477d899aafd436f3fa1c354a1d9cff227c5934b94e494552cd7bb"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/lib.rs",
+                      "size":  87198,
+                      "sha256":  "7cef8ca0ba933c5fe17fc7ebe8c696b08e1f23475ed5bb34076f7e70ae5cd731"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/main.rs",
+                      "size":  4906,
+                      "sha256":  "01e37390ef352e02053ddadab03cc638c6f08094c9fb3d1a247ba426a5ff5593"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/transport.rs",
+                      "size":  5310,
+                      "sha256":  "f323ceaa5f3fc184e10ee7d68a2b1284024cc9f7bee8157a3e77e757934738bb"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/src/vectors.rs",
+                      "size":  10311,
+                      "sha256":  "d83fd57d482674f48fabc125266d3c4347cfd64160066ffab4d7b329f4889a9c"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/tests/chain_gate.rs",
+                      "size":  12596,
+                      "sha256":  "4e02a70f05ff9aaff2b1d9b53a5558a20c21976adbd55299df4632c8ab850b84"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/tests/golden_vectors.rs",
+                      "size":  528,
+                      "sha256":  "4f3f1620dd899385c0f246961ef01301094d57006cd6b8ae15943a6fa0fd66d2"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/tests/http_api.rs",
+                      "size":  15398,
+                      "sha256":  "4c9f852d0a2c7378cc177d8dbc1d3790e50f7e5c1f23454117c7b5a855e24950"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/tests/hub_state.rs",
+                      "size":  13820,
+                      "sha256":  "225dab0a15bbb670a5b29a5651b8f97579c032464c50d88a9eecb51cec3e6bec"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/tests/watchtower_transport.rs",
+                      "size":  5497,
+                      "sha256":  "e7a65ef9cc8fb7aae5e7b0bd0da88d6c619253c47c2e9917150c7db140661884"
+                  },
+                  {
+                      "path":  "V3.6/hub-v3_6/test-vectors/hub-v3_6.json",
+                      "size":  5454,
+                      "sha256":  "e823c1d450490ce78b927400c27e327b1d49ba6ccdfed8df8baff5f697f13879"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/build-registration.ps1",
+                      "size":  1560,
+                      "sha256":  "56688e46c347124d896a14cf01249e07023656733ffd070b247a32c24124191c"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/closing-simulation-result.json",
+                      "size":  2675,
+                      "sha256":  "05f37603e07db3210d10100c8236b87efb6e4c94d21f90797948a8be12dabbbb"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/funding-10-mojo.json",
+                      "size":  14102,
+                      "sha256":  "56f4ade9f4471cb8c6af5036686337158863598f51021d727bdc4ce3daaaa29c"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/funding-10-mojo-result.json",
+                      "size":  1184,
+                      "sha256":  "2f6ef260738eadefbbd114cec9217144046b0490bf376a62b20f18e1071cc442"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/funding-registration.json",
+                      "size":  12439,
+                      "sha256":  "4c2ec32de6991047d4d4e6fb25eac02c0e2a9e44025e4674a25a1b30b25b7ee1"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/payment-1-mojo.json",
+                      "size":  1839,
+                      "sha256":  "400bf46b5d7a6149e88ff45f1ff6f4e888099ee7037c1364bb42752def21d9d4"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/payment-1-mojo-result.json",
+                      "size":  1786,
+                      "sha256":  "0ece7d6364837f394f334e4f11d8b83a230a44c12ff614af47390570b14e5f8e"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/README.md",
+                      "size":  3827,
+                      "sha256":  "3ad7ffd151ebed8886abfb3778fb9e69b10f34ef6e88dbb8429cc5bf71ebdbe3"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/run-payment.ps1",
+                      "size":  6738,
+                      "sha256":  "9b633e8b1b22cf52149b06c28c3d73dc39b3be593105bafad614ef34b6702612"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/build-closing-inputs.ps1",
+                      "size":  4648,
+                      "sha256":  "cce0209856c9b56719d95a77ec93e495c996b9e3e55f58ae60ca02b8b3898f8a"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/closing-binding-config.json",
+                      "size":  481,
+                      "sha256":  "1f07ae0729fbdd1f2467fa1c7da28cee6aebb87acef6d05fd597757f38996881"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/closing-simulation.json",
+                      "size":  2670,
+                      "sha256":  "16feeaa9a71fcc70dea9834cd4920bcd39de6d3113c64817645adbbcfbdfbf23"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/closing-simulation-evidence.json",
+                      "size":  667,
+                      "sha256":  "e44141f356aa4d329c10e37daf429cf41881f84efecfef7b54cf48e9a1a9bf8c"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/funding-binding.json",
+                      "size":  766,
+                      "sha256":  "1d8ab5adf839f62d1c7fe4cd8cf913f59dee0a2ba4f3576b77ee762950ee04c6"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/readonly-monitor-aggregate-evidence.json",
+                      "size":  4511,
+                      "sha256":  "4bcf4c7a465aaad24de5dcf38ca119a8634df9c728676090cc6b5d8f1f1ce5ec"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/readonly-monitor-alert-backup-rejection-evidence.json",
+                      "size":  1036,
+                      "sha256":  "9ec367097bb15d4eaf14540446edd18cab0756eeee35caeae29ea7f4e1b1ccc4"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/readonly-monitor-alert-lifecycle-evidence.json",
+                      "size":  1997,
+                      "sha256":  "89013e684663a98c37127ba11aadc03efbd502a2c403cef5152c902a044f8622"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/readonly-monitor-deployment-evidence.json",
+                      "size":  3426,
+                      "sha256":  "f51bb5c2ad45d0e668ca74e430162e81b2fc8994a987fba02f4b334f47b8438e"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/readonly-monitor-status-api-evidence.json",
+                      "size":  3516,
+                      "sha256":  "81797d9de5ea7e59003a126f389ec25a30af8d1aa6caf4c40961f1355d80aef8"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/recovery-canary-plan.json",
+                      "size":  1229,
+                      "sha256":  "867068ac17e7aba51002543558d9c0da95cf70b6b39f6886cd4c7f52a35e9bf4"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/recovery-package-state-1.json",
+                      "size":  14051,
+                      "sha256":  "c111f38b6163162d8441a8ae76d8ec5e8ebfc9b43fed5e1335c303e587a55c91"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/rpc-preflight-live.config.json",
+                      "size":  934,
+                      "sha256":  "85dffe4330254cf1a58d81ae55cf2e33115145366cded89601911fcf79c432c4"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/rpc-preflight-live.json",
+                      "size":  472,
+                      "sha256":  "64a0a64b360be4484ef12e0960a228dde1aef93bc0b3ea58e0be2e88a234290c"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/rpc-readonly-contract-evidence.json",
+                      "size":  1629,
+                      "sha256":  "37b6eab7b7323106093bbf05b1bc2312b8910548e34ca3b8c7da50596384efdd"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/state-zero-challenge-simulation.json",
+                      "size":  1495,
+                      "sha256":  "3e19a717b10c81f84a99be544aab531d3f0ff1e46158daf5bde4bfac5786729a"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/state-zero-offline-bundle-report.json",
+                      "size":  1597,
+                      "sha256":  "9875a4e2eed2c9d8b8917f419384331417b8fab9ed706109a8e46b3233dc05ea"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/state-zero-pipeline/execution-dry-run-report.json",
+                      "size":  5825,
+                      "sha256":  "203305728a4c92d49abc0389e2568f30bdc4e8c1fa3f154a0000c99764c474a2"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/state-zero-pipeline/pipeline-report.json",
+                      "size":  5994,
+                      "sha256":  "f7b48add11813d3f96d4a20cf34e88d68a354aa8ae4595598584fd4e8c3ddece"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-backup-manifest-v2.json",
+                      "size":  775,
+                      "sha256":  "4f99b34829bf767414407f0fba7fbb0cd513ea59a9a46e36bf62052ee41a6ee6"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-inspection-controlled-failure.json",
+                      "size":  492,
+                      "sha256":  "9b96abe0a0e46b5f8d79c746853a5213fc29dd796fac1d45502910719968a84f"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-inspection-publication.json",
+                      "size":  612,
+                      "sha256":  "edc53b361e11032a17294ad15e89e65126966b4d1fa1a28fa3bf2553d00fc764"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-inspection-scheduler-evidence.json",
+                      "size":  810,
+                      "sha256":  "5bb75708614f95de797d81bc958a9e8a3956f88d44915051631ed81b3788a60b"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-integrity-inspection-latest.json",
+                      "size":  2204,
+                      "sha256":  "3d46c3c5519d1d85745c55868fc1379a137b11a004291c34fbb1302b97573b7e"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-integrity-inspection-publication.json",
+                      "size":  612,
+                      "sha256":  "08e27fae2b20d0c2b32f0f763afa386e7543cc2f873115be350ecf62e39fe066"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-operations-inspection.json",
+                      "size":  1972,
+                      "sha256":  "2021a6e7210aabc0217209d758ae4a800c8fdfe441f6337aace45e1e10c6fdca"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-operations-integrity-evidence.json",
+                      "size":  5335,
+                      "sha256":  "10c0cac1210c6bc9790ce966e75ccce7fcaeb2a6ab55bd42bac72ed9e2fc59ab"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-operations-integrity-rejection-evidence.json",
+                      "size":  637,
+                      "sha256":  "47df881b1aa28f08251c2c70a0e45c7875e691b5ead3cbdd0e7fd3816e5fe6e3"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-periodic-inspection-latest.json",
+                      "size":  1972,
+                      "sha256":  "20ec4a91f359a15a33a6a57d5174a790221b955794638dadd9d31f695426200f"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-restore-drill-evidence-v2.json",
+                      "size":  736,
+                      "sha256":  "d51df4001c1aa971b9306274c7a9132d8c6eb8e857db73fe13c045bb46729c4b"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-restore-scheduler-evidence.json",
+                      "size":  851,
+                      "sha256":  "6b9d3648342ce5a44e074a434b724447b7d8be0dca8bf1ce3e7c8c88c9c241c3"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-retention-candidates.json",
+                      "size":  519,
+                      "sha256":  "251f553b76303ce734acc98a11f06262f0bf5f13d671d6fd54f858b2d0a80e52"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-scheduled-backup-manifest.json",
+                      "size":  889,
+                      "sha256":  "e62678361679992c5b20a2e4647cdd777a4608f151e9e9bc94f7375e63e96c75"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-scheduled-restore-latest.json",
+                      "size":  736,
+                      "sha256":  "cdd29db4af6b70e366224096fac89588dd57efd3371d6435ad6ed1a31dfd3faa"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-alert-scheduled-restore-publication.json",
+                      "size":  572,
+                      "sha256":  "cad22fdd3123ce3160940e56f60d79d80cf49feb3de32a96a982bc767290df90"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/closing-state-1/xhub-v36-token-rotation-evidence.json",
+                      "size":  461,
+                      "sha256":  "5a0a868b8c2656dbdfb67fcad3b8b76eaab37a6082f091b3f62c5de909b83e23"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/funding-candidate.json",
+                      "size":  13423,
+                      "sha256":  "000584b1f2b8752cacc38c98574898dbb78e25b43a91ab1249874b093b65d7fd"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/hubwallet-lock-request.json",
+                      "size":  241,
+                      "sha256":  "9cdc945b917f1c650e190de53b592c18a22e4900d7822873475d04813566a772"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/payment-1-mojo-request.json",
+                      "size":  1821,
+                      "sha256":  "80a4c97f4de189ab64c1be166f01913411150959f40eb6e4469f38e5459b0932"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/three-watchtower-canary/rpc-preflight-closing.json",
+                      "size":  487,
+                      "sha256":  "ae6f7234c1ed916ea68691ccbd552d6fef1a7f46613651f2790e15eb8ba7a96a"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/watch-funding.ps1",
+                      "size":  3394,
+                      "sha256":  "e9a12663a64e91df87f68d15cc41af1986dc42c679bda700147df1e875f652e2"
+                  },
+                  {
+                      "path":  "V3.6/mainnet-experiment/watchtower-monitor-result.json",
+                      "size":  586,
+                      "sha256":  "6f826e3cd59a12a2dae4994fb31880f55e32f44adf6ed260e60a62f774b46129"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/Cargo.lock",
+                      "size":  24157,
+                      "sha256":  "3fe064321faaac0837b7ce4d705b5bf790aae345904f483b9677e5413aa0d66a"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/Cargo.toml",
+                      "size":  323,
+                      "sha256":  "64ec8d6745615f215fe7dc3829743043ea4288bc2512ad41a2fd93fb91b19160"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/FREEZE-CHECKLIST.md",
+                      "size":  84360,
+                      "sha256":  "8d8b634ef635269354f3e041fae39ab89e4818b2790615a338ee8caed5505155"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/IMPLEMENTATION-SPEC.md",
+                      "size":  8273,
+                      "sha256":  "dd1d8c7d42fdf99d231751d4329c9a6a71f5630e29e535d8c62879252f25614a"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/protocol-v3_6.md",
+                      "size":  47980,
+                      "sha256":  "440b65d1aa38ceba447197d1a29c0731f004f680d9844fd83bfc8750347b618d"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/README.md",
+                      "size":  584,
+                      "sha256":  "d7204a6c32700a1f9e0e325b59e43ec4933798fb2dcb545ba0b884914741e555"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/bin/generate_vectors.rs",
+                      "size":  615,
+                      "sha256":  "d6d9bc7053fada996ee8f618d59b98c307180a52f825413d033136bb78d36998"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/crypto.rs",
+                      "size":  1609,
+                      "sha256":  "273c23228c62da945cc0befd7d303ec02d9af94a25febebf5a80e91078570e11"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/encoding.rs",
+                      "size":  3427,
+                      "sha256":  "97cf567087e9eef50215167ae867e23c590db3ec4e3e9a6fed94079fbbf557e3"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/error.rs",
+                      "size":  2455,
+                      "sha256":  "52b04f613b90194f0ecee54966bee8850de6832b9be4e3812eab4a561d5b1c63"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/lib.rs",
+                      "size":  511,
+                      "sha256":  "c891a70ed2a1d04bcf78a74c28efdbde9a9776e34aeb324d02a40721290aff94"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/merkle.rs",
+                      "size":  5527,
+                      "sha256":  "04fc8bbe3246a3c5347b117b2b7c2e7c55e8d6a9256868414cc49141c2edc731"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/puzzle.rs",
+                      "size":  1943,
+                      "sha256":  "676167e7c99785889a0c22bf836ce942606eec5e5d03dcedf25893b9b0f18be7"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/types.rs",
+                      "size":  32781,
+                      "sha256":  "1c3f0440f355c7b4a68304f75f6d496c70d7cc99736febc5dce1aaf6640f697b"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/src/vectors.rs",
+                      "size":  10522,
+                      "sha256":  "fc4ff17fd6e796c20d4939bb48dadb9380aa3375e9b2ecb021df7d49d5eba9ac"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/tests/evidence.rs",
+                      "size":  3727,
+                      "sha256":  "98c36c5fb9702d145fd208714df414da136f1e4fb6be8928900e26d2e2523850"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/tests/protocol_vectors.rs",
+                      "size":  9639,
+                      "sha256":  "01bdf3f85521d83b1f52c0e7fc04cc60e61b736434d22c174c12c05fc5b31a7b"
+                  },
+                  {
+                      "path":  "V3.6/protocol-v3_6/test-vectors/protocol-v3_6.json",
+                      "size":  14204,
+                      "sha256":  "76cb653f5c09b94b0b18c2d0912be817d7a17c1d9ce3411951001e0b1d751fc7"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/.gitignore",
+                      "size":  36,
+                      "sha256":  "f025bd5e98fd61905d5a0a412d542ce00d6882f731c663ab0fd9fcfb6a961a49"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/Cargo.lock",
+                      "size":  51213,
+                      "sha256":  "d81f5113c6a0af6d6e88808ccbf1adda9569be82a0fc4dff52b93cfbffebd697"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/Cargo.toml",
+                      "size":  376,
+                      "sha256":  "1a07162d4f86dea60cbd408374aa8bfe259e0bc112c046f02aa021e7ebef7e4a"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/compile-puzzles.ps1",
+                      "size":  2641,
+                      "sha256":  "7cf224d34257da75d135cf59712c01d944725fd786293ab031577dc190af4796"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/module-hashes.json",
+                      "size":  2466,
+                      "sha256":  "d3826143a07faa4ec32999ad80a94fc6081b11ef2a036db914bbc206a4b8d67a"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/README.md",
+                      "size":  5092,
+                      "sha256":  "2383bf05e991fcc0c865184ebebf5b9a853f2b50ba3adb22d1083a2135390e65"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/src/closing.rs",
+                      "size":  49474,
+                      "sha256":  "4296d0837f7f76079545fe07b058b0b94a1865568b6f6caa17a164e13a0af212"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/src/lib.rs",
+                      "size":  4503,
+                      "sha256":  "dce69b73348c335c8700f161b1defd50fee254cbc0cf889da2607e451fe552fe"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/tests/puzzles.rs",
+                      "size":  27335,
+                      "sha256":  "f7713ce6089873ee4465322f086c3335e7ca33c576c6d77651c3681c5aa8208e"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_funding_v3_6.clsp",
+                      "size":  3476,
+                      "sha256":  "480721236f7988b83c8f84317eff005e8c18d2f7148083bca5b9aee8de442f33"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_funding_v3_6.clsp.hex",
+                      "size":  10828,
+                      "sha256":  "da4b1f4b5e015f5a3317156a8f229d0802059fdd54f05b8c1370f40d1cc48b91"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_initial_closing_v3_6.clsp",
+                      "size":  9590,
+                      "sha256":  "37a3633841cff7f4f09e99bf630f2cc5ed8da604949e916721cce245175a91b1"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_initial_closing_v3_6.clsp.hex",
+                      "size":  15528,
+                      "sha256":  "677c0def0b9a374f90108daebf9d2ec69c6a36ac314d35be79d4e9c72b3e5027"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_merchant_payment_v3_6.clsp",
+                      "size":  1058,
+                      "sha256":  "cbec7ef34ae93cc4cfd6c8ec5b3483a7450c60d8c34bdeedc4184236aac6672d"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_merchant_payment_v3_6.clsp.hex",
+                      "size":  716,
+                      "sha256":  "b9ca9c574c9e57838ccb6147f8e4082130a5294f9b03283c2429f306d631d1ca"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_subsequent_closing_v3_6.clsp",
+                      "size":  8605,
+                      "sha256":  "ded72d163f0b10477e412e7179b78b970510fbe924edde0db2f3095740457af7"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_subsequent_closing_v3_6.clsp.hex",
+                      "size":  15148,
+                      "sha256":  "a4ecbea5a281a8019633bf27f7759c23123d861555c134bc1d733680056bf7ad"
+                  },
+                  {
+                      "path":  "V3.6/puzzles-v3_6/xhub_v3_6_common.clib",
+                      "size":  14606,
+                      "sha256":  "e889c4694044c82f0e71ed0e788c9234460d9be33764d4b84bdcc67060491bce"
+                  },
+                  {
+                      "path":  "V3.6/release/generate-release.ps1",
+                      "size":  9552,
+                      "sha256":  "43b8f90dc6f691541598aba39a768fbe8383fa006fe17e94f8a4354b5372fe7d"
+                  },
+                  {
+                      "path":  "V3.6/release/README.md",
+                      "size":  1348,
+                      "sha256":  "37c76ed33cfe1ef62e64fbc730973e388cbca1aadd1db97b0a788ede888199fb"
+                  },
+                  {
+                      "path":  "V3.6/release/testnet-release-v3_6.json",
+                      "size":  15545,
+                      "sha256":  "07de6049fb32ccf00775fd254e2cb87c82c2cd7c021230ec727e536cdc5bee9d"
+                  },
+                  {
+                      "path":  "V3.6/test-source-control-candidate-manifest.ps1",
+                      "size":  1429,
+                      "sha256":  "4778944839849f8f43ec39bd53f6e28e4127b76046f05df8f5bd546aac7d2cbe"
+                  },
+                  {
+                      "path":  "V3.6/test-source-control-readiness.ps1",
+                      "size":  1359,
+                      "sha256":  "1fb481d5151fa14d04c75b48dd34d9a39aaa2a6c71ba5f15b55a4b1f80a3ed43"
+                  },
+                  {
+                      "path":  "V3.6/verify-source-control-candidate-manifest.ps1",
+                      "size":  2574,
+                      "sha256":  "89aa13801addec454e9fa8f73e5a5794cc69f7c8ed79d8220afebe31b410605b"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/.gitignore",
+                      "size":  9,
+                      "sha256":  "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/Cargo.lock",
+                      "size":  80853,
+                      "sha256":  "335881ab3ed2f8a73503bad01de985697800b29541e2072e5a31513288985926"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/Cargo.toml",
+                      "size":  875,
+                      "sha256":  "a46126d88df54595dfb16da9319187df5bfc341d44fb6aa31ea1384278665537"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/config/testnet-vector-profile-v1.json",
+                      "size":  934,
+                      "sha256":  "348d60a54e93e2fd1cceba0d332f94ccb116aa41b4d0bbcc9d0d06e8d4a477f2"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/api.rs",
+                      "size":  4798,
+                      "sha256":  "36c39c6b057b49601fdc6b491a7d1b4ec9fe473d92bdf28ca9e00c0a0f09dbdf"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/bin/mainnet_canary_funding.rs",
+                      "size":  8108,
+                      "sha256":  "966d49b4d40a239546e855e5bef0e4a0c3710b838d60c2dc8079c531712f3542"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/bin/mainnet_closing.rs",
+                      "size":  3371,
+                      "sha256":  "5133be21978bbd84b00af121b5250c0d5dcf2f987078342eb728e74c7be47def"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/bin/mainnet_experiment.rs",
+                      "size":  6413,
+                      "sha256":  "2f18a883cd2297b3d5e4a184e5039e2a581b84882cbda03868493ee3adfc0ebe"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/bin/mainnet_payment.rs",
+                      "size":  17859,
+                      "sha256":  "18115ebb712c969b11270579b1b401346cc00d25dd7c8eb5a60b3af077b14d45"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/bin/mainnet_recovery_canary_closing.rs",
+                      "size":  4590,
+                      "sha256":  "cf253d12eae2de8d2c05693ce741d53024e18354798ed27406665bc9de941fce"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/bin/mainnet_recovery_canary_payment.rs",
+                      "size":  8649,
+                      "sha256":  "4c19ca1ea7f4eb28c4c41841f692c075c179adbe71f50555ccb92e2fffe8bb25"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/lib.rs",
+                      "size":  7419,
+                      "sha256":  "4cee07f97bdd5531a583fe898a1b6a9faa0da166a72cbc84dcb4006dded864a7"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/src/main.rs",
+                      "size":  429,
+                      "sha256":  "fad08252d1c1952da2da4a01160584b6cedf8e23a234ae95fb9620e8a423dcbf"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/tests/cross_repo.rs",
+                      "size":  4266,
+                      "sha256":  "74e62843725f09fd0608efc2525bacaf1fde80c59c604f1103f00b1916f3b1da"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/tests/funding_terms.rs",
+                      "size":  3811,
+                      "sha256":  "9d45a33f37859f6ab8706371977c8ab29ab24ef5d00bb64e56f2b47a2f11c2f3"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/tests/http_api.rs",
+                      "size":  4786,
+                      "sha256":  "f3be11642b8870f811d70922051834b8774d1e6c559c8ea02d2fe9f432029d5d"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/web/app.css",
+                      "size":  5387,
+                      "sha256":  "2e40b8273cc9a3f1320c25a58c02e26ed1de8b7eebc03c7814fe2f13da51380f"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/web/app.js",
+                      "size":  4449,
+                      "sha256":  "ef73ee7f3588f59e59d5fdd6974fef58dc679f3fea58760a6cbdd4e4c8da2f46"
+                  },
+                  {
+                      "path":  "V3.6/wallet-v3_6/web/index.html",
+                      "size":  4957,
+                      "sha256":  "43353a8070d2dc0faa014dae4d88403a0597a0a2c28b5991f15fc3809744bbad"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/.gitignore",
+                      "size":  32,
+                      "sha256":  "e925b19b8e8068e6b35e89e59ed2416033e473ea1ab2af690601e2fb6fadff54"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/Cargo.lock",
+                      "size":  80139,
+                      "sha256":  "7be0171954a9a00da892ed4d3e0492a762a781d1b8e1d2912443eff74c7c8e73"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/Cargo.toml",
+                      "size":  1618,
+                      "sha256":  "97661870a90a41a1c5d22c09608f529479779354c61b49014060d85824f85a7d"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/README.md",
+                      "size":  21069,
+                      "sha256":  "8103e56eca67e51ef75b015ea1e1f3eb2567294d69c8372c01d0856cdfa572eb"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/api.rs",
+                      "size":  37676,
+                      "sha256":  "e6de4660365a83114a0a70d7a3d51a9a8b9811bff3eced8fd23759dafd463028"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/approval.rs",
+                      "size":  20931,
+                      "sha256":  "4e4a5ffe8db08c38a99368acc21a61ceb0c69f55df1100011915661962ca4315"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/audit.rs",
+                      "size":  11210,
+                      "sha256":  "464596ea2f1592374ad97a2fa3f5faf078fc15dd398f21798fcf7ce20fd84694"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/authorization.rs",
+                      "size":  21710,
+                      "sha256":  "3cefb9347bcff20c2d6f6a89a947b475e95c263f8eae1317785998370fe36e5b"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/backup.rs",
+                      "size":  40115,
+                      "sha256":  "012980b1373002ef9784d5ad84add060e822c303b81bbd8201b8d5c849094324"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/custody_attest.rs",
+                      "size":  5503,
+                      "sha256":  "21a058ecc3bcdb2d910e21afd28124c4a516c642ed4a781ef2c18090226761f0"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/generate_single_vps_identities.rs",
+                      "size":  2220,
+                      "sha256":  "0d27b51c7bc086e47731655e8ca682d6ac29fa9f79a787f74db8758eac10b383"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/mainnet_recovery_canary.rs",
+                      "size":  7693,
+                      "sha256":  "187f7c97b13acd25fe5dc08c0bd30936c601f8c5be67a46a4bf8b218b02d4c21"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/mainnet_state_zero_challenge.rs",
+                      "size":  8215,
+                      "sha256":  "804e78dbcd086eeba5c4eaffcfec8f707ab4231ee1f57b08547d232dbaf75bf7"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/mainnet_state_zero_execution_dry_run.rs",
+                      "size":  16886,
+                      "sha256":  "fab56c9e5cca4657e22ca7e64e9bf3c56b2819a3c5d6ba0e23748adb967a277a"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/mainnet_state_zero_offline_bundle.rs",
+                      "size":  10475,
+                      "sha256":  "800a7a9f8fd04e8674f35cf0c9f9dce2e74738d27eef57ba5c597a47807b3d8d"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/mainnet_state_zero_three_watchtower_pipeline.rs",
+                      "size":  24002,
+                      "sha256":  "f560111241bdb7bbc9d240e1b0590335b0e0c3e870715d1e23d9d0fbeebf1e9b"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/monitor.rs",
+                      "size":  15251,
+                      "sha256":  "be68b5c5967815ff588fe76a82a3ab6d577ebfd2a913efd433519e3f50274abb"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bin/monitor_aggregate.rs",
+                      "size":  52298,
+                      "sha256":  "5c7c855c5028535c95208d21ba6769c7e926b93ebce5bf1e5f360af04d5bb19b"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/bundle.rs",
+                      "size":  16813,
+                      "sha256":  "b8840ed8d87e61a0e2f3d192cf7baf9016765d48c316b5241967482f9a39ae0a"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/custody.rs",
+                      "size":  17946,
+                      "sha256":  "3c18efee9d3b179b3a9a31cf3f30cf7dc1ee8013a9d5d040faf303a3a9157720"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/final_recheck.rs",
+                      "size":  17168,
+                      "sha256":  "4e9ea6178dffd02a364e452165ca29f0ec222310c7f86eeb25cf9402db120e34"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/lib.rs",
+                      "size":  46786,
+                      "sha256":  "d61c3196722d8824952f5b77ae9fc618c568ac55eab4292764120d06499e2cfc"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/main.rs",
+                      "size":  4354,
+                      "sha256":  "e5df52587283a29a4bbf5be253a1fc8f7c7859d2cdc3784d107eba1f3e3101da"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/manifest.rs",
+                      "size":  13163,
+                      "sha256":  "3dd534cac79ca0f5457d1caeb01b1a66e2acc120f5f6610f4604d71422fbd034"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/monitor.rs",
+                      "size":  40441,
+                      "sha256":  "acfd59f5cbc2836e801c4d1055a7f478a1d08d9f1d3dbc0fe7a48df2b9604631"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/preparation.rs",
+                      "size":  16184,
+                      "sha256":  "bd89dbf90b17ee94b497924fc9e86a79d1f33af328ce4d1a4ed63432198c2ac8"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/src/rpc.rs",
+                      "size":  13170,
+                      "sha256":  "ab57ac3711163975fae64f666ee152671a20b5718e5240c9fa11a3be1b01b26d"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/tests/chain_monitor.rs",
+                      "size":  93216,
+                      "sha256":  "c0281dd31fe9cf83b4ab2ab613a3546498493f6f92ba8561647564fdad4d1007"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/tests/http_api.rs",
+                      "size":  15307,
+                      "sha256":  "fc9b0955c879e3b6c712c3844389d776370fe82ce9e3cd5e1dca88d9e830a068"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/tests/offline_bundle.rs",
+                      "size":  10504,
+                      "sha256":  "c5be12900a1b5c68974998cedc1b20ce6cd4477a1bd0cdea23b16a7faf6face2"
+                  },
+                  {
+                      "path":  "V3.6/watchtower-v3_6/tests/watchtower.rs",
+                      "size":  17338,
+                      "sha256":  "4e75c8f7c55c22da1fc2826091b16fafab186b15169a09528e42dc47a96e036e"
+                  }
+              ],
+    "private_payloads_included":  false,
+    "local_secrets_included":  false,
+    "generated_sqlite_included":  false,
+    "commit_created":  false,
+    "automatic_staging_enabled":  false,
+    "manual_review_required":  true,
+    "production_ready":  false,
+    "spend_bundle_created":  false,
+    "broadcast_enabled":  false,
+    "broadcast_ready":  false,
+    "chain_broadcast":  false
+}

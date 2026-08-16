@@ -9,12 +9,15 @@ use clvmr::{
 };
 use sha2::{Digest, Sha256};
 
-mod chain;
 mod api;
+mod chain;
+mod noise_session;
 mod offchain;
 mod service;
 mod settlement;
 mod state_store;
+mod v2;
+mod wallet_connect;
 
 #[cfg(test)]
 mod day6_tests;
@@ -27,12 +30,15 @@ mod settlement_tests;
 #[cfg(test)]
 mod state_store_tests;
 
-pub use chain::*;
 pub use api::*;
+pub use chain::*;
+pub use noise_session::*;
 pub use offchain::*;
 pub use service::*;
 pub use settlement::*;
 pub use state_store::*;
+pub use v2::*;
+pub use wallet_connect::*;
 
 pub const FUNDING_AMOUNT: u64 = 10;
 pub const MERCHANT_AMOUNT: u64 = 1;
@@ -161,7 +167,10 @@ impl ChannelSolution {
             .expect("default funding amount is valid")
     }
 
-    pub fn refund_for_funding_amount(funding_coin_id: Bytes32, funding_amount: u64) -> Result<Self> {
+    pub fn refund_for_funding_amount(
+        funding_coin_id: Bytes32,
+        funding_amount: u64,
+    ) -> Result<Self> {
         ensure!(
             funding_amount <= MAX_PROTOCOL_U64,
             "funding amount must fit signed SQLite integers"

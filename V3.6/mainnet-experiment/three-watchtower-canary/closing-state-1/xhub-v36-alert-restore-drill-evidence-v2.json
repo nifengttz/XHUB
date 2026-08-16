@@ -1,0 +1,19 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-alert-restore-drill-evidence-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T17:56:09Z",
+  "backup_id": "alerts-20260814T175458Z",
+  "database_sha256": "71d3c43c083c55118553e33e4af1348074362f2f4fc8f772e9ee28b4388e857e",
+  "restored_event_count": 3,
+  "all_expected_event_ids_present": true,
+  "isolated_listen": "127.0.0.1:18745",
+  "drill_container_removed": true,
+  "source_unchanged": true,
+  "token_present_in_logs": false,
+  "container_image_id": "sha256:dc201f9703b17d35811decf10e41238d92467a4537faf238afc921caa8f1d9fc",
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

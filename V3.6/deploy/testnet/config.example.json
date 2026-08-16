@@ -1,0 +1,19 @@
+{
+  "schema": "xhub-v3-6-testnet-deployment-1",
+  "wallet_listen": "127.0.0.1:8736",
+  "hub_listen": "127.0.0.1:8737",
+  "watchtower_listen": "127.0.0.1:8738",
+  "hub_db": "./data/hub-v3_6.sqlite3",
+  "watchtower_db": "./data/watchtower-v3_6.sqlite3",
+  "hub_api_token_file": "./secrets/hub-api-token.txt",
+  "watchtower_api_token_file": "./secrets/watchtower-api-token.txt",
+  "hub_bls_secret_file": "./secrets/hub-bls-secret.hex",
+  "watchtower_confirmers_file": "./confirmers.example.json",
+  "watchtower_custody_attesters_file": "./custody-attesters.example.json",
+  "watchtower_url": "http://127.0.0.1:8738",
+  "watchtower_recipient_id": "watchtower-test-1",
+  "chia_rpc_url": "https://127.0.0.1:8555",
+  "chia_rpc_cert_file": "C:/Users/USER/.chia/mainnet/config/ssl/full_node/private_full_node.crt",
+  "chia_rpc_key_file": "C:/Users/USER/.chia/mainnet/config/ssl/full_node/private_full_node.key",
+  "expected_network_id": "REPLACE_WITH_64_HEX_GENESIS_CHALLENGE"
+}

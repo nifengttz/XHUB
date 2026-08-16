@@ -1,0 +1,37 @@
+{
+  "schema": "xhub-v3-6-mainnet-canary-evidence-1",
+  "protocol_version": "0x0360",
+  "plan_sha256": "REPLACE_WITH_SHA256_OF_APPROVED_CANARY_PLAN",
+  "network_id": "REPLACE_WITH_MAINNET_64_HEX_GENESIS_CHALLENGE",
+  "funding_coin_id": "REPLACE_WITH_MAINNET_64_HEX_FUNDING_COIN_ID",
+  "funding_puzzle_hash": "REPLACE_WITH_64_HEX_FUNDING_PUZZLE_HASH",
+  "preflight": {
+    "status": "VERIFIED",
+    "funding_coin_confirmations": 0,
+    "snapshot_hash": "REPLACE_WITH_64_HEX_PREFLIGHT_SNAPSHOT_HASH"
+  },
+  "module_hashes": {
+    "xhub_funding_v3_6": "REPLACE_WITH_64_HEX_MODULE_HASH",
+    "xhub_initial_closing_v3_6": "REPLACE_WITH_64_HEX_MODULE_HASH",
+    "xhub_subsequent_closing_v3_6": "REPLACE_WITH_64_HEX_MODULE_HASH",
+    "xhub_merchant_payment_v3_6": "REPLACE_WITH_64_HEX_MODULE_HASH"
+  },
+  "recovery_simulation": {
+    "status": "VERIFIED",
+    "package_content_hash": "REPLACE_WITH_64_HEX_RECOVERY_PACKAGE_HASH"
+  },
+  "approval_records": [
+    {
+      "reviewer_id": "REPLACE_WITH_REVIEWER_A_ID",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_A",
+      "status": "APPROVED"
+    },
+    {
+      "reviewer_id": "REPLACE_WITH_REVIEWER_B_ID",
+      "failure_domain": "REPLACE_WITH_FAILURE_DOMAIN_B",
+      "status": "APPROVED"
+    }
+  ],
+  "broadcast_enabled": false,
+  "external_broadcast_authorized": false
+}

@@ -1,0 +1,30 @@
+[Unit]
+Description=XHUB V3.6 monitor aggregate local operations inspection
+After=docker.service network-online.target xhub-v36-monitor-alert-backup.service
+Wants=network-online.target
+Requires=docker.service
+ConditionPathExists=/opt/xhub-v3.6-test/data/monitor-aggregate/alerts.sqlite3
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/xhub-v3.6-test/operations/publish-monitor-aggregate-operations-inspection.sh
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=CAP_DAC_OVERRIDE
+AmbientCapabilities=CAP_DAC_OVERRIDE
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadOnlyPaths=/opt/xhub-v3.6-test/data/monitor-aggregate
+ReadOnlyPaths=/opt/xhub-v3.6-test/backups/monitor-aggregate-alerts
+ReadWritePaths=/opt/xhub-v3.6-test/operations-reports/monitor-aggregate
+

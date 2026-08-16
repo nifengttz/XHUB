@@ -1,0 +1,6 @@
+{
+  "protocol_version": "0x0360",
+  "funding_coin_id": "REPLACE_WITH_64_HEX_COIN_ID",
+  "funding_puzzle_reveal_hex": "REPLACE_WITH_CANONICAL_CLVM_REVEAL_HEX",
+  "channel_terms_canonical_hex": "REPLACE_WITH_WALLET_PREVIEW_CANONICAL_HEX"
+}

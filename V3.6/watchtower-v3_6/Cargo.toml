@@ -1,0 +1,63 @@
+[package]
+name = "xhub-watchtower-v3-6"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+axum = "0.8"
+chacha20poly1305 = "0.10.1"
+chia-bls = "=0.36.1"
+chia-consensus = "=0.36.1"
+chia-sdk-types = "=0.33.0"
+clvmr = "=0.16.4"
+clvm-utils = "=0.36.1"
+clvm-traits = "=0.36.1"
+hex = "0.4"
+rusqlite = { version = "0.38", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+rand = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+tokio = { version = "1.53", features = ["macros", "net", "rt-multi-thread"] }
+zeroize = "1.9"
+xhub-protocol-v3-6 = { path = "../protocol-v3_6" }
+xhub-puzzles-v3-6 = { path = "../puzzles-v3_6" }
+chia-protocol = "=0.36.1"
+
+[dev-dependencies]
+tempfile = "3.27"
+tower = { version = "0.5", features = ["util"] }
+
+[[bin]]
+name = "watchtower-v3-6"
+path = "src/main.rs"
+
+[[bin]]
+name = "watchtower-monitor-v3-6"
+path = "src/bin/monitor.rs"
+
+[[bin]]
+name = "watchtower-monitor-aggregate-v3-6"
+path = "src/bin/monitor_aggregate.rs"
+
+[[bin]]
+name = "custody-attest-v3-6"
+path = "src/bin/custody_attest.rs"
+
+[[bin]]
+name = "mainnet-state-zero-challenge-v3-6"
+path = "src/bin/mainnet_state_zero_challenge.rs"
+
+[[bin]]
+name = "mainnet-state-zero-offline-bundle-v3-6"
+path = "src/bin/mainnet_state_zero_offline_bundle.rs"
+
+[[bin]]
+name = "mainnet-state-zero-three-watchtower-pipeline-v3-6"
+path = "src/bin/mainnet_state_zero_three_watchtower_pipeline.rs"
+
+[[bin]]
+name = "mainnet-state-zero-execution-dry-run-v3-6"
+path = "src/bin/mainnet_state_zero_execution_dry_run.rs"

@@ -1,0 +1,26 @@
+{
+  "schema": "xhub-v3-6-monitor-aggregate-restore-scheduler-evidence-1",
+  "protocol_version": "0x0360",
+  "observed_at": "2026-08-14T19:13:56Z",
+  "backup_id": "alerts-20260814T191322Z",
+  "report_sha256": "cdd29db4af6b70e366224096fac89588dd57efd3371d6435ad6ed1a31dfd3faa",
+  "report_age_seconds": 0,
+  "maximum_report_age_seconds": 691200,
+  "report_fresh": true,
+  "report_atomic_publish": true,
+  "failure_marker_present": false,
+  "service_result": "success",
+  "timer": {
+    "enabled": "enabled",
+    "active": "active",
+    "next_run": "Sun 2026-08-16 12:17:35 CST"
+  },
+  "automatic_remediation_enabled": false,
+  "external_notification_enabled": false,
+  "physical_failure_domain_count": 1,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

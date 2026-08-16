@@ -1,0 +1,23 @@
+{
+  "schema": "xhub-v3-6-source-control-readiness-1",
+  "protocol_version": "0x0360",
+  "status": "READY_FOR_MANUAL_GIT_REVIEW",
+  "candidate_file_count": 288,
+  "candidate_count_excludes_report": true,
+  "candidate_total_bytes": 2227040,
+  "ignore_probe_count": 4,
+  "all_sensitive_probes_ignored": true,
+  "prohibited_candidate_count": 0,
+  "private_key_marker_hit_count": 0,
+  "private_payloads_included": false,
+  "local_secrets_included": false,
+  "generated_sqlite_included": false,
+  "commit_created": false,
+  "automatic_staging_enabled": false,
+  "manual_review_required": true,
+  "production_ready": false,
+  "spend_bundle_created": false,
+  "broadcast_enabled": false,
+  "broadcast_ready": false,
+  "chain_broadcast": false
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "xhub-v3-6-mainnet-closing-simulation-1",
+  "release_status": "RECOVERY_CANARY_LOCAL_ONLY",
+  "mainnet_approved": false,
+  "network": "mainnet",
+  "chain_broadcast": false,
+  "spend_bundle_created": false,
+  "recovery_package_content_hash": "694776c665d16a5860f353e3ecf904a23c505b9b38bc63babcfb218c491d5f44",
+  "simulation": {
+    "protocol_version": "0x0360",
+    "funding_coin_id": "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+    "state_sequence": 1,
+    "checkpoint_hash": "8ccf4fecada796eab4fe7ffb55faa90f7889e8c361bac7d7804f874bb53cb4e0",
+    "funding_amount_mojo": 5,
+    "reserved_total_mojo": 1,
+    "user_remainder_mojo": 4,
+    "entry_count": 1,
+    "hypothetical_start_close_height": 9159459,
+    "challenge_deadline_height": 9165459,
+    "funding": {
+      "cost": 122803,
+      "assert_height_relative": 12488,
+      "assert_my_coin_id": "08a7d9ead0fb2aafa79f282e0378d0811b6b7dba948667cfdd9ada4933de0989",
+      "assert_my_amount_mojo": 5,
+      "agg_sig_condition_count": 2,
+      "initial_closing_puzzle_hash": "79cb1e5da8dde1573edb046d53c5af0e93ddb5537542600a1926c329bda545be",
+      "initial_closing_coin_id": "c66cbe52aedcb278c9b7fc3a239febca942832eab44f2c9b853482a731e40abb",
+      "initial_closing_amount_mojo": 5
+    },
+    "initial_finalize": {
+      "cost": 179060,
+      "assert_my_birth_height": 9159459,
+      "assert_height_absolute": 9165459,
+      "outputs": [
+        {
+          "kind": "MERCHANT_PAYMENT",
+          "entry_index": 0,
+          "puzzle_hash": "1273d853d8b1cc9df90522b44d55df26bd8ef7c86f574694f8a572da93ab2246",
+          "amount_mojo": 1,
+          "coin_id": "bfd885f8136dca6f3c09689da4b45a80d12899ed2570174901c5276e13b198d0"
+        },
+        {
+          "kind": "USER_REMAINDER",
+          "entry_index": null,
+          "puzzle_hash": "a64d611dc81fb1335e2b01f5cd9903ad25d35be2f3b830b3cccfa7355bb57cdb",
+          "amount_mojo": 4,
+          "coin_id": "35fdb11c4779192775058c20f0b9012d4e09a8d6e5b1c7627155562a5a7e9a6c"
+        }
+      ]
+    },
+    "merchant_forwards": [
+      {
+        "entry_index": 0,
+        "payment_coin_id": "bfd885f8136dca6f3c09689da4b45a80d12899ed2570174901c5276e13b198d0",
+        "payment_puzzle_hash": "1273d853d8b1cc9df90522b44d55df26bd8ef7c86f574694f8a572da93ab2246",
+        "amount_mojo": 1,
+        "merchant_puzzle_hash": "a64d611dc81fb1335e2b01f5cd9903ad25d35be2f3b830b3cccfa7355bb57cdb",
+        "cost": 9451,
+        "assert_my_amount_mojo": 1,
+        "forwarded_amount_mojo": 1
+      }
+    ],
+    "recovery_package_verified": true,
+    "all_clvm_conditions_verified": true,
+    "broadcast_ready": false,
+    "chain_broadcast": false
+  }
+}

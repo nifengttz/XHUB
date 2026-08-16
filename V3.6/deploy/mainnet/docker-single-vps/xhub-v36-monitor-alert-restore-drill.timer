@@ -1,0 +1,13 @@
+[Unit]
+Description=Weekly XHUB V3.6 monitor aggregate latest alert backup restore drill
+
+[Timer]
+OnCalendar=Sun *-*-* 04:00:00 UTC
+Persistent=true
+RandomizedDelaySec=30m
+AccuracySec=5m
+Unit=xhub-v36-monitor-alert-restore-drill.service
+
+[Install]
+WantedBy=timers.target
+
