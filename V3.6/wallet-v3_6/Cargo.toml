@@ -13,11 +13,18 @@ hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "2.0"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 tokio = { version = "1.53", features = ["macros", "net", "rt-multi-thread", "sync"] }
 xhub-protocol-v3-6 = { path = "../protocol-v3_6" }
 xhub-puzzles-v3-6 = { path = "../puzzles-v3_6" }
 chia-bls = "=0.36.1"
+chia-consensus = "=0.36.1"
+chia-protocol = { version = "=0.36.1", features = ["serde"] }
+chia-sdk-driver = "=0.33.0"
+chia-sdk-signer = "=0.33.0"
+chia-sdk-types = "=0.33.0"
+clvmr = "=0.16.4"
+flate2 = "1.1"
 rand = "0.8"
 
 [dev-dependencies]
@@ -48,3 +55,7 @@ path = "src/bin/local_payment_signer.rs"
 [[bin]]
 name = "xhub-wallet-core-v3-6"
 path = "src/bin/wallet_core.rs"
+
+[[bin]]
+name = "xhub-wallet-chain-v3-6"
+path = "src/bin/wallet_chain.rs"

@@ -4,12 +4,16 @@ Add-Type -AssemblyName System.Drawing
 
 $walletRoot = if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) { [Environment]::CurrentDirectory } else { $PSScriptRoot }
 $core = Join-Path $walletRoot 'xhub-wallet-core-v3-6.exe'
+$chain = Join-Path $walletRoot 'xhub-wallet-chain-v3-6.exe'
 $vaultPath = Join-Path $walletRoot 'wallet-v3_6.plaintext.json'
 $script:wallet = $null
 $script:secretsVisible = $false
+$script:preparedSend = $null
+$script:lastSync = $null
+$script:rpcUrl = 'https://api.coinset.org'
 
-if (-not (Test-Path -LiteralPath $core)) {
-    [System.Windows.Forms.MessageBox]::Show('缺少 xhub-wallet-core-v3-6.exe。请保持它与钱包启动器位于同一文件夹。', 'XHUB Wallet V3.6') | Out-Null
+if (-not (Test-Path -LiteralPath $core) -or -not (Test-Path -LiteralPath $chain)) {
+    [System.Windows.Forms.MessageBox]::Show('缺少 xhub-wallet-core-v3-6.exe 或 xhub-wallet-chain-v3-6.exe。请保持它们与钱包启动器位于同一文件夹。', 'XHUB Wallet V3.6') | Out-Null
     exit 1
 }
 
@@ -34,6 +38,68 @@ function Invoke-WalletCore([string]$Command, [string]$InputText = '') {
     $process.WaitForExit()
     if ($process.ExitCode -ne 0) { throw $stderr.Trim() }
     return ($stdout | ConvertFrom-Json)
+}
+
+function Invoke-WalletChain([string]$Command, [string]$InputText) {
+    $start = New-Object System.Diagnostics.ProcessStartInfo
+    $start.FileName = $chain
+    $start.Arguments = $Command
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardInput = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $start.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+    $start.StandardErrorEncoding = [System.Text.Encoding]::UTF8
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $start
+    [void]$process.Start()
+    $process.StandardInput.Write($InputText)
+    $process.StandardInput.Close()
+    $stdout = $process.StandardOutput.ReadToEnd()
+    $stderr = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+    if ($process.ExitCode -ne 0) { throw $stderr.Trim() }
+    return ($stdout | ConvertFrom-Json)
+}
+
+function Clear-PreparedSend {
+    $script:preparedSend = $null
+    if ($null -ne $broadcastButton) { $broadcastButton.Enabled = $false }
+}
+
+function Refresh-Chain {
+    if ($null -eq $script:wallet) { return }
+    try {
+        $refreshBalance.Enabled = $false
+        $refreshHistory.Enabled = $false
+        Set-Status '正在通过主网 RPC 同步余额与 Coin 历史…'
+        [System.Windows.Forms.Application]::DoEvents()
+        $request = [ordered]@{
+            rpc_url = $script:rpcUrl
+            puzzle_hash = $script:wallet.puzzle_hash
+        }
+        $result = Invoke-WalletChain 'sync' ($request | ConvertTo-Json -Compress)
+        $script:lastSync = $result
+        $balanceHeader.Text = "余额：$($result.confirmed_balance_mojo) mojo"
+        $chainDetail.Text = "主网高度 $($result.peak_height) · 未花费 Coin $($result.unspent_coin_count) · RPC $($result.rpc_url)"
+        $historyGrid.Rows.Clear()
+        foreach ($entry in @($result.history)) {
+            $time = if ([UInt64]$entry.timestamp -gt 0) {
+                [DateTimeOffset]::FromUnixTimeSeconds([Int64]$entry.timestamp).LocalDateTime.ToString('yyyy-MM-dd HH:mm:ss')
+            } else { '-' }
+            $stateText = if ($entry.status -eq 'UNSPENT') { '收到/可用' } else { '已花费' }
+            $spentHeight = if ($null -eq $entry.spent_height) { '-' } else { [string]$entry.spent_height }
+            [void]$historyGrid.Rows.Add($time, $stateText, $entry.amount_mojo, $entry.confirmed_height, $spentHeight, $entry.coin_id)
+        }
+        Set-Status "同步完成：余额 $($result.confirmed_balance_mojo) mojo，共 $(@($result.history).Count) 条 Coin 历史。"
+    } catch {
+        $chainDetail.Text = '同步失败：' + $_.Exception.Message
+        Set-Status '余额和历史同步失败。' $true
+    } finally {
+        $refreshBalance.Enabled = $true
+        $refreshHistory.Enabled = $true
+    }
 }
 
 function Save-Wallet($Wallet) {
@@ -138,9 +204,17 @@ function Update-WalletView {
     $walletPanel.Visible = $hasWallet
     $replaceWallet.Enabled = $hasWallet
     $previewButton.Enabled = $hasWallet
-    if (-not $hasWallet) { $loginState.Text = '尚未创建钱包'; return }
+    $refreshBalance.Enabled = $hasWallet
+    $refreshHistory.Enabled = $hasWallet
+    if (-not $hasWallet) {
+        $loginState.Text = '尚未创建钱包'
+        $balanceHeader.Text = '余额：-- mojo'
+        Clear-PreparedSend
+        return
+    }
     $loginState.Text = '已直接登录 · 无密码 · 单地址索引 0'
     $addressBox.Text = $script:wallet.address
+    $sourceCoinInput.Text = $script:wallet.address
     $puzzleHashBox.Text = $script:wallet.puzzle_hash
     $publicKeyBox.Text = $script:wallet.wallet_public_key_index0
     if ($script:secretsVisible) {
@@ -175,19 +249,26 @@ $title.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 20, [System.D
 $loginState = Add-Label $form '正在载入钱包…' 550 25 455 28 $true
 $loginState.TextAlign = 'MiddleRight'
 $loginState.ForeColor = [System.Drawing.Color]::FromArgb(20, 90, 60)
-$warning = Add-Label $form '无密码模式：本地钱包文件不受密码或 Windows 账户保护。请仅存放你愿意承担损失风险的小额 MOJO。' 24 62 980 34 $true
+$balanceHeader = Add-Label $form '余额：-- mojo' 550 55 455 30 $true
+$balanceHeader.TextAlign = 'MiddleRight'
+$balanceHeader.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 14, [System.Drawing.FontStyle]::Bold)
+$warning = Add-Label $form '无密码模式：本地钱包文件无保护。发送功能会在你核对并确认后广播真实主网交易。' 24 86 980 28 $true
 $warning.ForeColor = [System.Drawing.Color]::Firebrick
 
 $tabs = New-Object System.Windows.Forms.TabControl
-$tabs.Location = New-Object System.Drawing.Point(22, 104)
-$tabs.Size = New-Object System.Drawing.Size(994, 575)
+$tabs.Location = New-Object System.Drawing.Point(22, 116)
+$tabs.Size = New-Object System.Drawing.Size(994, 563)
 $form.Controls.Add($tabs)
 $walletTab = New-Object System.Windows.Forms.TabPage
 $walletTab.Text = '钱包首页'
 $walletTab.BackColor = [System.Drawing.Color]::White
 $tabs.TabPages.Add($walletTab)
+$historyTab = New-Object System.Windows.Forms.TabPage
+$historyTab.Text = '交易历史'
+$historyTab.BackColor = [System.Drawing.Color]::White
+$tabs.TabPages.Add($historyTab)
 $previewTab = New-Object System.Windows.Forms.TabPage
-$previewTab.Text = '不可广播交易预览'
+$previewTab.Text = '发送 MOJO'
 $previewTab.BackColor = [System.Drawing.Color]::White
 $tabs.TabPages.Add($previewTab)
 
@@ -219,6 +300,11 @@ $walletPanel.Size = New-Object System.Drawing.Size(980, 535)
 $walletPanel.AutoScroll = $true
 $walletTab.Controls.Add($walletPanel)
 [void](Add-Label $walletPanel '主网地址（固定索引 0）' 20 14 300 24 $true)
+$refreshBalance = New-Object System.Windows.Forms.Button
+$refreshBalance.Text = '刷新余额'
+$refreshBalance.Location = New-Object System.Drawing.Point(850, 6)
+$refreshBalance.Size = New-Object System.Drawing.Size(100, 30)
+$walletPanel.Controls.Add($refreshBalance)
 $addressBox = New-ReadOnlyBox $walletPanel 20 42 820
 $copyAddress = New-Object System.Windows.Forms.Button
 $copyAddress.Text = '复制地址'
@@ -283,11 +369,39 @@ $copySyntheticPrivate.Location = New-Object System.Drawing.Point(850, 540)
 $copySyntheticPrivate.Size = New-Object System.Drawing.Size(100, 30)
 $walletPanel.Controls.Add($copySyntheticPrivate)
 
-[void](Add-Label $previewTab '该页面只做格式校验和金额预览，不构造 SpendBundle、不连接节点、不广播。' 24 18 900 30 $true)
-[void](Add-Label $previewTab '来源 Coin ID（32 字节十六进制）' 24 65 320 24 $true)
+[void](Add-Label $historyTab '索引 0 地址的主网 Coin 历史（收到、未花费和已花费状态）' 20 16 700 28 $true)
+$refreshHistory = New-Object System.Windows.Forms.Button
+$refreshHistory.Text = '刷新历史'
+$refreshHistory.Location = New-Object System.Drawing.Point(824, 12)
+$refreshHistory.Size = New-Object System.Drawing.Size(120, 32)
+$historyTab.Controls.Add($refreshHistory)
+$chainDetail = Add-Label $historyTab '尚未同步主网。' 20 52 920 28
+$chainDetail.ForeColor = [System.Drawing.Color]::DimGray
+$historyGrid = New-Object System.Windows.Forms.DataGridView
+$historyGrid.Location = New-Object System.Drawing.Point(20, 86)
+$historyGrid.Size = New-Object System.Drawing.Size(924, 420)
+$historyGrid.ReadOnly = $true
+$historyGrid.AllowUserToAddRows = $false
+$historyGrid.AllowUserToDeleteRows = $false
+$historyGrid.AllowUserToResizeRows = $false
+$historyGrid.RowHeadersVisible = $false
+$historyGrid.AutoSizeColumnsMode = 'Fill'
+$historyGrid.SelectionMode = 'FullRowSelect'
+[void]$historyGrid.Columns.Add('time', '时间')
+[void]$historyGrid.Columns.Add('state', '状态')
+[void]$historyGrid.Columns.Add('amount', 'MOJO')
+[void]$historyGrid.Columns.Add('confirmed', '确认高度')
+[void]$historyGrid.Columns.Add('spent', '花费高度')
+[void]$historyGrid.Columns.Add('coin', 'Coin ID')
+$historyGrid.Columns['coin'].FillWeight = 220
+$historyTab.Controls.Add($historyGrid)
+
+[void](Add-Label $previewTab '两步发送：先构造并签名预览；只有再次核对确认后才调用 push_tx 广播主网。' 24 18 900 30 $true)
+[void](Add-Label $previewTab '来源地址（固定索引 0，自动选择未花费 Coin）' 24 65 500 24 $true)
 $sourceCoinInput = New-Object System.Windows.Forms.TextBox
 $sourceCoinInput.Location = New-Object System.Drawing.Point(24, 91)
 $sourceCoinInput.Size = New-Object System.Drawing.Size(920, 27)
+$sourceCoinInput.ReadOnly = $true
 $previewTab.Controls.Add($sourceCoinInput)
 [void](Add-Label $previewTab '收款 XCH 主网地址' 24 132 250 24 $true)
 $destinationInput = New-Object System.Windows.Forms.TextBox
@@ -311,15 +425,24 @@ $purposeInput.Location = New-Object System.Drawing.Point(526, 228)
 $purposeInput.Size = New-Object System.Drawing.Size(418, 27)
 $previewTab.Controls.Add($purposeInput)
 $previewButton = New-Object System.Windows.Forms.Button
-$previewButton.Text = '生成不可广播预览'
+$previewButton.Text = '1. 构造并签名预览'
 $previewButton.Location = New-Object System.Drawing.Point(24, 280)
 $previewButton.Size = New-Object System.Drawing.Size(240, 40)
 $previewButton.BackColor = [System.Drawing.Color]::FromArgb(23, 110, 82)
 $previewButton.ForeColor = [System.Drawing.Color]::White
 $previewButton.FlatStyle = 'Flat'
 $previewTab.Controls.Add($previewButton)
+$broadcastButton = New-Object System.Windows.Forms.Button
+$broadcastButton.Text = '2. 确认并广播主网'
+$broadcastButton.Location = New-Object System.Drawing.Point(280, 280)
+$broadcastButton.Size = New-Object System.Drawing.Size(240, 40)
+$broadcastButton.Enabled = $false
+$broadcastButton.BackColor = [System.Drawing.Color]::Firebrick
+$broadcastButton.ForeColor = [System.Drawing.Color]::White
+$broadcastButton.FlatStyle = 'Flat'
+$previewTab.Controls.Add($broadcastButton)
 $previewOutput = New-ReadOnlyBox $previewTab 24 340 920 170 $true
-$previewOutput.Text = '等待输入。'
+$previewOutput.Text = '等待输入。第一步会联网读取未花费 Coin 并在本机签名，但不会广播。'
 $status = Add-Label $form '启动中…' 24 690 980 28
 
 $createAction = {
@@ -372,40 +495,107 @@ $copyMnemonic.Add_Click({ Copy-Text $script:wallet.mnemonic '助记词' })
 $copyMasterPrivate.Add_Click({ Copy-Text $script:wallet.master_private_key '主私钥' })
 $copyWalletPrivate.Add_Click({ Copy-Text $script:wallet.wallet_private_key_index0 '索引 0 私钥' })
 $copySyntheticPrivate.Add_Click({ Copy-Text $script:wallet.synthetic_private_key_index0 '索引 0 Synthetic 私钥' })
+$refreshBalance.Add_Click({ Refresh-Chain })
+$refreshHistory.Add_Click({ Refresh-Chain })
+
+$invalidatePrepared = {
+    Clear-PreparedSend
+    if ($null -ne $previewOutput) { $previewOutput.Text = '输入已变化，请重新执行第一步构造并签名预览。' }
+}
+$destinationInput.Add_TextChanged($invalidatePrepared)
+$amountInput.Add_TextChanged($invalidatePrepared)
+$feeInput.Add_TextChanged($invalidatePrepared)
+$purposeInput.Add_TextChanged($invalidatePrepared)
 
 $previewButton.Add_Click({
     try {
+        Clear-PreparedSend
         [UInt64]$amount = 0
         [UInt64]$fee = 0
         if (-not [UInt64]::TryParse($amountInput.Text.Trim(), [ref]$amount) -or $amount -eq 0) { throw '金额必须是大于 0 的 mojo 整数。' }
         if (-not [UInt64]::TryParse($feeInput.Text.Trim(), [ref]$fee)) { throw '费用必须是非负 mojo 整数。' }
         $request = [ordered]@{
-            source_coin_id = $sourceCoinInput.Text.Trim()
+            rpc_url = $script:rpcUrl
+            wallet_private_key_index0 = $script:wallet.wallet_private_key_index0
+            expected_puzzle_hash = $script:wallet.puzzle_hash
             destination_address = $destinationInput.Text.Trim()
             amount_mojo = $amount
             fee_mojo = $fee
             purpose = $purposeInput.Text.Trim()
         }
-        $result = Invoke-WalletCore 'preview' ($request | ConvertTo-Json -Compress)
+        Set-Status '正在读取未花费 Coin、构造并本地签名；此步骤不会广播…'
+        [System.Windows.Forms.Application]::DoEvents()
+        $result = Invoke-WalletChain 'prepare-send' ($request | ConvertTo-Json -Compress)
+        $script:preparedSend = $result
+        $coinIds = @($result.selected_coins | ForEach-Object { $_.coin_id }) -join [Environment]::NewLine
         $previewOutput.Text = @"
 网络: $($result.network)
-来源 Coin ID: $($result.source_coin_id)
+来源 Puzzle Hash: $($result.source_puzzle_hash)
 收款地址: $($result.destination_address)
 金额: $($result.amount_mojo) mojo
-最大费用: $($result.fee_mojo) mojo
-最大合计: $($result.total_mojo) mojo
+费用: $($result.fee_mojo) mojo
+输入合计: $($result.input_total_mojo) mojo
+找零: $($result.change_mojo) mojo
 目的: $($result.purpose)
+SpendBundle ID: $($result.spend_bundle_id)
+输入 Coin:
+$coinIds
 
-安全闸门: preview_only=$($result.preview_only) / SpendBundle=$($result.spend_bundle_created) / RPC=$($result.rpc_called) / push_tx=$($result.push_tx_called) / broadcast=$($result.chain_broadcast)
+离线验证: consensus=$($result.consensus_conditions_verified) / signature=$($result.aggregate_signature_verified)
+当前状态: 已签名、尚未广播
 "@
-        Set-Status '不可广播交易预览已生成；未创建、签名或广播交易。'
+        $broadcastButton.Enabled = $true
+        Set-Status '签名预览已生成，尚未广播。请逐项核对后再执行第二步。'
     } catch {
         $previewOutput.Text = "预览失败：$($_.Exception.Message)"
-        Set-Status '交易预览失败；未执行任何链操作。' $true
+        Set-Status '交易构造失败；未广播。' $true
+    }
+})
+
+$broadcastButton.Add_Click({
+    if ($null -eq $script:preparedSend) { return }
+    $coinCount = @($script:preparedSend.selected_coins).Count
+    $confirmation = @"
+这是一次真实 Chia 主网广播，请逐项确认：
+
+收款地址：$($script:preparedSend.destination_address)
+发送金额：$($script:preparedSend.amount_mojo) mojo
+手续费：$($script:preparedSend.fee_mojo) mojo
+找零：$($script:preparedSend.change_mojo) mojo
+输入 Coin：$coinCount 个
+交易目的：$($script:preparedSend.purpose)
+SpendBundle ID：$($script:preparedSend.spend_bundle_id)
+RPC：$($script:preparedSend.rpc_url)
+
+点击“是”将立即调用 push_tx，交易广播后无法撤销。是否继续？
+"@
+    $answer = [System.Windows.Forms.MessageBox]::Show($confirmation, '最终确认：广播真实主网交易', 'YesNo', 'Warning')
+    if ($answer -ne [System.Windows.Forms.DialogResult]::Yes) {
+        Set-Status '你已取消广播；已签名预览未提交。'
+        return
+    }
+    try {
+        $broadcastButton.Enabled = $false
+        Set-Status '正在重检输入 Coin 并广播主网…'
+        [System.Windows.Forms.Application]::DoEvents()
+        $request = [ordered]@{ prepared = $script:preparedSend }
+        $result = Invoke-WalletChain 'broadcast' ($request | ConvertTo-Json -Depth 40 -Compress)
+        $previewOutput.AppendText("`r`n`r`n广播结果: $($result.status)`r`nSpendBundle ID: $($result.spend_bundle_id)")
+        [System.Windows.Forms.MessageBox]::Show("主网节点已接受提交。`n状态：$($result.status)`nSpendBundle ID：$($result.spend_bundle_id)", '发送结果', 'OK', 'Information') | Out-Null
+        Set-Status "主网提交完成：$($result.status)。等待链上确认。"
+        $script:preparedSend = $null
+        Refresh-Chain
+    } catch {
+        $previewOutput.AppendText("`r`n`r`n广播失败：$($_.Exception.Message)")
+        Set-Status '广播失败或被节点拒绝；请刷新余额核对 Coin 状态。' $true
+        $broadcastButton.Enabled = $true
     }
 })
 
 $script:wallet = Load-Wallet
 Update-WalletView
 if ($null -ne $script:wallet) { Set-Status "已从本地明文钱包文件自动直接登录：$vaultPath" } else { Set-Status '请选择新建或恢复钱包。' }
+$form.Add_Shown({
+    if ($null -ne $script:wallet) { Refresh-Chain }
+})
 [void]$form.ShowDialog()
