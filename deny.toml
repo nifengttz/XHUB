@@ -2,7 +2,10 @@
 version = 2
 unmaintained = "all"
 yanked = "deny"
-ignore = []
+ignore = [
+    # Transitive through Chia SDK's rue toolchain; the advisory has no upgrade path.
+    "RUSTSEC-2024-0436",
+]
 
 [bans]
 multiple-versions = "warn"
@@ -15,12 +18,17 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "CC0-1.0",
+    "CDLA-Permissive-2.0",
     "ISC",
+    "LLVM-exception",
     "MIT",
     "MPL-2.0",
     "Unicode-3.0",
     "Zlib",
 ]
+
+[licenses.private]
+ignore = true
 
 [sources]
 unknown-registry = "deny"
