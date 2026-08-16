@@ -32,3 +32,12 @@ cargo run --locked --manifest-path .\Cargo.toml --bin xhub-local-signer-v3-6 -- 
 The result is a signed request JSON that can be independently inspected again.
 Signing is strictly off-chain: the tool reports `spend_bundle_created=false`,
 `push_tx_called=false`, and `chain_broadcast=false`.
+
+## Windows graphical launcher
+
+For a click-through workflow, place `Start-XHUB-V3.6-Signer.cmd`,
+`Start-XHUB-V3.6-Signer.ps1`, and `xhub-local-signer-v3-6.exe` in the same
+local folder. Double-click the `.cmd` file. The launcher first shows the full
+request review, then asks for a locally stored user BLS secret file only after
+the operator confirms the exact 1-mojo off-chain authorization. It does not
+upload the secret or retain it after the process exits.
