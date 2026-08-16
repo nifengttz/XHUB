@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use bech32::{ToBase32, Variant};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use xhub_protocol_v3_6::{
@@ -34,7 +35,7 @@ pub enum WalletError {
 
 pub type Result<T> = std::result::Result<T, WalletError>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FundingTermsInput {
     pub network_id: String,
@@ -48,10 +49,10 @@ pub struct FundingTermsInput {
     pub user_remainder_puzzle_hash: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FundingTermsPreview {
-    pub protocol_version: &'static str,
-    pub profile_id: &'static str,
+    pub protocol_version: String,
+    pub profile_id: String,
     pub network_id: String,
     pub acceptance_blocks: u64,
     pub freeze_blocks: u64,
@@ -62,6 +63,7 @@ pub struct FundingTermsPreview {
     pub channel_terms_hash: String,
     pub channel_terms_canonical_hex: String,
     pub funding_puzzle_hash: String,
+    pub funding_address: String,
     pub funding_puzzle_reveal: String,
     pub funding_module_hash: String,
     pub initial_closing_module_hash: String,
@@ -70,7 +72,7 @@ pub struct FundingTermsPreview {
     pub mainnet_approved: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FundingDraft {
     pub draft_id: String,
     pub confirmed: bool,
@@ -147,10 +149,14 @@ pub fn preview(terms: &ChannelTerms) -> Result<FundingTermsPreview> {
     terms.validate()?;
     let (funding_puzzle_hash, funding_puzzle_reveal) =
         xhub_puzzles_v3_6::funding_puzzle_reveal(terms).map_err(WalletError::Invalid)?;
+    let funding_address = bech32::encode("xch", funding_puzzle_hash.to_base32(), Variant::Bech32m)
+        .map_err(|error| {
+            WalletError::Invalid(format!("Funding address encoding failed: {error}"))
+        })?;
     let module_hashes = xhub_puzzles_v3_6::module_hashes();
     Ok(FundingTermsPreview {
-        protocol_version: "0x0360",
-        profile_id: PROFILE_ID,
+        protocol_version: "0x0360".to_string(),
+        profile_id: PROFILE_ID.to_string(),
         network_id: hex::encode(terms.network_id),
         acceptance_blocks: terms.acceptance_blocks,
         freeze_blocks: terms.freeze_blocks,
@@ -161,6 +167,7 @@ pub fn preview(terms: &ChannelTerms) -> Result<FundingTermsPreview> {
         channel_terms_hash: hex::encode(terms.hash()?),
         channel_terms_canonical_hex: hex::encode(terms.canonical_bytes()),
         funding_puzzle_hash: hex::encode(funding_puzzle_hash),
+        funding_address,
         funding_puzzle_reveal: hex::encode(funding_puzzle_reveal.to_vec()),
         funding_module_hash: hex::encode(module_hashes.funding),
         initial_closing_module_hash: hex::encode(module_hashes.initial_closing),

@@ -25,6 +25,8 @@ function resetPreview() {
   activeDraft = null;
   document.querySelector("#summary-state").textContent = "等待重新校验";
   document.querySelector("#terms-hash").textContent = "校验后生成";
+  document.querySelector("#funding-address").textContent = "校验后生成";
+  document.querySelector("#funding-puzzle-hash").textContent = "校验后生成";
   document.querySelector("#canonical-hex").textContent = "校验后生成";
   confirmCheck.checked = false;
   confirmCheck.disabled = true;
@@ -100,6 +102,8 @@ form.addEventListener("submit", async (event) => {
     const preview = activeDraft.preview;
     document.querySelector("#summary-state").textContent = activeDraft.confirmed ? "条款已锁定" : "校验通过";
     document.querySelector("#terms-hash").textContent = preview.channel_terms_hash;
+    document.querySelector("#funding-address").textContent = preview.funding_address;
+    document.querySelector("#funding-puzzle-hash").textContent = preview.funding_puzzle_hash;
     document.querySelector("#canonical-hex").textContent = preview.channel_terms_canonical_hex;
     confirmCheck.disabled = activeDraft.confirmed;
     confirmButton.disabled = true;
