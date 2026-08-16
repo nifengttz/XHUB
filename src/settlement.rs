@@ -208,7 +208,11 @@ pub fn confirm_refund(
         .merchant_amount
         .checked_add(record.user_remaining_amount)
         .ok_or(SettlementWorkflowError::ConfirmationMismatch)?;
-    if !outputs_match(funding_coin_id, confirmed_children, &[(user_puzzle_hash, funding_amount)]) {
+    if !outputs_match(
+        funding_coin_id,
+        confirmed_children,
+        &[(user_puzzle_hash, funding_amount)],
+    ) {
         return Err(SettlementWorkflowError::ConfirmationMismatch);
     }
     store.mark_refunded(channel_id)?;
