@@ -20,7 +20,7 @@ allow = [
     "CC0-1.0",
     "CDLA-Permissive-2.0",
     "ISC",
-    "LLVM-exception",
+    "Apache-2.0 WITH LLVM-exception",
     "MIT",
     "MPL-2.0",
     "Unicode-3.0",
