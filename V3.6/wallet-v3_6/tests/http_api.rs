@@ -157,6 +157,7 @@ async fn gateway_adds_the_hub_token_server_side_and_preserves_upstream_status() 
 
     let seen = Arc::new(Mutex::new(Vec::<(String, String, Option<Value>)>::new()));
     let health_seen = Arc::clone(&seen);
+    let registration_seen = Arc::clone(&seen);
     let reservation_seen = Arc::clone(&seen);
     let upstream = Router::new()
         .route(
@@ -178,6 +179,28 @@ async fn gateway_adds_the_hub_token_server_side_and_preserves_upstream_status() 
                         None,
                     ));
                     Json(json!({"protocol_version":"0x0360","service":"hub","status":"READY"}))
+                }
+            }),
+        )
+        .route(
+            "/api/v3.6/funding-coins",
+            post(move |headers: HeaderMap, Json(body): Json<Value>| {
+                let seen = Arc::clone(&registration_seen);
+                async move {
+                    seen.lock().expect("seen").push((
+                        headers
+                            .get("authorization")
+                            .and_then(|value| value.to_str().ok())
+                            .unwrap_or_default()
+                            .to_string(),
+                        headers
+                            .get("x-xhub-protocol-version")
+                            .and_then(|value| value.to_str().ok())
+                            .unwrap_or_default()
+                            .to_string(),
+                        Some(body),
+                    ));
+                    (StatusCode::CREATED, Json(json!({"chain_state":"ACTIVE"})))
                 }
             }),
         )
@@ -235,6 +258,25 @@ async fn gateway_adds_the_hub_token_server_side_and_preserves_upstream_status() 
         .expect("health body");
     assert!(!String::from_utf8_lossy(&health_body).contains(token));
 
+    let registration_body = json!({
+        "protocol_version":"0x0360",
+        "funding_coin_id":"42".repeat(32),
+        "funding_puzzle_reveal_hex":"ff01",
+        "channel_terms_canonical_hex":"0360"
+    });
+    let registration = app
+        .clone()
+        .oneshot(
+            Request::post("/api/v3.6/hub/funding-coins")
+                .header("content-type", "application/json")
+                .header("authorization", "Bearer browser-must-not-control-this")
+                .body(Body::from(registration_body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("registration");
+    assert_eq!(registration.status(), StatusCode::CREATED);
+
     let reservation_body = json!({"protocol_version":"0x0360","signed":"opaque"});
     let reservation = app
         .oneshot(
@@ -249,12 +291,13 @@ async fn gateway_adds_the_hub_token_server_side_and_preserves_upstream_status() 
     assert_eq!(reservation.status(), StatusCode::ACCEPTED);
 
     let seen = seen.lock().expect("seen");
-    assert_eq!(seen.len(), 2);
+    assert_eq!(seen.len(), 3);
     for (authorization, version, _) in seen.iter() {
         assert_eq!(authorization, &format!("Bearer {token}"));
         assert_eq!(version, "0x0360");
     }
-    assert_eq!(seen[1].2.as_ref(), Some(&reservation_body));
+    assert_eq!(seen[1].2.as_ref(), Some(&registration_body));
+    assert_eq!(seen[2].2.as_ref(), Some(&reservation_body));
     server.abort();
 }
 

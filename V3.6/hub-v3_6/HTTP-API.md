@@ -14,6 +14,7 @@ Status: `VECTOR_READY`. This document fixes the test-vector API surface. It is n
 ## Endpoints
 
 ```text
+POST /api/v3.6/funding-coins
 POST /api/v3.6/reservations
 GET  /api/v3.6/funding-coins/{funding_coin_id}/reservations/{reservation_nonce}
 GET  /api/v3.6/funding-coins/{funding_coin_id}/recovery-packages/latest
@@ -21,6 +22,12 @@ GET  /api/v3.6/funding-coins/{funding_coin_id}/recovery-packages/{state_sequence
 POST /api/v3.6/funding-coins/{funding_coin_id}/recovery-packages/{state_sequence}/deliveries
 GET  /api/v3.6/funding-coins/{funding_coin_id}/recovery-packages/{state_sequence}/deliveries
 ```
+
+Funding registration accepts `funding_coin_id`, `funding_puzzle_reveal_hex`,
+and `channel_terms_canonical_hex`. The HUB recomputes the puzzle hash from the
+reveal, queries the configured Chia mainnet source, verifies the amount and
+unspent state, and applies the configured confirmation threshold before
+activating the channel.
 
 The reservation POST accepts `request_id`, `funding_coin_id`, the four `LedgerEntry` fields, and `user_authorization_signature`. The server obtains both chain snapshots through `ChainStateProvider`; no client height is accepted.
 

@@ -4,6 +4,8 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+#[cfg(test)]
+use bech32::ToBase32;
 use bech32::{FromBase32, Variant};
 use chia_bls::{SecretKey, Signature, sign};
 use chia_consensus::{flags::MEMPOOL_MODE, spendbundle_validation::validate_clvm_and_signature};
@@ -20,8 +22,13 @@ use flate2::read::GzDecoder;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use xhub_protocol_v3_6::{CanonicalDecode, ChannelTerms};
+use xhub_wallet_v3_6::{
+    FUNDING_CONFIRMATION_BLOCKS_TEST, FundingDraft, FundingTermsInput, MAINNET_NETWORK_ID,
+};
 
 const DEFAULT_RPC_URL: &str = "https://api.coinset.org";
+const DEFAULT_WALLET_SERVICE_URL: &str = "https://wallet.chiagame.top";
 const MAX_INPUT_COINS: usize = 100;
 const MAX_RPC_BODY_BYTES: u64 = 64 * 1024 * 1024;
 
@@ -71,6 +78,50 @@ struct PrepareSendRequest {
     purpose: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PrepareFundingTermsRequest {
+    #[serde(default = "default_wallet_service_url")]
+    wallet_service_url: String,
+    wallet_public_key_index0: String,
+    expected_remainder_puzzle_hash: String,
+    funding_amount_mojo: u64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ConfirmFundingTermsRequest {
+    #[serde(default = "default_wallet_service_url")]
+    wallet_service_url: String,
+    wallet_public_key_index0: String,
+    expected_remainder_puzzle_hash: String,
+    funding_amount_mojo: u64,
+    draft: FundingDraft,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PrepareFundingRequest {
+    #[serde(default = "default_rpc_url")]
+    rpc_url: String,
+    #[serde(default = "default_wallet_service_url")]
+    wallet_service_url: String,
+    wallet_private_key_index0: String,
+    wallet_public_key_index0: String,
+    expected_puzzle_hash: String,
+    fee_mojo: u64,
+    confirmed_draft: FundingDraft,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FundingMetadata {
+    wallet_service_url: String,
+    draft: FundingDraft,
+    predicted_funding_coin_id: String,
+    required_confirmations: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SelectedCoin {
@@ -102,6 +153,8 @@ struct PreparedSend {
     consensus_conditions_verified: bool,
     aggregate_signature_verified: bool,
     broadcast_performed: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    funding: Option<FundingMetadata>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -120,6 +173,69 @@ struct BroadcastOutput {
     success: bool,
     chain_broadcast: bool,
     submitted_at_unix: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    funding_coin_id: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FundingStatusRequest {
+    #[serde(default = "default_rpc_url")]
+    rpc_url: String,
+    funding_coin_id: String,
+    funding_puzzle_hash: String,
+    funding_amount_mojo: u64,
+    #[serde(default = "default_funding_confirmations")]
+    required_confirmations: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct FundingStatusOutput {
+    schema: &'static str,
+    network: &'static str,
+    rpc_url: String,
+    funding_coin_id: String,
+    funding_puzzle_hash: String,
+    funding_amount_mojo: u64,
+    peak_height: u64,
+    status: &'static str,
+    confirmed_height: Option<u64>,
+    spent_height: Option<u64>,
+    confirmations: u64,
+    required_confirmations: u64,
+    registration_ready: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RegisterFundingRequest {
+    #[serde(default = "default_rpc_url")]
+    rpc_url: String,
+    #[serde(default = "default_wallet_service_url")]
+    wallet_service_url: String,
+    wallet_public_key_index0: String,
+    expected_remainder_puzzle_hash: String,
+    funding_coin_id: String,
+    confirmed_draft: FundingDraft,
+}
+
+#[derive(Debug, Serialize)]
+struct RegisterFundingOutput {
+    schema: &'static str,
+    chain: FundingStatusOutput,
+    hub_response: Value,
+}
+
+#[derive(Debug, Deserialize)]
+struct RemoteProfile {
+    network_id: String,
+    acceptance_blocks: u64,
+    freeze_blocks: u64,
+    challenge_blocks: u64,
+    funding_confirmation_blocks: u64,
+    hub_state_public_key_a: String,
+    state_rules_hash: String,
+    hub_gateway_enabled: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -134,6 +250,80 @@ struct CoinRecord {
 struct RpcClient {
     http: Client,
     base_url: String,
+}
+
+struct WalletServiceClient {
+    http: Client,
+    base_url: String,
+}
+
+impl WalletServiceClient {
+    fn new(base_url: &str) -> Result<Self, String> {
+        let parsed = reqwest::Url::parse(base_url)
+            .map_err(|error| format!("invalid wallet service URL: {error}"))?;
+        if parsed.scheme() != "https" || parsed.host_str().is_none() {
+            return Err("wallet service URL must be an HTTPS URL with a host".to_string());
+        }
+        if !parsed.username().is_empty() || parsed.password().is_some() {
+            return Err("wallet service URL must not contain embedded credentials".to_string());
+        }
+        if parsed.query().is_some() || parsed.fragment().is_some() {
+            return Err("wallet service URL must not contain a query or fragment".to_string());
+        }
+        let http = Client::builder()
+            .timeout(Duration::from_secs(20))
+            .build()
+            .map_err(|error| format!("cannot build wallet service client: {error}"))?;
+        Ok(Self {
+            http,
+            base_url: base_url.trim_end_matches('/').to_string(),
+        })
+    }
+
+    fn get<T: for<'de> Deserialize<'de>>(&self, path: &str) -> Result<T, String> {
+        self.decode(
+            "GET",
+            path,
+            self.http.get(format!("{}{}", self.base_url, path)).send(),
+        )
+    }
+
+    fn post<T: for<'de> Deserialize<'de>>(&self, path: &str, body: &Value) -> Result<T, String> {
+        self.decode(
+            "POST",
+            path,
+            self.http
+                .post(format!("{}{}", self.base_url, path))
+                .header("x-xhub-protocol-version", "0x0360")
+                .json(body)
+                .send(),
+        )
+    }
+
+    fn decode<T: for<'de> Deserialize<'de>>(
+        &self,
+        method: &str,
+        path: &str,
+        response: Result<reqwest::blocking::Response, reqwest::Error>,
+    ) -> Result<T, String> {
+        let response = response
+            .map_err(|error| format!("wallet service {method} {path} unavailable: {error}"))?;
+        let status = response.status();
+        let value: Value = response.json().map_err(|error| {
+            format!("wallet service {method} {path} returned invalid JSON: {error}")
+        })?;
+        if !status.is_success() {
+            return Err(format!(
+                "wallet service {method} {path} returned HTTP {status}: {}",
+                value
+                    .get("message")
+                    .and_then(Value::as_str)
+                    .unwrap_or("request rejected")
+            ));
+        }
+        serde_json::from_value(value)
+            .map_err(|error| format!("wallet service {method} {path} response mismatch: {error}"))
+    }
 }
 
 impl RpcClient {
@@ -300,6 +490,17 @@ impl RpcClient {
         }
         Ok(())
     }
+
+    fn coin_record_by_id(&self, coin_id: Bytes32) -> Result<Option<CoinRecord>, String> {
+        let response = self.call(
+            "get_coin_record_by_name",
+            json!({"name": format!("0x{}", hex::encode(coin_id))}),
+        )?;
+        match response.get("coin_record") {
+            Some(Value::Null) | None => Ok(None),
+            Some(value) => parse_coin_record(value).map(Some),
+        }
+    }
 }
 
 fn main() {
@@ -317,6 +518,11 @@ fn run() -> Result<(), String> {
     }
     match command.as_str() {
         "sync" => sync_wallet(),
+        "prepare-funding-terms" => prepare_funding_terms(),
+        "confirm-funding-terms" => confirm_funding_terms(),
+        "prepare-funding" => prepare_funding(),
+        "funding-status" => funding_status(),
+        "register-funding" => register_funding(),
         "prepare-send" => prepare_send(),
         "broadcast" => broadcast(),
         _ => Err(usage()),
@@ -324,8 +530,7 @@ fn run() -> Result<(), String> {
 }
 
 fn usage() -> String {
-    "usage: xhub-wallet-chain-v3-6 <sync|prepare-send|broadcast>; JSON input is read from stdin"
-        .to_string()
+    "usage: xhub-wallet-chain-v3-6 <sync|prepare-funding-terms|confirm-funding-terms|prepare-funding|funding-status|register-funding|prepare-send|broadcast>; JSON input is read from stdin".to_string()
 }
 
 fn read_json<T: for<'de> Deserialize<'de>>() -> Result<T, String> {
@@ -396,8 +601,364 @@ fn sync_wallet() -> Result<(), String> {
     })
 }
 
+fn prepare_funding_terms() -> Result<(), String> {
+    let request: PrepareFundingTermsRequest = read_json()?;
+    if request.funding_amount_mojo == 0 {
+        return Err("funding_amount_mojo must be greater than zero".to_string());
+    }
+    let service = WalletServiceClient::new(&request.wallet_service_url)?;
+    let profile: RemoteProfile = service.get("/api/v3.6/config")?;
+    validate_remote_profile(&profile)?;
+    let terms = FundingTermsInput {
+        network_id: profile.network_id,
+        acceptance_blocks: profile.acceptance_blocks.to_string(),
+        freeze_blocks: profile.freeze_blocks.to_string(),
+        challenge_blocks: profile.challenge_blocks.to_string(),
+        user_public_key: normalize_fixed_hex::<48>(
+            &request.wallet_public_key_index0,
+            "wallet_public_key_index0",
+        )?,
+        hub_state_public_key_a: profile.hub_state_public_key_a,
+        state_rules_hash: profile.state_rules_hash,
+        funding_amount: request.funding_amount_mojo.to_string(),
+        user_remainder_puzzle_hash: normalize_fixed_hex::<32>(
+            &request.expected_remainder_puzzle_hash,
+            "expected_remainder_puzzle_hash",
+        )?,
+    };
+    let body = funding_terms_body(&terms);
+    let draft: FundingDraft = service.post("/api/v3.6/funding-drafts", &body)?;
+    validate_funding_draft(
+        &draft,
+        &request.wallet_public_key_index0,
+        &request.expected_remainder_puzzle_hash,
+        request.funding_amount_mojo,
+        false,
+    )?;
+    print_json(&draft)
+}
+
+fn confirm_funding_terms() -> Result<(), String> {
+    let request: ConfirmFundingTermsRequest = read_json()?;
+    validate_funding_draft(
+        &request.draft,
+        &request.wallet_public_key_index0,
+        &request.expected_remainder_puzzle_hash,
+        request.funding_amount_mojo,
+        false,
+    )?;
+    let terms = decode_draft_terms(&request.draft)?;
+    let service = WalletServiceClient::new(&request.wallet_service_url)?;
+    let prepared: FundingDraft = service.post(
+        "/api/v3.6/funding-drafts",
+        &funding_terms_body_from_channel(&terms),
+    )?;
+    if prepared.preview != request.draft.preview || prepared.draft_id != request.draft.draft_id {
+        return Err("wallet service returned different immutable Funding terms".to_string());
+    }
+    let confirmed = if prepared.confirmed {
+        prepared
+    } else {
+        service.post(
+            &format!(
+                "/api/v3.6/funding-drafts/{}/confirm",
+                request.draft.draft_id
+            ),
+            &json!({
+                "protocol_version": "0x0360",
+                "channel_terms_hash": request.draft.preview.channel_terms_hash,
+                "user_confirmed": true
+            }),
+        )?
+    };
+    validate_funding_draft(
+        &confirmed,
+        &request.wallet_public_key_index0,
+        &request.expected_remainder_puzzle_hash,
+        request.funding_amount_mojo,
+        true,
+    )?;
+    print_json(&confirmed)
+}
+
+fn prepare_funding() -> Result<(), String> {
+    let request: PrepareFundingRequest = read_json()?;
+    let funding_amount = decode_draft_terms(&request.confirmed_draft)?.funding_amount;
+    let terms = validate_funding_draft(
+        &request.confirmed_draft,
+        &request.wallet_public_key_index0,
+        &request.expected_puzzle_hash,
+        funding_amount,
+        true,
+    )?;
+    let wallet_secret = parse_secret(&request.wallet_private_key_index0)?;
+    if hex::encode(wallet_secret.public_key().to_bytes())
+        != normalize_fixed_hex::<48>(
+            &request.wallet_public_key_index0,
+            "wallet_public_key_index0",
+        )?
+    {
+        return Err("index-0 private key does not match the index-0 public key".to_string());
+    }
+    let service = WalletServiceClient::new(&request.wallet_service_url)?;
+    let profile: RemoteProfile = service.get("/api/v3.6/config")?;
+    validate_remote_profile(&profile)?;
+    if profile.hub_state_public_key_a != hex::encode(terms.hub_state_public_key_a)
+        || profile.state_rules_hash != hex::encode(terms.state_rules_hash)
+        || profile.acceptance_blocks != terms.acceptance_blocks
+        || profile.freeze_blocks != terms.freeze_blocks
+        || profile.challenge_blocks != terms.challenge_blocks
+    {
+        return Err("confirmed Funding terms no longer match the deployed HUB profile".to_string());
+    }
+    let send = PrepareSendRequest {
+        rpc_url: request.rpc_url,
+        wallet_private_key_index0: request.wallet_private_key_index0,
+        expected_puzzle_hash: request.expected_puzzle_hash,
+        destination_address: request.confirmed_draft.preview.funding_address.clone(),
+        amount_mojo: terms.funding_amount,
+        fee_mojo: request.fee_mojo,
+        purpose: format!(
+            "XHUB V3.6 Funding Coin {}",
+            request.confirmed_draft.preview.channel_terms_hash
+        ),
+    };
+    let mut prepared = prepare_send_request(send)?;
+    let first_parent = decode_bytes32(&prepared.selected_coins[0].coin_id)?;
+    let funding_coin = Coin::new(
+        first_parent,
+        decode_bytes32(&prepared.destination_puzzle_hash)?,
+        prepared.amount_mojo,
+    );
+    prepared.funding = Some(FundingMetadata {
+        wallet_service_url: service.base_url,
+        draft: request.confirmed_draft,
+        predicted_funding_coin_id: hex::encode(funding_coin.coin_id()),
+        required_confirmations: profile.funding_confirmation_blocks,
+    });
+    validate_prepared(&prepared)?;
+    print_json(&prepared)
+}
+
+fn funding_status() -> Result<(), String> {
+    let request: FundingStatusRequest = read_json()?;
+    let status = funding_status_for(
+        &request.rpc_url,
+        &request.funding_coin_id,
+        &request.funding_puzzle_hash,
+        request.funding_amount_mojo,
+        request.required_confirmations,
+    )?;
+    print_json(&status)
+}
+
+fn register_funding() -> Result<(), String> {
+    let request: RegisterFundingRequest = read_json()?;
+    let amount = decode_draft_terms(&request.confirmed_draft)?.funding_amount;
+    validate_funding_draft(
+        &request.confirmed_draft,
+        &request.wallet_public_key_index0,
+        &request.expected_remainder_puzzle_hash,
+        amount,
+        true,
+    )?;
+    let status = funding_status_for(
+        &request.rpc_url,
+        &request.funding_coin_id,
+        &request.confirmed_draft.preview.funding_puzzle_hash,
+        amount,
+        request.confirmed_draft.preview.funding_confirmation_blocks,
+    )?;
+    if !status.registration_ready {
+        return Err(format!(
+            "Funding Coin is not ready for HUB registration: status={}, confirmations={}/{}",
+            status.status, status.confirmations, status.required_confirmations
+        ));
+    }
+    let service = WalletServiceClient::new(&request.wallet_service_url)?;
+    let hub_response: Value = service.post(
+        "/api/v3.6/hub/funding-coins",
+        &json!({
+            "protocol_version": "0x0360",
+            "funding_coin_id": request.funding_coin_id,
+            "funding_puzzle_reveal_hex": request.confirmed_draft.preview.funding_puzzle_reveal,
+            "channel_terms_canonical_hex": request.confirmed_draft.preview.channel_terms_canonical_hex
+        }),
+    )?;
+    let returned_coin = hub_response
+        .get("funding_coin_id")
+        .and_then(Value::as_str)
+        .ok_or("HUB registration response omitted funding_coin_id")?;
+    if returned_coin != status.funding_coin_id {
+        return Err("HUB registration response returned a different Funding Coin ID".to_string());
+    }
+    print_json(&RegisterFundingOutput {
+        schema: "xhub.wallet.v3_6.funding_registration.v1",
+        chain: status,
+        hub_response,
+    })
+}
+
+fn funding_status_for(
+    rpc_url: &str,
+    funding_coin_id: &str,
+    funding_puzzle_hash: &str,
+    funding_amount_mojo: u64,
+    required_confirmations: u64,
+) -> Result<FundingStatusOutput, String> {
+    if funding_amount_mojo == 0 || required_confirmations == 0 {
+        return Err(
+            "Funding amount and required confirmations must be greater than zero".to_string(),
+        );
+    }
+    let coin_id = decode_bytes32(funding_coin_id)?;
+    let expected_puzzle_hash = decode_bytes32(funding_puzzle_hash)?;
+    let rpc = RpcClient::new(rpc_url)?;
+    rpc.require_mainnet()?;
+    let peak_height = rpc.peak_height()?;
+    let record = rpc.coin_record_by_id(coin_id)?;
+    let (status, confirmed_height, spent_height, confirmations) = match record {
+        None => ("MISSING", None, None, 0),
+        Some(record) => {
+            if record.coin.coin_id() != coin_id
+                || record.coin.puzzle_hash != expected_puzzle_hash
+                || record.coin.amount != funding_amount_mojo
+            {
+                return Err("chain returned a Funding Coin with mismatched identity, puzzle hash, or amount".to_string());
+            }
+            let confirmations =
+                if record.confirmed_height == 0 || peak_height < record.confirmed_height {
+                    0
+                } else {
+                    peak_height - record.confirmed_height + 1
+                };
+            let status = if record.spent_height.is_some() {
+                "SPENT"
+            } else if confirmations >= required_confirmations {
+                "CONFIRMED"
+            } else {
+                "CONFIRMING"
+            };
+            (
+                status,
+                Some(record.confirmed_height),
+                record.spent_height,
+                confirmations,
+            )
+        }
+    };
+    Ok(FundingStatusOutput {
+        schema: "xhub.wallet.v3_6.funding_status.v1",
+        network: "chia-mainnet",
+        rpc_url: rpc.base_url,
+        funding_coin_id: hex::encode(coin_id),
+        funding_puzzle_hash: hex::encode(expected_puzzle_hash),
+        funding_amount_mojo,
+        peak_height,
+        status,
+        confirmed_height,
+        spent_height,
+        confirmations,
+        required_confirmations,
+        registration_ready: status == "CONFIRMED" && spent_height.is_none(),
+    })
+}
+
+fn validate_remote_profile(profile: &RemoteProfile) -> Result<(), String> {
+    if profile.network_id.to_ascii_lowercase() != MAINNET_NETWORK_ID
+        || profile.funding_confirmation_blocks != FUNDING_CONFIRMATION_BLOCKS_TEST
+        || !profile.hub_gateway_enabled
+    {
+        return Err(
+            "wallet service is not the expected V3.6 Chia mainnet canary profile".to_string(),
+        );
+    }
+    normalize_fixed_hex::<48>(&profile.hub_state_public_key_a, "hub_state_public_key_a")?;
+    normalize_fixed_hex::<32>(&profile.state_rules_hash, "state_rules_hash")?;
+    Ok(())
+}
+
+fn funding_terms_body(input: &FundingTermsInput) -> Value {
+    json!({
+        "protocol_version": "0x0360",
+        "network_id": input.network_id,
+        "acceptance_blocks": input.acceptance_blocks,
+        "freeze_blocks": input.freeze_blocks,
+        "challenge_blocks": input.challenge_blocks,
+        "user_public_key": input.user_public_key,
+        "hub_state_public_key_a": input.hub_state_public_key_a,
+        "state_rules_hash": input.state_rules_hash,
+        "funding_amount": input.funding_amount,
+        "user_remainder_puzzle_hash": input.user_remainder_puzzle_hash
+    })
+}
+
+fn funding_terms_body_from_channel(terms: &ChannelTerms) -> Value {
+    funding_terms_body(&FundingTermsInput {
+        network_id: hex::encode(terms.network_id),
+        acceptance_blocks: terms.acceptance_blocks.to_string(),
+        freeze_blocks: terms.freeze_blocks.to_string(),
+        challenge_blocks: terms.challenge_blocks.to_string(),
+        user_public_key: hex::encode(terms.user_public_key),
+        hub_state_public_key_a: hex::encode(terms.hub_state_public_key_a),
+        state_rules_hash: hex::encode(terms.state_rules_hash),
+        funding_amount: terms.funding_amount.to_string(),
+        user_remainder_puzzle_hash: hex::encode(terms.user_remainder_puzzle_hash),
+    })
+}
+
+fn decode_draft_terms(draft: &FundingDraft) -> Result<ChannelTerms, String> {
+    let bytes = hex::decode(&draft.preview.channel_terms_canonical_hex)
+        .map_err(|error| format!("invalid channel terms canonical hex: {error}"))?;
+    ChannelTerms::from_canonical_bytes(&bytes)
+        .map_err(|error| format!("invalid canonical Channel Terms: {error}"))
+}
+
+fn validate_funding_draft(
+    draft: &FundingDraft,
+    expected_public_key: &str,
+    expected_remainder_puzzle_hash: &str,
+    expected_amount: u64,
+    require_confirmed: bool,
+) -> Result<ChannelTerms, String> {
+    if require_confirmed && !draft.confirmed {
+        return Err("Funding terms must be explicitly confirmed and locked".to_string());
+    }
+    let terms = decode_draft_terms(draft)?;
+    let local_preview = xhub_wallet_v3_6::preview(&terms).map_err(|error| error.to_string())?;
+    if local_preview != draft.preview
+        || draft.draft_id != draft.preview.channel_terms_hash
+        || hex::encode(terms.hash().map_err(|error| error.to_string())?)
+            != draft.preview.channel_terms_hash
+    {
+        return Err(
+            "Funding draft failed local canonical hash and puzzle verification".to_string(),
+        );
+    }
+    if hex::encode(terms.network_id) != MAINNET_NETWORK_ID
+        || hex::encode(terms.user_public_key)
+            != normalize_fixed_hex::<48>(expected_public_key, "wallet_public_key_index0")?
+        || hex::encode(terms.user_remainder_puzzle_hash)
+            != normalize_fixed_hex::<32>(
+                expected_remainder_puzzle_hash,
+                "expected_remainder_puzzle_hash",
+            )?
+        || terms.funding_amount != expected_amount
+    {
+        return Err(
+            "Funding terms do not belong to this strict index-0 wallet or requested amount"
+                .to_string(),
+        );
+    }
+    Ok(terms)
+}
+
 fn prepare_send() -> Result<(), String> {
     let request: PrepareSendRequest = read_json()?;
+    print_json(&prepare_send_request(request)?)
+}
+
+fn prepare_send_request(request: PrepareSendRequest) -> Result<PreparedSend, String> {
     if request.amount_mojo == 0 {
         return Err("amount_mojo must be greater than zero".to_string());
     }
@@ -450,7 +1011,7 @@ fn prepare_send() -> Result<(), String> {
             confirmed_height: record.confirmed_height,
         })
         .collect();
-    print_json(&PreparedSend {
+    Ok(PreparedSend {
         schema: "xhub.wallet.v3_6.prepared_send.v1".to_string(),
         protocol_version: "3.6".to_string(),
         network: "chia-mainnet".to_string(),
@@ -469,6 +1030,7 @@ fn prepare_send() -> Result<(), String> {
         consensus_conditions_verified: true,
         aggregate_signature_verified: true,
         broadcast_performed: false,
+        funding: None,
     })
 }
 
@@ -487,6 +1049,10 @@ fn broadcast() -> Result<(), String> {
         .and_then(Value::as_str)
         .unwrap_or("SUCCESS")
         .to_string();
+    let funding_coin_id = prepared
+        .funding
+        .as_ref()
+        .map(|funding| funding.predicted_funding_coin_id.clone());
     print_json(&BroadcastOutput {
         schema: "xhub.wallet.v3_6.broadcast_result.v1",
         network: "chia-mainnet",
@@ -496,6 +1062,7 @@ fn broadcast() -> Result<(), String> {
         success: true,
         chain_broadcast: true,
         submitted_at_unix: now_unix()?,
+        funding_coin_id,
     })
 }
 
@@ -606,7 +1173,14 @@ fn build_standard_bundle(
         coin_spends,
         aggregated_signature,
     };
-    validate_bundle(&bundle, records, amount, fee, change)?;
+    validate_bundle(
+        &bundle,
+        records,
+        destination_puzzle_hash,
+        amount,
+        fee,
+        change,
+    )?;
     Ok(bundle)
 }
 
@@ -640,9 +1214,56 @@ fn validate_prepared(prepared: &PreparedSend) -> Result<(), String> {
             })
         })
         .collect::<Result<Vec<_>, String>>()?;
+    if records.is_empty()
+        || records
+            .iter()
+            .zip(&prepared.selected_coins)
+            .any(|(record, selected)| hex::encode(record.coin.coin_id()) != selected.coin_id)
+        || records
+            .iter()
+            .any(|record| hex::encode(record.coin.puzzle_hash) != prepared.source_puzzle_hash)
+        || records.iter().try_fold(0_u64, |sum, record| {
+            sum.checked_add(record.coin.amount)
+                .ok_or("prepared input total overflow")
+        })? != prepared.input_total_mojo
+        || decode_mainnet_address(&prepared.destination_address)?
+            != decode_bytes32(&prepared.destination_puzzle_hash)?
+    {
+        return Err(
+            "prepared transaction identity fields do not match its Coin inputs and outputs"
+                .to_string(),
+        );
+    }
+    if let Some(funding) = &prepared.funding {
+        let terms = decode_draft_terms(&funding.draft)?;
+        validate_funding_draft(
+            &funding.draft,
+            &hex::encode(terms.user_public_key),
+            &hex::encode(terms.user_remainder_puzzle_hash),
+            terms.funding_amount,
+            true,
+        )?;
+        WalletServiceClient::new(&funding.wallet_service_url)?;
+        let predicted = Coin::new(
+            records[0].coin.coin_id(),
+            decode_bytes32(&prepared.destination_puzzle_hash)?,
+            prepared.amount_mojo,
+        );
+        if prepared.destination_address != funding.draft.preview.funding_address
+            || prepared.destination_puzzle_hash != funding.draft.preview.funding_puzzle_hash
+            || prepared.amount_mojo != terms.funding_amount
+            || funding.required_confirmations != FUNDING_CONFIRMATION_BLOCKS_TEST
+            || funding.predicted_funding_coin_id != hex::encode(predicted.coin_id())
+        {
+            return Err(
+                "prepared Funding transaction does not match its locked Channel Terms".to_string(),
+            );
+        }
+    }
     validate_bundle(
         &prepared.spend_bundle,
         &records,
+        decode_bytes32(&prepared.destination_puzzle_hash)?,
         prepared.amount_mojo,
         prepared.fee_mojo,
         prepared.change_mojo,
@@ -652,6 +1273,7 @@ fn validate_prepared(prepared: &PreparedSend) -> Result<(), String> {
 fn validate_bundle(
     bundle: &SpendBundle,
     records: &[CoinRecord],
+    destination_puzzle_hash: Bytes32,
     amount: u64,
     fee: u64,
     change: u64,
@@ -674,6 +1296,46 @@ fn validate_bundle(
         || input_total != expected_output + u128::from(fee)
     {
         return Err("SpendBundle amount conservation or fee validation failed".to_string());
+    }
+    let created = conditions
+        .spends
+        .iter()
+        .flat_map(|spend| spend.create_coin.iter())
+        .map(|coin| (coin.0, coin.1))
+        .collect::<Vec<_>>();
+    let source_puzzle_hash = records
+        .first()
+        .ok_or("SpendBundle must contain at least one input")?
+        .coin
+        .puzzle_hash;
+    let expected_count = if change > 0 { 2 } else { 1 };
+    let destination_count = created
+        .iter()
+        .filter(|(puzzle_hash, created_amount)| {
+            *puzzle_hash == destination_puzzle_hash && *created_amount == amount
+        })
+        .count();
+    let destination_on_first_parent = conditions
+        .spends
+        .iter()
+        .filter(|spend| spend.coin_id.as_ref() == records[0].coin.coin_id().as_ref())
+        .flat_map(|spend| spend.create_coin.iter())
+        .filter(|coin| coin.0 == destination_puzzle_hash && coin.1 == amount)
+        .count();
+    let change_count = created
+        .iter()
+        .filter(|(puzzle_hash, created_amount)| {
+            *puzzle_hash == source_puzzle_hash && *created_amount == change
+        })
+        .count();
+    if created.len() != expected_count
+        || destination_count != 1
+        || destination_on_first_parent != 1
+        || (change > 0 && change_count != 1)
+    {
+        return Err(
+            "SpendBundle outputs do not exactly match destination and index-0 change".to_string(),
+        );
     }
     let unique_removals = bundle
         .coin_spends
@@ -777,6 +1439,22 @@ fn default_rpc_url() -> String {
     DEFAULT_RPC_URL.to_string()
 }
 
+fn default_wallet_service_url() -> String {
+    DEFAULT_WALLET_SERVICE_URL.to_string()
+}
+
+fn default_funding_confirmations() -> u64 {
+    FUNDING_CONFIRMATION_BLOCKS_TEST
+}
+
+fn normalize_fixed_hex<const N: usize>(value: &str, field: &str) -> Result<String, String> {
+    let value = value.strip_prefix("0x").unwrap_or(value);
+    if value.len() != N * 2 || value.bytes().any(|byte| !byte.is_ascii_hexdigit()) {
+        return Err(format!("{field} must encode exactly {N} bytes as hex"));
+    }
+    Ok(value.to_ascii_lowercase())
+}
+
 fn now_unix() -> Result<u64, String> {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -820,7 +1498,8 @@ mod tests {
             network: "chia-mainnet".to_string(),
             rpc_url: DEFAULT_RPC_URL.to_string(),
             source_puzzle_hash: hex::encode(source),
-            destination_address: "test-only".to_string(),
+            destination_address: bech32::encode("xch", [9_u8; 32].to_base32(), Variant::Bech32m)
+                .unwrap(),
             destination_puzzle_hash: hex::encode([9; 32]),
             amount_mojo: 7,
             fee_mojo: 1,
@@ -842,6 +1521,7 @@ mod tests {
             consensus_conditions_verified: true,
             aggregate_signature_verified: true,
             broadcast_performed: false,
+            funding: None,
         };
         let json = serde_json::to_string(&prepared).unwrap();
         let decoded: PreparedSend = serde_json::from_str(&json).unwrap();
@@ -860,6 +1540,89 @@ mod tests {
         assert_eq!(selected.len(), 2);
         assert_eq!(selected[0].coin.amount, 7);
         assert!(select_coins(&records, 14).is_err());
+    }
+
+    #[test]
+    fn funding_preview_is_bound_to_locked_terms_and_predicted_coin_id() {
+        let wallet = SecretKey::from_seed(&[7; 32]);
+        let hub = SecretKey::from_seed(&[8; 32]);
+        let synthetic = wallet.derive_synthetic();
+        let source: Bytes32 =
+            chia_puzzle_types::standard::StandardArgs::curry_tree_hash(synthetic.public_key())
+                .into();
+        let modules = xhub_puzzles_v3_6::module_hashes();
+        let network_id: [u8; 32] = hex::decode(MAINNET_NETWORK_ID).unwrap().try_into().unwrap();
+        let terms = ChannelTerms::new(
+            network_id,
+            12_288,
+            200,
+            6_000,
+            wallet.public_key().to_bytes(),
+            hub.public_key().to_bytes(),
+            xhub_protocol_v3_6::state_rules_hash(
+                &modules.initial_closing,
+                &modules.subsequent_closing,
+                &modules.merchant_payment,
+            ),
+            7,
+            source.into(),
+        )
+        .unwrap();
+        let preview = xhub_wallet_v3_6::preview(&terms).unwrap();
+        let draft = FundingDraft {
+            draft_id: preview.channel_terms_hash.clone(),
+            confirmed: true,
+            preview,
+        };
+        validate_funding_draft(
+            &draft,
+            &hex::encode(wallet.public_key().to_bytes()),
+            &hex::encode(source),
+            7,
+            true,
+        )
+        .unwrap();
+
+        let records = vec![record(Coin::new(Bytes32::new([1; 32]), source, 12))];
+        let destination = decode_bytes32(&draft.preview.funding_puzzle_hash).unwrap();
+        let bundle = build_standard_bundle(&records, &synthetic, destination, 7, 1, 4).unwrap();
+        let predicted = Coin::new(records[0].coin.coin_id(), destination, 7);
+        let selected = vec![SelectedCoin {
+            coin_id: hex::encode(records[0].coin.coin_id()),
+            parent_coin_info: hex::encode(records[0].coin.parent_coin_info),
+            puzzle_hash: hex::encode(source),
+            amount_mojo: 12,
+            confirmed_height: 100,
+        }];
+        let mut prepared = PreparedSend {
+            schema: "xhub.wallet.v3_6.prepared_send.v1".to_string(),
+            protocol_version: "3.6".to_string(),
+            network: "chia-mainnet".to_string(),
+            rpc_url: DEFAULT_RPC_URL.to_string(),
+            source_puzzle_hash: hex::encode(source),
+            destination_address: draft.preview.funding_address.clone(),
+            destination_puzzle_hash: draft.preview.funding_puzzle_hash.clone(),
+            amount_mojo: 7,
+            fee_mojo: 1,
+            input_total_mojo: 12,
+            change_mojo: 4,
+            purpose: "Funding test".to_string(),
+            selected_coins: selected,
+            spend_bundle_id: hex::encode(bundle.name()),
+            spend_bundle: bundle,
+            consensus_conditions_verified: true,
+            aggregate_signature_verified: true,
+            broadcast_performed: false,
+            funding: Some(FundingMetadata {
+                wallet_service_url: DEFAULT_WALLET_SERVICE_URL.to_string(),
+                draft,
+                predicted_funding_coin_id: hex::encode(predicted.coin_id()),
+                required_confirmations: FUNDING_CONFIRMATION_BLOCKS_TEST,
+            }),
+        };
+        validate_prepared(&prepared).unwrap();
+        prepared.funding.as_mut().unwrap().predicted_funding_coin_id = "00".repeat(32);
+        assert!(validate_prepared(&prepared).is_err());
     }
 
     #[test]

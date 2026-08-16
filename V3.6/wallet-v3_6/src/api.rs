@@ -220,6 +220,10 @@ fn router_with_options(
         .route("/api/v3.6/funding-drafts/{draft_id}/confirm", post(confirm))
         .route("/api/v3.6/funding-drafts/{draft_id}", get(get_draft))
         .route("/api/v3.6/hub/health", get(hub_health))
+        .route(
+            "/api/v3.6/hub/funding-coins",
+            post(hub_register_funding_coin),
+        )
         .route("/api/v3.6/hub/reservations", post(hub_reservation))
         .route(
             "/api/v3.6/hub/funding-coins/{funding_coin_id}/reservations/{reservation_nonce}",
@@ -371,6 +375,16 @@ async fn get_draft(
 async fn hub_health(State(state): State<ApiState>) -> Result<Response, ApiError> {
     gateway(&state)?
         .forward(Method::GET, "/api/v3.6/health", None)
+        .await
+}
+
+async fn hub_register_funding_coin(
+    State(state): State<ApiState>,
+    Json(body): Json<Value>,
+) -> Result<Response, ApiError> {
+    require_body_version(&body)?;
+    gateway(&state)?
+        .forward(Method::POST, "/api/v3.6/funding-coins", Some(body))
         .await
 }
 
