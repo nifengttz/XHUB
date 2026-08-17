@@ -1043,7 +1043,7 @@ fn broadcast() -> Result<(), String> {
     for coin in &prepared.selected_coins {
         rpc.require_unspent(coin)?;
     }
-    let response = rpc.call("push_tx", json!({"spend_bundle": &prepared.spend_bundle}))?;
+    let response = rpc.call("push_tx", push_tx_payload(&prepared.spend_bundle))?;
     let status = response
         .get("status")
         .and_then(Value::as_str)
@@ -1064,6 +1064,34 @@ fn broadcast() -> Result<(), String> {
         submitted_at_unix: now_unix()?,
         funding_coin_id,
     })
+}
+
+fn push_tx_payload(bundle: &SpendBundle) -> Value {
+    let coin_spends = bundle
+        .coin_spends
+        .iter()
+        .map(|spend| {
+            json!({
+                "coin": {
+                    "parent_coin_info": rpc_hex(spend.coin.parent_coin_info.as_ref()),
+                    "puzzle_hash": rpc_hex(spend.coin.puzzle_hash.as_ref()),
+                    "amount": spend.coin.amount,
+                },
+                "puzzle_reveal": rpc_hex(spend.puzzle_reveal.as_slice()),
+                "solution": rpc_hex(spend.solution.as_slice()),
+            })
+        })
+        .collect::<Vec<_>>();
+    json!({
+        "spend_bundle": {
+            "coin_spends": coin_spends,
+            "aggregated_signature": rpc_hex(bundle.aggregated_signature.to_bytes()),
+        }
+    })
+}
+
+fn rpc_hex(bytes: impl AsRef<[u8]>) -> String {
+    format!("0x{}", hex::encode(bytes))
 }
 
 fn select_coins(records: &[CoinRecord], required: u64) -> Result<Vec<CoinRecord>, String> {
@@ -1526,6 +1554,52 @@ mod tests {
         let json = serde_json::to_string(&prepared).unwrap();
         let decoded: PreparedSend = serde_json::from_str(&json).unwrap();
         validate_prepared(&decoded).unwrap();
+    }
+
+    #[test]
+    fn push_tx_payload_prefixes_every_binary_field() {
+        let wallet = SecretKey::from_seed(&[7; 32]);
+        let synthetic = wallet.derive_synthetic();
+        let source: Bytes32 =
+            chia_puzzle_types::standard::StandardArgs::curry_tree_hash(synthetic.public_key())
+                .into();
+        let records = vec![
+            record(Coin::new(Bytes32::new([1; 32]), source, 4)),
+            record(Coin::new(Bytes32::new([2; 32]), source, 8)),
+        ];
+        let bundle =
+            build_standard_bundle(&records, &synthetic, Bytes32::new([9; 32]), 7, 1, 4).unwrap();
+        let payload = push_tx_payload(&bundle);
+        let coin_spends = payload
+            .pointer("/spend_bundle/coin_spends")
+            .and_then(Value::as_array)
+            .unwrap();
+
+        assert_eq!(coin_spends.len(), 2);
+        for spend in coin_spends {
+            for pointer in [
+                "/coin/parent_coin_info",
+                "/coin/puzzle_hash",
+                "/puzzle_reveal",
+                "/solution",
+            ] {
+                assert_rpc_hex(spend.pointer(pointer).unwrap());
+            }
+        }
+        assert_rpc_hex(
+            payload
+                .pointer("/spend_bundle/aggregated_signature")
+                .unwrap(),
+        );
+    }
+
+    fn assert_rpc_hex(value: &Value) {
+        let value = value.as_str().expect("RPC byte field must be hex text");
+        let encoded = value
+            .strip_prefix("0x")
+            .expect("RPC byte field must start with 0x");
+        assert!(!encoded.is_empty());
+        hex::decode(encoded).expect("RPC byte field must contain valid hex");
     }
 
     #[test]
