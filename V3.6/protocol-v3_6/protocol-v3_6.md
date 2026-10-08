@@ -352,7 +352,7 @@ user_authorization_signature = Sign(
 )
 ```
 
-金额必须大于零。相同 Funding Coin 中 `reservation_nonce` 必须全局唯一。`merchant_receipt_public_key` 由商户在开具付款请求时提供，并被用户授权签名绑定，用于确认完整 RecoveryPackage 已送达。用户签名只是授权；记录进入 HUB A 已签署的 checkpoint 后成为不可撤销的 `SIGNED` 预扣，但商户只有在完成第 12 节的送达确认后才能把它视为可依赖的 `DELIVERED` 付款承诺。
+金额必须大于零。相同 Funding Coin 中 `reservation_nonce` 必须全局唯一。`request_id` 是**一次性**锁币请求标识：它在所有 Funding Coin 中全局唯一，同一个 `request_id` 只能被一个 Funding Coin 消费一次。HUB 必须拒绝第二个（或更多）Funding Coin 对同一 `request_id` 的新预扣，返回确定性拒绝 `REQUEST_ALREADY_CONSUMED`，并保证该请求不取得 `entry_index`、不增加 `state_sequence`、不修改 `reserved_total`、不产生 HUB A 签名。`merchant_receipt_public_key` 由商户在开具付款请求时提供，并被用户授权签名绑定，用于确认完整 RecoveryPackage 已送达。用户签名只是授权；记录进入 HUB A 已签署的 checkpoint 后成为不可撤销的 `SIGNED` 预扣，但商户只有在完成第 12 节的送达确认后才能把它视为可依赖的 `DELIVERED` 付款承诺。
 
 ## 9. Append-only 累计账本
 
@@ -722,6 +722,17 @@ reservation_key = (funding_coin_id, reservation_nonce)
 - HUB 必须在分配 `entry_index` 前以原子唯一约束持久化该键；
 - 客户端在原请求为 `UNKNOWN` 时不得使用新 nonce 表示同一笔业务付款。
 
+除 `reservation_key` 外，`request_id` 另有一条**一次性消费**约束，二者互不替代：
+
+```text
+一次性消费键 = request_id（跨全部 Funding Coin 全局唯一）
+```
+
+- 同一个 `request_id` 只能成功绑定一个 `funding_coin_id`；第二个 Funding Coin 以同一 `request_id` 发起**新**预扣时必须返回 `REQUEST_ALREADY_CONSUMED`，且不得写入账本；
+- 已成功写入账本的预扣，其原 `reservation_key = (funding_coin_id, reservation_nonce)` 的重试仍然幂等返回原结果，不受本约束影响；
+- 因此 `(funding_coin_id, request_id)` 与 `(funding_coin_id, reservation_nonce)` 一样，是一笔付款的稳定标识；商户不得只以 `request_id` 作为对账幂等键；
+- 客户端（钱包）在导入请求码时必须先做本地一次性检查：若该 `request_id` 已被本机其他 Funding Coin 消费，则只允许在该通道重试，不得改投其他通道，也不得再次生成第二条锁币通道。
+
 #### 12.3.3 A 高度的提交边界
 
 HUB 的处理顺序必须是：验证请求、锁定 Funding Coin 账本、重新读取可信全节点的规范链峰值、持久化判断高度，然后才允许提交签名意图。
@@ -866,6 +877,7 @@ REJECTED_CLOSEABLE
 INVALID_AUTHORIZATION
 INSUFFICIENT_REMAINDER
 NONCE_CONFLICT
+REQUEST_ALREADY_CONSUMED
 LEDGER_FULL
 CHANNEL_CLOSING
 CHANNEL_FINALIZED
@@ -1086,6 +1098,7 @@ V3.6 的安全性依赖：
 32. 验证主备 RPC 冲突、错误网络和落后节点触发暂停接受；
 33. 验证 Funding Coin 在激活前及激活后重组时重新计算高度，且 `effective_A` 不会延长接受期；
 34. 验证所有确定性拒绝码保证未写账，而 `UNKNOWN`、`RPC_UNAVAILABLE` 和 `INTERNAL_ERROR` 必须查询。
+35. 验证同一个 `request_id` 被第二个 Funding Coin 用于**新**预扣时必定返回 `REQUEST_ALREADY_CONSUMED`，且 `v36_reservations`、`v36_state_intents`、`v36_states` 行数不变、不产生 HUB A 签名；同时验证该 `request_id` 在原 Funding Coin 上的原 `reservation_key` 重试仍幂等返回原结果，而 `(funding_coin_id, request_id)` 在商户侧被识别为两笔独立付款。
 
 ## 21. 推荐流程
 

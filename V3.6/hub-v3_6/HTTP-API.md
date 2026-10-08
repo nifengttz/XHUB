@@ -26,6 +26,8 @@ The reservation POST accepts `request_id`, `funding_coin_id`, the four `LedgerEn
 
 The reservation lookup key is exactly `(funding_coin_id, reservation_nonce)`. A lost POST response is recovered by querying with that original nonce. A client must not create a replacement nonce for the same payment while the result is unknown.
 
+`request_id` is a one-shot identifier: it is unique across all Funding Coins and may be consumed by exactly one of them. A POST that presents a `request_id` already bound to a different `funding_coin_id` is rejected with `REQUEST_ALREADY_CONSUMED` before any ledger write, and the existing binding is left untouched. Idempotent retries of an already-written reservation still resolve through `(funding_coin_id, reservation_nonce)` and are unaffected. Merchants must therefore key their own reconciliation on `(funding_coin_id, request_id)` — never on `request_id` alone.
+
 Delivery POST bodies contain:
 
 ```json
@@ -49,6 +51,7 @@ Delivery POST bodies contain:
 | `RPC_UNAVAILABLE`, `INTERNAL_ERROR` | `UNKNOWN` | `RETRY_SAME_NONCE` | `null` | Never infer that the ledger was not written; query with the original nonce. |
 | `NODE_NOT_SYNCED`, `CHAIN_STATE_UNCERTAIN`, `CHANNEL_REORG_PENDING` | `UNKNOWN` | `PAUSE_AND_QUERY` | `null` | Pause new reservations and query the original nonce until chain state is certain. |
 | `NONCE_CONFLICT` | `REJECTED` | `STOP` | `false` | Do not issue a second payment or overwrite the first result. |
+| `REQUEST_ALREADY_CONSUMED` | `REJECTED` | `STOP` | `false` | The `request_id` was already consumed by another Funding Coin. Do not sign or submit again under a different Coin; retry only on the original Coin, or obtain a new request code. |
 
 An unsigned HTTP validation failure is also `REJECTED/STOP/false`, but it is not a protocol `SignedReservationResult`. Deterministic business decisions made after a valid request are returned through the persisted signed result.
 

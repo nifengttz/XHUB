@@ -153,6 +153,20 @@ cargo run --manifest-path .\Cargo.toml --bin generate-vectors
 
 向量使用的私钥种子仅用于测试，不能用于真实资金。向量覆盖正常值、round-trip、空树、奇数叶、64 条记录、非法 BLS 点、close delay 不一致、非法 option/bool、重复 nonce、金额不足、篡改 proof、双签证据和冲突结果证据。
 
+### 6.1 预扣幂等键（业务层，不进入共识编码）
+
+两个键共同定义一笔预扣的身份，互不替代，且都不进入 `authorization_hash`、`entry_hash` 或任何共识哈希：
+
+```text
+reservation_key = (funding_coin_id, reservation_nonce)   # 幂等键：重试必须返回原结果
+consumption_key = request_id                             # 一次性键：跨全部 Funding Coin 只允许被消费一次
+```
+
+- `reservation_key` 判定"这是不是同一笔请求的重试"；同键不同内容返回 `NONCE_CONFLICT`；
+- `consumption_key` 判定"这个锁币请求码是否已被别的通道用掉"；跨 Funding Coin 复用返回 `REQUEST_ALREADY_CONSUMED`，且必须在任何账本写入之前拒绝——不分配 `entry_index`、不增加 `state_sequence`、不修改 `reserved_total`、不生成 HUB A 签名；
+- 已写入账本的预扣在原 `reservation_key` 上的重试仍然幂等返回原结果，不受 `consumption_key` 影响；
+- 商户对账的幂等键必须是 `(funding_coin_id, request_id)` 或 `(funding_coin_id, reservation_nonce)`；仅用 `request_id` 会把两个通道上的两笔付款记成一笔。
+
 ## 7. 分阶段实现状态
 
 Funding、Closing、CHALLENGE、FINALIZE 和 Merchant Payment 的 CLVM 候选接口及模块哈希已在 `../puzzles-v3_6` 达到 `VECTOR_READY`。HUB 状态签名器、SQLite WAL、append-only 校验、reservation 幂等核心以及可信链状态门控已在 `../hub-v3_6` 达到 `VECTOR_READY`。

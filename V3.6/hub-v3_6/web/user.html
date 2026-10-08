@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XHUB 本地退款</title>
+  <style>
+    :root { --ink:#17212b; --muted:#66717d; --line:#d9e0e6; --paper:#fff; --wash:#f4f7f9; --accent:#146c94; --accent-dark:#0d4e6b; --good:#1d7a4a; --bad:#ad342e; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--wash); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    header { padding:28px max(18px,calc((100vw - 820px)/2)); background:var(--paper); border-bottom:1px solid var(--line); } h1,h2,p { margin:0; } h1 { font-size:24px; } header p,.meta { color:var(--muted); margin-top:5px; }
+    main { width:min(820px,calc(100% - 36px)); margin:24px auto 48px; } section { padding:22px; background:var(--paper); border:1px solid var(--line); margin-bottom:18px; }
+    .head { display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding-bottom:14px; border-bottom:1px solid var(--line); } h2 { font-size:17px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px; } label { display:grid; gap:5px; color:#33404c; font-weight:650; } .full { grid-column:1 / -1; }
+    input,select { width:100%; border:1px solid #c8d1d9; padding:10px; border-radius:4px; font:inherit; color:var(--ink); } input:focus,select:focus { outline:2px solid rgba(20,108,148,.22); border-color:var(--accent); } input[readonly] { background:#f2f5f7; color:#52606d; }
+    .actions { display:flex; gap:10px; margin-top:20px; } button { min-height:40px; border:1px solid var(--accent); border-radius:4px; padding:8px 14px; background:var(--accent); color:#fff; font:inherit; font-weight:700; cursor:pointer; } button:hover { background:var(--accent-dark); border-color:var(--accent-dark); } button:disabled { opacity:.55; cursor:wait; }
+    pre { max-height:300px; overflow:auto; margin:18px 0 0; padding:13px; background:#16222c; color:#d8f1e5; white-space:pre-wrap; word-break:break-word; font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .status { color:var(--muted); } .status.good { color:var(--good); } .status.bad { color:var(--bad); } [hidden] { display:none !important; }
+    @media (max-width:620px) { .grid { grid-template-columns:1fr; } .full { grid-column:auto; } }
+  </style>
+</head>
+<body>
+  <header><h1>XHUB 本地退款</h1><p>签名密钥仅发送至本机 loopback 服务，本次操作后不会保存</p></header>
+  <main>
+    <section id="setup">
+      <div class="head"><div><h2>本地退款配置</h2><p class="meta">填写创建 Funding Coin 时使用的原始通道参数</p></div><span id="setupStatus" class="status">等待填写</span></div>
+      <div class="grid">
+        <label>网络<select id="network"><option value="mainnet">Chia Mainnet</option><option value="testnet11">Testnet11</option></select></label>
+        <label>HUB 公钥<input id="hubPublicKey" autocomplete="off" placeholder="96 个十六进制字符"></label>
+        <label class="full">用户 Puzzle Hash<input id="userPuzzleHash" autocomplete="off" placeholder="64 个十六进制字符"></label>
+        <label>Claim 截止高度<input id="claimBeforeHeight" type="number" min="0" step="1" value="0"></label>
+        <label>Refund 高度<input id="refundHeight" type="number" min="1" step="1" value="1"></label>
+        <label class="full">用户 BLS 私钥<input id="userSecretKey" type="password" autocomplete="off" placeholder="64 个十六进制字符"></label>
+        <label class="full">主网 Genesis Challenge<input id="genesisChallenge" readonly></label>
+        <label class="full">RPC URL（可选）<input id="rpcUrl" type="url" autocomplete="url" placeholder="默认 Coinset RPC"></label>
+      </div>
+    </section>
+    <section>
+      <div class="head"><div><h2>Funding Coin</h2><p class="meta">每次可输入一枚 5 或 12 mojo 的 Funding Coin ID</p></div><span id="status" class="status">正在加载本地服务</span></div>
+      <div class="grid">
+        <label class="full">Funding Coin ID<input id="fundingCoinId" autocomplete="off" placeholder="64 个十六进制字符"></label>
+        <label>Claim 截止高度<input id="displayClaimBeforeHeight" readonly></label>
+        <label>Refund 高度<input id="displayRefundHeight" readonly></label>
+        <label class="full">退款目标 Puzzle Hash<input id="displayUserPuzzleHash" readonly></label>
+      </div>
+      <div class="actions"><button id="refund" type="button">提交退款</button></div><pre id="result">尚未提交</pre>
+    </section>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let configured = false;
+    const status = (message, kind = "") => { $("status").textContent = message; $("status").className = "status " + kind; };
+    const show = (value) => { $("result").textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2); };
+    const updateDisplay = (data) => {
+      $("displayUserPuzzleHash").value = data.user_puzzle_hash || $("userPuzzleHash").value.trim();
+      $("displayClaimBeforeHeight").value = data.claim_before_height ?? $("claimBeforeHeight").value;
+      $("displayRefundHeight").value = data.refund_height ?? $("refundHeight").value;
+    };
+    const setup = () => ({
+      network: $("network").value, genesis_challenge: $("genesisChallenge").value.trim(), hub_public_key: $("hubPublicKey").value.trim(),
+      user_puzzle_hash: $("userPuzzleHash").value.trim(), claim_before_height: Number($("claimBeforeHeight").value), refund_height: Number($("refundHeight").value),
+      rpc_url: $("rpcUrl").value.trim() || null, user_secret_key: $("userSecretKey").value.trim(), agg_sig_me_additional_data: null
+    });
+    function setupValid() {
+      const fields = ["hubPublicKey", "userPuzzleHash", "userSecretKey", "claimBeforeHeight", "refundHeight"];
+      return fields.every((id) => { const input = $(id); return input.value.trim() && input.reportValidity(); });
+    }
+    async function load() {
+      try {
+        const response = await fetch("/v1/refunds/config"); const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        configured = data.configured;
+        $("genesisChallenge").value = data.genesis_challenge || "";
+        $("setup").hidden = configured;
+        if (configured) { $("fundingCoinId").value = data.funding_coin_id || ""; $("setupStatus").textContent = "已从本地配置加载"; $("setupStatus").className = "status good"; }
+        updateDisplay(data); status(configured ? "本地签名服务已就绪" : "请填写本地退款配置", configured ? "good" : "");
+      } catch (error) { status("本地服务加载失败", "bad"); show({ error: error.message }); $("refund").disabled = true; }
+    }
+    ["userPuzzleHash", "claimBeforeHeight", "refundHeight"].forEach((id) => $(id).addEventListener("input", () => updateDisplay({})));
+    $("refund").addEventListener("click", async () => {
+      const fundingCoinId = $("fundingCoinId").value.trim(); if (!fundingCoinId) return $("fundingCoinId").focus();
+      if (!configured && !setupValid()) { status("请补全本地退款配置", "bad"); return; }
+      $("refund").disabled = true; status("正在验证并提交退款");
+      try {
+        const response = await fetch("/v1/refunds", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ funding_coin_id:fundingCoinId, setup:configured ? null : setup() }) });
+        const data = await response.json(); if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        show(data); status(data.action === "Confirmed" ? "退款已确认" : data.action === "Idle" ? "尚未到达退款高度" : "退款已提交", data.action === "Idle" ? "" : "good");
+      } catch (error) { status("退款未提交", "bad"); show({ error:error.message }); } finally { $("refund").disabled = false; }
+    });
+    load();
+  </script>
+</body>
+</html>

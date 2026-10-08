@@ -153,7 +153,9 @@ conflicting_result_evidence_hash
 
 - [x] 冻结预扣请求、状态查询、恢复包获取、投递和投递状态接口的版本字段。
 - [x] 冻结 `(funding_coin_id, reservation_nonce)` 作为幂等键。
+- [x] 冻结 `request_id` 作为一次性消费键：跨全部 Funding Coin 只允许被消费一次，跨通道复用返回 `REQUEST_ALREADY_CONSUMED` 且未写账。
 - [x] 冻结相同 nonce 相同内容返回原结果，相同 nonce 不同内容返回 `NONCE_CONFLICT`。
+- [x] 冻结商户对账幂等键为 `(funding_coin_id, request_id)` 或 `(funding_coin_id, reservation_nonce)`，不得只用 `request_id`。
 - [x] 冻结哪些拒绝码保证未写账，哪些错误必须使用原 nonce 查询。
 - [x] 冻结 `UNKNOWN`、`RPC_UNAVAILABLE` 和 `INTERNAL_ERROR` 不代表未写账。
 - [x] 冻结用户和商户收到相同确定性结果的查询与重试规则。

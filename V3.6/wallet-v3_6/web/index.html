@@ -2,120 +2,64 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
   <title>XHUB Wallet V3.6</title>
   <link rel="stylesheet" href="/app.css">
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <p class="product">XHUB Wallet</p>
-      <h1>创建 Funding Coin</h1>
+  <section id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <div class="auth-brand"><div class="brand-mark">X</div><div><div class="brand">XHUB Wallet</div><div class="brand-subtitle">V3.6 Mainnet Canary</div><div class="build-time">代码构建时间：读取中...</div></div></div>
+      <div class="auth-heading"><p class="eyebrow">LOCAL WALLET</p><h1 id="auth-title">钱包地址</h1><p>选择钱包登录，或新建/导入另一个地址。</p></div>
+      <div id="saved-wallets" class="saved-wallets"><div class="wallets-empty">正在载入已保存的钱包…</div></div>
+      <div id="login-error" class="auth-error" role="alert" hidden></div>
+      <div class="auth-actions"><button id="create-profile" class="button secondary" type="button">创建</button><button id="import-profile" class="button primary" type="button">导入助记词</button></div>
+      <p class="auth-note">账户名和助记词会保存到本地明文 JSON 档案。请仅在受信任的 Windows 用户账户中使用。</p>
     </div>
-    <div class="profile"><span class="status-dot"></span>V3.6 测试网向量配置</div>
-  </header>
-
-  <main class="workspace">
-    <form id="terms-form" class="form-pane" novalidate>
-      <section aria-labelledby="timing-title">
-        <div class="section-heading">
-          <h2 id="timing-title">通道时间参数</h2>
-          <span>创建后不可修改</span>
-        </div>
-        <div class="field-grid compact">
-          <label>接受窗口（区块）
-            <input name="acceptance_blocks" inputmode="numeric" value="12288" required>
-          </label>
-          <label>冻结缓冲（区块）
-            <input name="freeze_blocks" inputmode="numeric" value="200" required>
-          </label>
-          <label>挑战期（区块）
-            <input name="challenge_blocks" inputmode="numeric" value="6000" required>
-          </label>
-          <label>关闭延迟（自动）
-            <output id="close-delay" class="readonly-value">12488</output>
-          </label>
-        </div>
-      </section>
-
-      <section aria-labelledby="identity-title">
-        <div class="section-heading">
-          <h2 id="identity-title">网络与密钥</h2>
-          <span>定长十六进制</span>
-        </div>
-        <div class="field-grid">
-          <label>Network ID
-            <input name="network_id" spellcheck="false" value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" required>
-          </label>
-          <label>用户 BLS 公钥
-            <textarea name="user_public_key" spellcheck="false" rows="2" required>89d0608036649d3484b7cfe71cfbd7f13015081d6206aede1aed0a4c1ad1521233123c08f0870e9d9f605ed429d24419</textarea>
-          </label>
-          <label>HUB A 状态公钥
-            <textarea name="hub_state_public_key_a" spellcheck="false" rows="2" required>b61c4ee5d1cdd57ea615e6f3003e89afeee153d666562d0abec363d8b88c21c35e55f5622668b113e966564d04eb9fa1</textarea>
-          </label>
-          <label>State Rules Hash
-            <input name="state_rules_hash" spellcheck="false" value="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" required>
-          </label>
-        </div>
-      </section>
-
-      <section aria-labelledby="funding-title">
-        <div class="section-heading">
-          <h2 id="funding-title">资金条款</h2>
-          <span>最小单位</span>
-        </div>
-        <div class="field-grid">
-          <label>Funding 金额
-            <input name="funding_amount" inputmode="numeric" value="1000000" required>
-          </label>
-          <label>用户找零 Puzzle Hash
-            <input name="user_remainder_puzzle_hash" spellcheck="false" value="dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" required>
-          </label>
-        </div>
-      </section>
-
-      <div id="error" class="message error" role="alert" hidden></div>
-      <button id="prepare-button" class="primary" type="submit">校验并生成条款</button>
-    </form>
-
-    <aside class="summary-pane" aria-live="polite">
-      <div class="summary-header">
-        <div>
-          <p>条款摘要</p>
-          <h2 id="summary-state">等待校验</h2>
-        </div>
-        <span id="lock-state" class="tag">草稿</span>
-      </div>
-
-      <dl class="metrics">
-        <div><dt>协议版本</dt><dd>0x0360</dd></div>
-        <div><dt>配置</dt><dd>v3.6-testnet-vector-1</dd></div>
-        <div><dt>A = F + acceptance</dt><dd id="a-relation">F + 12288</dd></div>
-        <div><dt>S = A + freeze</dt><dd id="s-relation">A + 200</dd></div>
-        <div><dt>关闭延迟</dt><dd id="summary-close">12488 blocks</dd></div>
-        <div><dt>确认深度</dt><dd>32 blocks</dd></div>
-        <div><dt>交付绿灯</dt><dd>1-of-3（测试网）</dd></div>
-        <div><dt>主网批准</dt><dd class="not-approved">否</dd></div>
-      </dl>
-
-      <div class="hash-block">
-        <span>Channel Terms Hash</span>
-        <code id="terms-hash">校验后生成</code>
-      </div>
-      <details>
-        <summary>规范二进制编码</summary>
-        <code id="canonical-hex">校验后生成</code>
-      </details>
-
-      <label class="confirmation">
-        <input id="confirm-check" type="checkbox" disabled>
-        <span>我已核对完整条款，并理解确认后本 Funding Coin 的参数不可修改。</span>
-      </label>
-      <button id="confirm-button" class="confirm" type="button" disabled>确认并锁定条款</button>
-      <p class="notice">此配置只用于 V3.6 测试网向量，禁止用于主网。</p>
-    </aside>
-  </main>
-
+  </section>
+  <section id="profile-dialog" class="profile-dialog" hidden aria-labelledby="profile-dialog-title">
+    <div class="profile-dialog-card">
+      <div class="panel-heading"><div><p class="eyebrow">WALLET PROFILE</p><h2 id="profile-dialog-title">创建钱包档案</h2></div><button id="profile-dialog-close" class="icon-button" type="button" aria-label="关闭">×</button></div>
+      <form id="profile-form" class="profile-form">
+        <input id="profile-form-role" type="hidden" value="address">
+        <label>钱包名称<input id="profile-form-name" required maxlength="64"></label>
+        <label id="profile-mnemonic-field" hidden>24 词助记词<textarea id="profile-mnemonic" rows="5" placeholder="输入 24 个英文助记词，以空格分隔"></textarea></label>
+        <div id="profile-form-error" class="auth-error" role="alert" hidden></div>
+        <div class="button-row"><button id="profile-form-cancel" class="button secondary" type="button">取消</button><button id="profile-form-submit" class="button primary" type="submit">创建到本次会话</button></div>
+      </form>
+    </div>
+  </section>
+  <section id="backup-dialog" class="profile-dialog" hidden aria-labelledby="backup-dialog-title">
+    <div class="profile-dialog-card backup-card"><div class="panel-heading"><div><p class="eyebrow">ONE-TIME BACKUP</p><h2 id="backup-dialog-title">立即备份助记词</h2></div></div><p class="dialog-warning">这是唯一一次显示备份短语。请离线抄录并妥善保管，不要截图或发送给任何人。</p><textarea id="backup-phrase" class="code-input" rows="5" readonly spellcheck="false"></textarea><label class="confirmation"><input id="backup-confirm" type="checkbox"><span>我已完成离线备份，关闭后不再显示。</span></label><button id="backup-close" class="button confirm full-button" type="button" disabled>完成备份并关闭</button></div>
+  </section>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup"><div class="brand-mark">X</div><div><div class="brand">XHUB Wallet</div><div class="brand-subtitle">V3.6 Mainnet Canary</div><div class="build-time">代码构建时间：读取中...</div></div></div>
+      <div class="topbar-status"><span id="network-dot" class="status-dot pending"></span><span id="network-label">正在检查配置</span><span class="topbar-divider"></span><span id="gateway-label">HUB 网关检查中</span><span class="topbar-divider"></span><span id="topbar-wallet-context" class="wallet-context"><span id="topbar-wallet-label">未登录钱包</span><span id="topbar-peak-height">区块高度：-</span></span><button id="lock-button" class="lock-button" type="button">退出登录</button></div>
+    </header>
+    <div class="app-body">
+      <aside class="sidebar" aria-label="钱包导航">
+        <nav class="nav-list"><button class="nav-item active" data-view="overview" type="button"><span class="nav-icon">◈</span><span>总览</span></button><button class="nav-item" data-view="funding" type="button"><span class="nav-icon">◌</span><span>Funding Coin</span></button><button class="nav-item" data-view="funding-tracker" type="button"><span class="nav-icon">◎</span><span>Funding 追踪</span></button><button class="nav-item" data-view="reservation" type="button"><span class="nav-icon">↔</span><span>链下预扣</span></button><button class="nav-item" data-view="transactions" type="button"><span class="nav-icon">≡</span><span>交易历史</span></button><button class="nav-item" data-view="merchant" type="button"><span class="nav-icon">▣</span><span>生成预扣</span></button><button class="nav-item" data-view="reservation-tracker" type="button"><span class="nav-icon">◫</span><span>预扣追踪</span></button><button class="nav-item" data-view="audit" type="button"><span class="nav-icon">✓</span><span>审计与安全</span></button></nav>
+        <div class="sidebar-footer"><div class="sidebar-note"><span class="status-dot good"></span><span>广播门禁已启用</span></div><div class="sidebar-version">协议 0x0360 · Chia Mainnet</div></div>
+      </aside>
+      <main class="content">
+        <section class="view active" data-view-panel="overview"><div class="page-heading"><div><p class="eyebrow">WALLET OVERVIEW</p><h1>钱包总览</h1><p class="page-description">查看当前钱包余额、身份资料和安全门禁状态。</p></div><button id="refresh-button" class="button secondary" type="button">刷新状态</button></div><div class="metric-grid"><button id="overview-balance-card" class="metric-card balance-card" type="button"><div class="metric-label">当前地址余额</div><div id="overview-funding" class="metric-value">同步中</div><div id="overview-funding-detail" class="metric-detail">点击余额进入发送</div></button><article class="metric-card"><div class="metric-label">链下授权</div><div id="overview-reservation" class="metric-value">无记录</div><div id="overview-reservation-detail" class="metric-detail">不创建 SpendBundle</div></article><article class="metric-card"><div class="metric-label">主网广播</div><div class="metric-value danger-text">需最终确认</div><div class="metric-detail">任何转账都不会自动广播</div></article><article class="metric-card"><div class="metric-label">生产状态</div><div class="metric-value warning-text">未批准</div><div class="metric-detail">单 VPS Canary · production_ready=false</div></article></div><section class="panel wallet-identity-panel"><div class="panel-heading"><div><h2>本钱包资料</h2><p>公开资料直接显示；助记词和私钥仅在本地确认后短时显示。</p></div><span id="sensitive-state" class="tag neutral">敏感信息已遮蔽</span></div><dl class="wallet-identity-grid"><div><dt>唯一地址</dt><dd id="overview-address">-</dd></div><div><dt>BLS 公钥</dt><dd id="overview-public-key">-</dd></div><div><dt>Puzzle Hash</dt><dd id="overview-puzzle-hash">-</dd></div><div><dt>钱包指纹</dt><dd id="overview-fingerprint">-</dd></div><div class="sensitive-row"><dt>助记词</dt><dd id="overview-mnemonic">•••••••• •••••••• ••••••••</dd></div><div class="sensitive-row"><dt>BLS 私钥（钱包 index 0）</dt><dd id="overview-private-key">••••••••••••••••••••••••••••••••</dd></div></dl><div class="button-row identity-actions"><button id="copy-overview-address" class="button secondary" type="button">复制地址</button><button id="reveal-sensitive" class="button secondary" type="button">显示助记词与私钥</button><button id="hide-sensitive" class="button secondary" type="button" hidden>立即隐藏</button></div><div class="notice-box">敏感信息不会发送到 HUB、不会写入浏览器存储或诊断日志，并会在 60 秒后自动隐藏。</div></section><div class="two-column overview-lower"><section class="panel"><div class="panel-heading"><div><h2>最近活动</h2><p>只显示本页面已执行的公开操作。</p></div><span class="tag neutral">只读摘要</span></div><div id="activity-list" class="activity-list"><div class="empty-state">暂无页面活动。先在 Funding Coin 页面校验条款。</div></div></section><section class="panel"><div class="panel-heading"><div><h2>安全边界</h2><p>当前客户端的硬性限制。</p></div><span class="tag good">ACTIVE</span></div><div class="security-list"><div><span class="security-icon">✓</span><span>敏感信息默认遮蔽并仅从本地钱包短时读取</span></div><div><span class="security-icon">✓</span><span>链下预扣不创建 SpendBundle</span></div><div><span class="security-icon">✓</span><span>主网广播必须逐笔最终确认</span></div><div><span class="security-icon">✓</span><span>商户身份与用户身份分开显示</span></div></div></section></div></section>
+        <section class="view" data-view-panel="receive"><div class="page-heading"><div><p class="eyebrow">RECEIVE</p><h1>收款</h1><p class="page-description">使用当前钱包地址接收 XCH。这里只显示公开地址，不读取私钥。</p></div><span class="tag good">公开信息</span></div><section class="panel receive-panel"><div class="panel-heading"><div><h2>当前收款地址</h2><p id="receive-role-label">尚未解锁钱包</p></div><span class="tag neutral">XCH Mainnet</span></div><div id="receive-address" class="address-display">请先解锁用户或商户钱包</div><div class="button-row"><button id="copy-receive-address" class="button secondary" type="button" disabled>复制地址</button></div><div id="receive-copy-status" class="status-box">地址来自当前内存钱包档案。</div><dl class="identity-metrics"><div><dt>BLS 公钥</dt><dd id="receive-public-key">-</dd></div><div><dt>指纹</dt><dd id="receive-fingerprint">-</dd></div></dl></section></section>
+        <section class="view" data-view-panel="send"><div class="page-heading"><div><p class="eyebrow">SEND</p><h1>发送 XCH</h1><p class="page-description">从总览余额进入；先本地构造并验证，再逐笔最终确认广播。</p></div><button id="send-back-overview" class="button secondary" type="button">返回总览</button></div><div class="two-column wide-left"><form id="send-form" class="panel form-panel" novalidate><div class="panel-heading"><div><h2>转账参数</h2><p>提交表单只会本地签名验证，不会广播。</p></div><span class="tag warn">两阶段门禁</span></div><label>收款地址<input id="send-destination" spellcheck="false" placeholder="xch1..." required></label><div class="field-grid compact"><label>金额（mojo）<input id="send-amount" inputmode="numeric" placeholder="例如 1000000" required></label><label>费用（mojo）<input id="send-fee" inputmode="numeric" value="1" required></label></div><label>备注（可选）<input id="send-memo" maxlength="120" placeholder="仅用于本地用途标记"></label><div id="send-error" class="message error" role="alert" hidden></div><button id="prepare-send" class="button primary full-button" type="submit">本地构造并验证</button></form><section class="panel summary-panel"><div class="panel-heading"><div><p class="eyebrow">SEND REVIEW</p><h2>转账确认</h2></div><span id="send-state" class="tag neutral">未构造</span></div><div id="send-preview" class="review-box">填写转账参数后显示 SpendBundle 摘要。</div><label>Fee（mojo）<input id="broadcast-send-fee" inputmode="numeric" value="1"></label><button id="broadcast-send" class="button confirm full-button" type="button" disabled>最终确认并广播</button><div class="notice-box">只有点击“最终确认并广播”并在弹窗中选择“确定”，才会调用 Chia Mainnet push_tx。</div></section></div></section>
+        <section class="view" data-view-panel="funding"><div class="page-heading"><div><p class="eyebrow">FUNDING COIN</p><h1>创建并锁定 Funding 条款</h1><p class="page-description">校验通过后，条款会变为不可修改的公开协议对象。</p></div><span id="funding-lock-tag" class="tag neutral">草稿</span></div><div class="two-column wide-left"><form id="terms-form" class="panel form-panel" novalidate><div class="panel-heading"><div><h2>通道参数</h2><p>创建后不可修改。</p></div><span class="tag neutral">V3.6</span></div><div class="field-grid compact"><label>接受窗口（区块）<input name="acceptance_blocks" inputmode="numeric" required></label><label>冻结缓冲（区块）<input name="freeze_blocks" inputmode="numeric" required></label><label>挑战期（区块）<input name="challenge_blocks" inputmode="numeric" required></label><label>关闭延迟（自动）<output id="close-delay" class="readonly-value">-</output></label></div><div class="section-divider"></div><div class="panel-heading compact-heading"><div><h2>资金与身份</h2><p>公钥和 Puzzle Hash 只用于协议绑定。</p></div></div><div class="field-grid"><label>Funding 金额（mojo）<input name="funding_amount" inputmode="numeric" value="5" required></label><label>用户 BLS 公钥<textarea name="user_public_key" rows="2" spellcheck="false" placeholder="48 字节公钥，由本地钱包提供" required></textarea></label><label>用户找零 Puzzle Hash<textarea name="user_remainder_puzzle_hash" rows="2" spellcheck="false" placeholder="32 字节 Puzzle Hash" required></textarea></label><label>Network ID<input name="network_id" spellcheck="false" readonly required></label><label>HUB A 状态公钥<textarea name="hub_state_public_key_a" rows="2" spellcheck="false" readonly required></textarea></label><label>State Rules Hash<input name="state_rules_hash" spellcheck="false" readonly required></label></div><div id="funding-error" class="message error" role="alert" hidden></div><button id="prepare-button" class="button primary" type="submit" disabled>校验并生成条款</button></form><aside class="panel summary-panel"><div class="panel-heading"><div><p class="eyebrow">TERMS REVIEW</p><h2 id="summary-state">等待校验</h2></div><span id="lock-state" class="tag neutral">草稿</span></div><dl class="summary-metrics"><div><dt>协议版本</dt><dd>0x0360</dd></div><div><dt>网络</dt><dd>Chia Mainnet</dd></div><div><dt>关闭延迟</dt><dd id="summary-close">-</dd></div><div><dt>确认深度</dt><dd id="confirmation-blocks">-</dd></div><div><dt>交付绿灯</dt><dd id="delivery-threshold">-</dd></div><div><dt>主网批准</dt><dd class="danger-text">否</dd></div><div><dt>生产就绪</dt><dd class="danger-text">否</dd></div></dl><div class="hash-block"><span>Channel Terms Hash</span><code id="terms-hash">校验后生成</code></div><div class="hash-block"><span>Funding 主网地址</span><code id="funding-address">校验后生成</code></div><details><summary>Funding Puzzle Hash</summary><code id="funding-puzzle-hash">校验后生成</code></details><details><summary>规范二进制编码</summary><code id="canonical-hex">校验后生成</code></details><label class="confirmation"><input id="confirm-check" type="checkbox" disabled><span>我已核对完整条款，并理解确认后参数不可修改。</span></label><button id="confirm-button" class="button confirm" type="button" disabled>确认并锁定条款</button><p class="panel-footnote">此页面只生成和锁定协议条款，不创建或广播链上交易。</p></aside></div></section>
+        <section class="view" data-view-panel="funding-tracker"><div class="page-heading"><div><p class="eyebrow">FUNDING TRACKER</p><h1>Funding Coin 追踪</h1><p class="page-description">追踪当前用户钱包创建的 Funding Coin；链上状态每 10 秒自动刷新。</p></div><button id="refresh-funding-tracker" class="button secondary" type="button">刷新状态</button></div><div class="metric-grid"><article class="metric-card"><div class="metric-label">预扣总金额</div><div id="tracker-total" class="metric-value">-</div><div class="metric-detail">Funding Coin 原始金额</div></article><article class="metric-card"><div class="metric-label">已预扣金额</div><div id="tracker-reserved" class="metric-value">-</div><div class="metric-detail">当前钱包已提交的 HUB 账本记录</div></article><article class="metric-card"><div class="metric-label">剩余可预扣</div><div id="tracker-remaining" class="metric-value">-</div><div class="metric-detail">总金额减已预扣金额</div></article><article class="metric-card"><div class="metric-label">链上状态</div><div id="tracker-chain-status" class="metric-value">未载入</div><div id="tracker-confirmations" class="metric-detail">等待同步</div></article></div><div class="two-column wide-left"><section class="panel"><div class="panel-heading"><div><h2>时间窗口</h2><p>协议判断使用区块高度；分钟仅为估算。</p></div><span id="tracker-sync-state" class="tag neutral">等待同步</span></div><div class="identity-banner"><strong>创建者身份</strong><span id="tracker-creator" class="tag neutral">尚未添加 Coin</span></div><dl class="summary-metrics"><div><dt>当前主网高度</dt><dd id="tracker-peak">-</dd></div><div><dt>结束预扣高度</dt><dd id="tracker-cutoff-height">-</dd></div><div><dt>结束预扣剩余</dt><dd id="tracker-cutoff-remaining">-</dd></div><div><dt>挑战结束高度</dt><dd id="tracker-challenge-height">-</dd></div><div><dt>挑战结束剩余</dt><dd id="tracker-challenge-remaining">-</dd></div><div><dt>确认高度</dt><dd id="tracker-confirmed-height">-</dd></div></dl><div class="hash-block"><span>Funding Coin ID</span><code id="tracker-coin-id">尚未保存 Funding Coin</code></div></section><aside class="panel summary-panel"><div class="panel-heading"><div><p class="eyebrow">SETTLEMENT</p><h2>结算 Funding Coin</h2></div><span class="tag good">本地验证 + 最终确认</span></div><p>钱包先向 HUB 读取最新状态和 Recovery Package，再在本地构造并验证 Closing SpendBundle。只有你在最终弹窗选择“确定”后才会调用 push_tx。</p><label>Fee（mojo）<input id="settlement-fee" inputmode="numeric" value="1"></label><button id="settle-funding-coin" class="button confirm full-button" type="button" disabled>结算这个 Coin</button><div id="funding-tracker-error" class="message error" role="alert" hidden></div><div class="notice-box">仅有 Coin ID 不能恢复历史条款；缺少原始已确认条款时，请重新导入 WC 请求或在创建 Funding Coin 的同一档案中注册 HUB。</div></aside></div><section id="tracker-lifecycle" class="panel tracker-lifecycle-panel"><div class="panel-heading"><div><p class="eyebrow">COIN LIFECYCLE</p><h2>当前 Funding Coin 日志与后续 Coin</h2><p>按当前 Coin 聚合页面操作、链上状态、Initial Closing 和挑战/结算阶段。</p></div><span id="tracker-log-count" class="tag neutral">0 条日志</span></div><div id="tracker-lifecycle-summary" class="tracker-lifecycle-summary"></div><div id="tracker-coin-log" class="activity-list"><div class="empty-state">选择一个 Funding Coin 后显示日志。</div></div></section></section>
+        <section class="view" data-view-panel="reservation"><div class="page-heading"><div><p class="eyebrow">OFF-CHAIN RESERVATION</p><h1>链下预扣</h1><p class="page-description">使用本地签名器生成签名 JSON，再由此页面提交到 HUB。浏览器不读取私钥。</p></div><span class="tag good">NO BROADCAST</span></div><div class="two-column wide-left"><section class="panel form-panel"><div class="panel-heading"><div><h2>提交已签名请求</h2><p>粘贴签名文件内容，提交前会再次显示关键字段。</p></div><span class="tag neutral">SIGNED JSON</span></div><label>签名请求 JSON<textarea id="signed-request" class="code-input" rows="13" spellcheck="false" placeholder="从本地签名器导入 test001.signed.json 的内容"></textarea></label><div id="reservation-error" class="message error" role="alert" hidden></div><div class="button-row"><button id="preview-reservation" class="button secondary" type="button">预览请求</button><button id="submit-reservation" class="button primary" type="button" disabled>确认并提交 HUB</button></div><div id="reservation-preview" class="review-box" hidden></div></section><section class="panel form-panel"><div class="panel-heading"><div><h2>查询原 nonce</h2><p>状态不确定时只查询原请求，不生成新 nonce。</p></div></div><label>Funding Coin ID<input id="status-coin" spellcheck="false" placeholder="64 位十六进制"></label><label>Reservation nonce<input id="status-nonce" spellcheck="false" placeholder="64 位十六进制"></label><button id="status-reservation" class="button secondary full-button" type="button" disabled>查询预扣状态</button><div id="reservation-status" class="status-box">尚未查询</div></section></div></section>
+        <section class="view" data-view-panel="merchant"><div class="page-heading"><div><p class="eyebrow">MERCHANT PREAUTHORIZATION</p><h1>生成预扣</h1><p class="page-description">使用当前登录钱包生成预扣请求；不会切换或加载另一套私钥。</p></div><span class="tag good">CURRENT WALLET</span></div><section class="panel form-panel"><div class="panel-heading"><div><h2>预扣流程</h2><p>生成 WC 后，到“预扣追踪”查看授权状态。</p></div></div><div class="merchant-flow"><div class="flow-step active"><span>1</span><div><strong>生成预扣请求</strong><small>使用当前钱包结算身份和指定金额</small></div></div><div class="flow-line"></div><div class="flow-step"><span>2</span><div><strong>用户确认签名</strong><small>用户钱包独立完成</small></div></div><div class="flow-line"></div><div class="flow-step"><span>3</span><div><strong>HUB 返回 AUTHORIZED</strong><small>到“预扣追踪”查看</small></div></div><div class="flow-line"></div><div class="flow-step"><span>4</span><div><strong>结算后 SETTLED</strong><small>链上结算另行确认</small></div></div></div><div class="notice-box">本页面的 Merchant ID、Puzzle Hash 和回执 BLS 公钥均由当前登录钱包确定，不保存独立商户配置。</div></section></section>
+        <section class="view" data-view-panel="reservation-tracker"><div class="page-heading"><div><p class="eyebrow">RESERVATION TRACKER</p><h1>预扣追踪</h1><p class="page-description">按 Request ID 查看 HUB 授权状态；只记录公开回执，不产生链上交易。</p></div><span class="tag neutral">READ ONLY</span></div><div id="reservation-tracker-content" class="reservation-tracker-content"></div></section>
+        <section class="view" data-view-panel="transactions"><div class="page-heading"><div><p class="eyebrow">TRANSACTION HISTORY</p><h1>交易历史</h1><p class="page-description">默认按账户净收支显示；Coin 明细保留每个 Coin 的创建与花费状态。</p></div><button id="refresh-transactions" class="button secondary" type="button">刷新历史</button></div><section class="panel"><div class="history-toolbar"><div class="history-tabs" role="tablist" aria-label="交易历史模式"><button class="history-mode active" data-history-mode="account" role="tab" aria-selected="true" type="button">账户交易</button><button class="history-mode" data-history-mode="coin" role="tab" aria-selected="false" type="button">Coin 明细</button></div><span id="history-sync-state" class="tag neutral">等待桌面核心同步</span></div><div class="table-wrap"><table class="history-table"><thead id="history-head"><tr><th>时间 / 区块</th><th>方向</th><th>净变化</th><th>余额</th><th>涉及 Coin</th><th>状态</th></tr></thead><tbody id="history-body"><tr><td colspan="6"><div class="empty-state">暂无已同步交易。</div></td></tr></tbody></table></div><div id="history-note" class="history-note">账户交易按同一区块内本地址 Coin 的创建与花费聚合，找零会自动抵消，只显示净余额变化。</div></section></section>
+        <section class="view" data-view-panel="audit"><div class="page-heading"><div><p class="eyebrow">AUDIT & SECURITY</p><h1>审计与安全</h1><p class="page-description">将当前客户端状态和链上副作用分开显示。</p></div><span class="tag good">FAIL-CLOSED</span></div><div class="audit-grid"><article class="panel audit-card"><span class="audit-icon good">✓</span><div><h2>链下签名隔离</h2><p>本地签名器没有 RPC、SpendBundle 或 push_tx 能力。</p></div><strong>通过</strong></article><article class="panel audit-card"><span class="audit-icon good">✓</span><div><h2>最终确认门禁</h2><p>任何主网广播都必须绑定具体 Coin、金额、费用和 SpendBundle。</p></div><strong>通过</strong></article><article class="panel audit-card"><span class="audit-icon warn">!</span><div><h2>生产部署</h2><p>当前仍是单 VPS Canary，不满足独立故障域要求。</p></div><strong class="warning-text">未批准</strong></article><article class="panel audit-card"><span class="audit-icon warn">!</span><div><h2>客户端同步</h2><p>Web 页面不直接读取钱包明文 JSON，余额由桌面核心同步。</p></div><strong class="warning-text">待接入</strong></article></div><section class="panel audit-log-panel"><div class="panel-heading"><div><h2>页面操作日志</h2><p>仅记录本次页面会话，不包含私钥。</p></div><button id="clear-activity" class="button secondary" type="button">清空</button></div><pre id="audit-log" class="audit-log">暂无操作</pre></section></section>
+      <details id="tower-seq1-test" class="panel test-panel"><summary><span><strong>主网竞态测试：固定 SEQ1，延迟广播</strong><small>仅用于验证 Tower 发现 SEQ1 后挑战 SEQ2</small></span><span class="tag warn">TEST ONLY</span></summary><div class="test-panel-body"><div class="test-warning"><strong>仅使用专用测试 Funding Coin</strong><span>先准备基于 SEQ1 的 Closing 交易但不广播；确认 Tower 已保存 SEQ2 后，再执行延迟广播。</span></div><div class="field-grid compact"><label>固定状态序号<input id="tower-test-sequence" value="1" readonly></label><label>挑战手续费（mojo）<input id="tower-test-fee" value="1" readonly></label></div><div id="tower-test-state" class="review-box">尚未准备</div><label class="confirmation"><input id="tower-test-confirm" type="checkbox"><span>我确认这是专用测试 Coin，并理解可能产生真实主网交易。</span></label><div class="button-row"><button id="tower-test-prepare" class="button secondary" type="button" disabled>准备 SEQ1（不广播）</button><button id="tower-test-broadcast" class="button confirm" type="button" disabled>延迟广播已准备交易</button></div><div class="notice-box">此入口不会自动创建 SEQ2；必须先由 HUB/Tower 保存 SEQ2。</div></div></details></main>
+    </div>
+  </div>
+  <details id="tower-closing-trace" class="panel closing-trace"><summary><span><strong>Closing Coin 链追踪</strong><small id="tower-closing-trace-summary">等待同步 Funding Coin</small></span><span id="tower-closing-trace-count" class="tag neutral">0 条</span></summary><div id="tower-closing-trace-body" class="closing-trace-body"><div class="empty-state">尚未发现 Closing Coin。</div></div></details>
+  <script src="/qrcode.min.js" defer></script>
+  <script src="/jsQR.min.js" defer></script>
   <script src="/app.js" defer></script>
 </body>
 </html>
