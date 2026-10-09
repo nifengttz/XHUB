@@ -6,8 +6,8 @@
 
 **一句话定位**：商户在用户与 HUB 双双离线时，仍能凭一份已签名的链下凭证独立在链上兑现收款；而用户始终保有一条不需要任何人配合的全额退出路径。
 
-- **协议层**：X-Hub V3.6（用户逐条授权 + HUB 单一有状态协调签名 + 开放瞭望塔保存与挑战 + 任意第三方关闭和广播）
-- **实现语言**：Rust（五个独立 crate）+ 一个三端共用的网页前端
+- **协议层**：X-Hub V3.6（用户逐条授权 + HUB 单一有状态协调签名 + **开放瞭望塔**保存与挑战 + 任意第三方关闭和广播）
+- **实现语言**：Rust（五个独立 crate，其中瞭望塔 12,007 行）+ 一个三端共用的网页前端
 - **许可**：[Apache-2.0](LICENSE)，第三方归属见 [NOTICE](NOTICE)
 
 ---
@@ -41,7 +41,7 @@ XHUB 的安全性不来自任何新的信任假设，而来自 Chia 本身就有
 - **Append-only 账本**：更高状态只能追加，不得删除、修改或重排旧记录。
 - **幂等预扣**：幂等键为 `(funding_coin_id, reservation_nonce)`；内容冲突返回 `NonceConflict` 而非签出第二份冲突结果。
 - **一次性请求码**：跨全部 Funding Coin 全局唯一，一个请求码只能被一个通道消费一次（守卫已实现于 HUB 与钱包两端）。
-- **开放瞭望塔**：任何人可运行；生产绿灯推荐"一份有效商户回执 + 跨故障域 `2-of-3` 托管证明"。同一 VPS 上的多个实例只算一个故障域。
+- **开放瞭望塔**：任何人可运行；生产绿灯推荐"一份有效商户回执 + 跨故障域 `2-of-3` 托管证明"。详见[第五章](#五瞭望塔watchtower非托管的最后一块拼图)。
 - **独立退出**：没有正式预扣时，State 0 走完挑战流程后资金全部返回用户，不设独立退款高度。
 
 ## 四、架构
@@ -50,36 +50,213 @@ XHUB 的安全性不来自任何新的信任假设，而来自 Chia 本身就有
 graph LR
     U["用户钱包<br/>逐条签名授权"]
     H["HUB A<br/>有状态协调签名<br/>append-only 账本"]
-    W["瞭望塔<br/>保存 / 监视 / 挑战<br/>（开放参与）"]
     M["商户<br/>凭凭证独立兑现"]
+    W["<b>瞭望塔</b>（开放参与）<br/>保存 · 监视 · 挑战<br/>跨故障域 2-of-3"]
 
     U -- "PaymentIntent（用户签名）" --> H
     H -- "SignedReservationResult + RecoveryPackage" --> U
     U -. "投递恢复包" .-> W
+    H -. "投递恢复包" .-> W
     M -. "DeliveryConfirmation" .-> W
-    H -. "RecoveryPackage" .-> W
 
     subgraph C[Chia 链上]
       F["Funding Coin"] --> CL["Closing Coin"] --> P["Merchant Payment Coin<br/>（每条账目一枚，不合并）"]
     end
 
     M -- "构造 Claim 并广播<br/>无需任何私钥" --> C
-    W -- "CHALLENGE（链上出现更低状态时）" --> C
+    W -- "只读监控 → CHALLENGE<br/>（链上出现更低状态时）" --> C
 ```
 
 **五个 Rust crate**（V3.6 主线，评审状态 `REVIEWED`）：
 
-| Crate | 职责 |
-|---|---|
-| `V3.6/protocol-v3_6` | 协议类型、规范编码、哈希域、BLS 签名、Merkle 规则、golden vectors |
-| `V3.6/puzzles-v3_6` | Funding / Initial Closing / Subsequent Closing / Merchant Payment 四个 CLVM puzzle |
-| `V3.6/hub-v3_6` | 有状态签名器、append-only 账本、reservation 幂等核心、SQLite 持久化与故障恢复 |
-| `V3.6/watchtower-v3_6` | RecoveryPackage 接收与完整验证、商户回执校验、托管证明聚合、只读链监控 |
-| `V3.6/wallet-v3_6` | 钱包库、HTTP API、三端共用的网页前端（`web/`） |
+| Crate | 规模 | 职责 |
+|---|---|---|
+| `V3.6/protocol-v3_6` | — | 协议类型、规范编码、哈希域、BLS 签名、Merkle 规则、golden vectors |
+| `V3.6/puzzles-v3_6` | — | Funding / Initial Closing / Subsequent Closing / Merchant Payment 四个 CLVM puzzle |
+| `V3.6/hub-v3_6` | — | 有状态签名器、append-only 账本、reservation 幂等核心、SQLite 持久化与故障恢复 |
+| **`V3.6/watchtower-v3_6`** | **12,007 行 / 12 模块 / 31 阶段** | **RecoveryPackage 完整验证与隔离、只读链监控、跨故障域托管证明、六道挑战闸门、执行审计链、加密备份与恢复演练** |
+| `V3.6/wallet-v3_6` | — | 钱包库、HTTP API、三端共用的网页前端（`web/`） |
 
 根目录的 `wall-hub-mvp` crate 是**早期一次性单向通道原型**（v1/v2），已冻结并保留作为论证证据，其原始英文说明存档于 [`docs/legacy-README-stage-abc.en.md`](docs/legacy-README-stage-abc.en.md)。
 
-## 五、协议参数（V3.6 默认值）
+## 五、瞭望塔（Watchtower）：非托管的最后一块拼图
+
+> 这是 XHUB 中工程量最大、设计最独特的模块。协议的全部安全承诺，最终都由它在链上强制执行。
+
+### 5.1 为什么必须有它
+
+非托管支付通道有一个绕不开的问题：**如果通道的某一方消失或作恶，谁来把正确的状态推回链上？**
+
+- HUB 跑路了 → 用户和商户手里的账本没人推进；
+- 有人拿一份**旧的、对自己有利的**状态去关闭通道 → 需要有人拿出更新的状态反驳；
+- 用户和商户同时离线 → 没人能在挑战截止高度 `D` 之前响应。
+
+XHUB 的答案是：**任何人都可以运行瞭望塔**。它是一个"证据保管 + 自动抗辩"角色，不需要被信任、不需要登记身份、也不需要持有任何人的私钥。协议 §3.3 明确写着：
+
+> 挑战者不需要登记身份。**挑战权限来自其提交的完整有效状态，而不是挑战者公钥。**
+
+这与传统"watchtower 服务"有本质区别：后者是一个你付费订阅、必须信任它会在关键时刻出面的第三方；XHUB 的瞭望塔是**开放参与的抗辩网络**，用户、商户、HUB、乃至完全无关的志愿者都可以各自跑一个，彼此独立、互为备份。
+
+### 5.2 故障域：防止"三个副本"变成"一个副本"
+
+如果三台瞭望塔跑在同一台 VPS 上、同一个运营者手里、或同一条上游链路上，那它们会**同时**挂掉——看起来是三份冗余，实际是一个故障点。
+
+XHUB 因此引入 **failure domain（故障域）** 概念，并在协议里写死判定规则：
+
+> 瞭望塔可以共用一台 VPS 和一个公网 IP，但同一宿主机、同一运营者或同一上游网络中的多个实例**只计算为一个故障域**，不得冒充多个独立副本。
+
+生产绿灯的判定公式（`custody.rs`）：
+
+```text
+production_ready =
+      merchant_delivered                                  # 一份有效商户交付回执
+  AND COUNT(DISTINCT attester_public_key)       >= 阈值     # 不同公钥计数
+  AND COUNT(DISTINCT failure_domain)            >= 阈值     # 不同故障域计数
+```
+
+推荐生产条件为**一份有效商户回执 + 跨故障域 `2-of-3` 托管证明**。两条计数缺一不可——只按公钥计数会放过"同一台机器上的三个容器"。
+
+同一个 VPS 的 Docker 三容器模式是**测试专用**的：它有独立端点 `/single-vps-test-greenlight`，响应固定 `failure_domain_enforced=false`、`test_only=true`、`production_ready=false`，绝不会被误当作生产绿灯。
+
+### 5.3 它保存并验证什么
+
+瞭望塔接收的是 **RecoveryPackage**（恢复包）。它不是"备份一下"，而是**完整重算一遍**，任何一项不过就**隔离**（quarantine），而非静默丢弃——隔离记录保留在 `v36_watchtower_quarantine` 表中，可审计、可追溯。
+
+验证链条（`accept_package`）：
+
+```text
+1  规范解码（拒绝截断 / trailing bytes / 错误字段长度）
+2  Funding Puzzle reveal 的 CLVM 解析
+3  HUB A 对 OfficialState 的 BLS 签名
+4  全部用户授权签名（逐条）
+5  账本 Merkle root 重算
+6  金额、找零守恒
+7  append-only 前缀：新包必须逐字节包含旧包的 entries 前缀，不得修改/删除/重排
+8  序号相邻性：state_sequence = latest + 1，且 previous_checkpoint_hash 正确链接
+9  同序号冲突检测：同 sequence 但 checkpoint 或 content hash 不同 → StateConflict
+10 降序重放：更低的 sequence 不能替换已被接受的最新状态 → StalePackage
+```
+
+注意第 1 步和第 9 步的设计意图：**截断、篡改、旧账本修改、降序重放、同序号冲突**，全部会被拒绝或隔离。瞭望塔不会因为"收到了一个看起来更高级的包"就相信它。
+
+### 5.4 只读链监控：不信任任何声明
+
+监控器（`monitor.rs` + `src/bin/monitor.rs`）只做**只读**轮询，且**完全不信任调用方声明的候选序号或 puzzle hash**——它自己从 Funding Coin 的 spend solution 开始，推导 Initial Closing Coin，再沿已确认的 Subsequent Closing Coin 谱系一路追踪，并用本地持久化的 RecoveryPackage 重建预期 puzzle hash 和 Coin ID。
+
+一次轮询输出 8 种决策之一：
+
+| `MonitorAction` | 含义 |
+|---|---|
+| `FundingOpen` | Funding Coin 仍未花费，无需动作 |
+| `ClosingCurrent` | 链上状态 = 本地最新状态，无需挑战 |
+| `ChallengePlanned` | 链上状态**低于**本地最新 → 已持久化非广播挑战计划 |
+| `ChallengeAlreadyPlanned` | 已有计划，幂等 |
+| `DeadlinePassed` | 已过 `D`，不再允许构造 CHALLENGE |
+| `Finalized` | 通道已终态 |
+| `ReorgPending` | 观测到重组，链状态不确定 |
+| `Unknown` | RPC 不可用/未同步，**fail-closed** |
+
+只有**链上序号低于本地最新完整状态、`D` 未到、且真实 CHALLENGE CLVM 本地执行通过**三者同时成立，才会持久化挑战计划。
+
+### 5.5 六道闸门：从"发现问题"到"可以上链"之间
+
+这是瞭望塔最核心的工程。XHUB 不允许任何单一信号触发上链动作，而是串起六道独立闸门，**每一道都有独立的签名域、独立的有效期、独立的失效条件**：
+
+```mermaid
+graph TD
+    P1["① 挑战计划 SIMULATED_ONLY<br/>（真实 CHALLENGE CLVM 本地执行通过）"]
+    P2["② 离线准备<br/>OFFLINE_VERIFIED_AWAITING_APPROVAL"]
+    P3["③ 双人跨故障域审批<br/>DUAL_APPROVED_RECHECK_REQUIRED"]
+    P4["④ 最终链上重检 · TTL 30s<br/>FINAL_RECHECK_VERIFIED_NO_BROADCAST"]
+    P5["⑤ 执行清单 · TTL 10s<br/>MANIFEST_VERIFIED_NO_BROADCAST"]
+    P6["⑥ 执行授权闸门 · TTL 5s<br/>EXECUTION_AUTHORIZED_SIMULATED_ONLY"]
+    S["模拟提交（单次消费）<br/>SIMULATED_SUBMISSION_RECORDED"]
+    X["⛔ 真实广播未启用<br/>broadcast_* 恒为 false"]
+
+    P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> S --> X
+
+    R(["RPC UNKNOWN / 新峰值 / 重组<br/>Closing Coin 变化 / peak ≥ D"])
+    R -.->|"任一发生即打回"| P2
+    R -.->|"任一发生即打回"| P3
+    R -.->|"任一发生即打回"| P4
+    R -.->|"任一发生即打回"| P5
+
+    style X fill:#5b2333,stroke:#c0392b,color:#fff
+    style R fill:#4a3b1f,stroke:#b8860b,color:#fff
+```
+
+| # | 闸门 | 签名域 | 通过状态 | 有效期 |
+|---|---|---|---|---|
+| 1 | 挑战计划 | — | `SIMULATED_ONLY` | — |
+| 2 | 离线准备 | `XHUB_CHALLENGE_PREPARATION_V3_6` | `OFFLINE_VERIFIED_AWAITING_APPROVAL` | — |
+| 3 | 双人跨故障域审批 | `XHUB_CHALLENGE_APPROVAL_V3_6` | `DUAL_APPROVED_RECHECK_REQUIRED` | 由声明内 `expires_at` 指定 |
+| 4 | 最终链上重检 | `XHUB_FINAL_CHAIN_RECHECK_V3_6` | `FINAL_RECHECK_VERIFIED_NO_BROADCAST` | `FINAL_RECHECK_TTL_SECONDS = 30` |
+| 5 | 执行清单 | `XHUB_EXECUTION_MANIFEST_V3_6` | `MANIFEST_VERIFIED_NO_BROADCAST` | `EXECUTION_MANIFEST_TTL_SECONDS = 10` |
+| 6 | 执行授权闸门 | `XHUB_EXECUTION_AUTHORIZATION_V3_6` | `EXECUTION_AUTHORIZED_SIMULATED_ONLY` | `EXECUTION_AUTHORIZATION_TTL_SECONDS = 5` |
+
+关键设计：
+
+- **双人审批必须来自两个不同审批者且两个不同故障域**。重复审批者/公钥/nonce、同故障域第二票、签名或字段篡改、过期凭证，全部拒绝或不计入门槛。
+- **后三道闸门的有效期逐级收紧（30 s → 10 s → 5 s）**，逼迫"验证"与"执行"在时间上紧邻，避免拿一份几小时前的检查结果去执行。审批自身则把有效期签进 `ApprovalStatement` 的 `expires_at` 字段，过期凭证不计入门槛。
+- **任何链上变化都会把状态打回起点**：RPC `UNKNOWN`、节点未同步、出现新峰值、同高度重组、Closing Coin 变化、`peak >= D`、或重新构造准备——分别转为 `APPROVAL_REVOKED_CHAIN_CHANGE` / `CHAIN_RECHECK_REQUIRED` / `INVALIDATED_CHAIN_CHANGE` / `MANIFEST_INVALIDATED_CHAIN_CHANGE` / `EXECUTION_AUTHORIZATION_INVALIDATED`。**失效记录不能恢复，必须基于新的完整链快照重新走一遍。**
+- 第 6 道之后的"提交"是**模拟**的：`simulate_execution_submission` 只记录模拟次数和时间，且带 32 字节 `submission_nonce` **单次消费**——同一授权的重试幂等返回原收据，换 nonce 或重用全局 nonce 一律拒绝。
+
+### 5.6 承诺绑定与执行审计链
+
+**SpendBundle 承诺** `XHUB_SPEND_BUNDLE_COMMITMENT_V3_6`：按原始 CoinSpend 顺序承诺数量、每项 parent Coin ID、puzzle hash、8 字节 amount、长度前缀的完整 puzzle reveal 与 solution，最后承诺 96 字节聚合签名。
+
+- 只在真实 bundle 完成 consensus/BLS 验证**之后**才计算；
+- 顺序、任一程序、任一 Coin、fee sponsor 或签名变化 → 哈希必变；
+- SQLite **只保存 32 字节承诺值**，审批声明、preparation ID、最终重检全部绑定它；
+- **不提供读取或导出底层 SpendBundle 的接口**。
+
+**执行审计哈希链** `XHUB_EXECUTION_AUDIT_V3_6`：追加式哈希链，每个事件绑定前一事件哈希、序号、事件类型、主体 ID、绑定哈希、状态与时间；覆盖 Manifest 签发、Authorization 签发、模拟收据消费三类事件。
+
+- 可检测事件篡改、删改、链头不一致；
+- **业务写入与对应审计事件、链头在同一个 SQLite 事务中提交**——审计追加失败则业务状态回滚（三类事件各有故障注入测试覆盖）；
+- 为抵御"整个数据库被回滚或替换"，提供链头**外部锚定** `XHUB_EXECUTION_AUDIT_ANCHOR_V3_6`，`rollback_detected` 会在事件数倒退时报告。注意：本地锚点表只用于留痕，**必须由独立系统定期外存**。
+
+HTTP 上可通过 `GET /api/v3.6/execution-audit` 只读核验事件数、链头与 `valid`，不导出任何事件材料。
+
+### 5.7 加密备份与恢复演练
+
+瞭望塔持有的是"别人资产的最后证据"，所以它的持久化也有专门设计：
+
+- `VACUUM INTO` 生成一致性快照，并对文件大小、文件哈希、审计链头及可选外部锚点生成 `DatabaseBackupManifest`；
+- 加密封装 `XHUB_WATCHTOWER_ENCRYPTED_BACKUP_V1`：**XChaCha20-Poly1305** + 32 字节调用方密钥 + 24 字节 OS 随机 nonce + 32 字节 key ID + 绑定协议版本与 key ID 的 AAD。错误密钥/key ID、密文或标签篡改一律拒绝且**不写出明文**；
+- **密钥永不落盘**：唯一获取边界是 `BackupKeyProvider`，返回的 key 用 `Zeroizing` 管理，不写数据库、清单、文件头或日志；轮换靠"解密旧封装 + 用新 key ID 重新加密"；
+- 原子工作流：只在随机临时路径生成明文与密文，成功才重命名发布，任何失败都清理临时文件；恢复时目标路径已存在则 fail-closed；
+- **跨副本一致性比较的是解密后的清单**（文件哈希、大小、审计链头、锚点），**刻意忽略**因随机 nonce 必然不同的密文与独立 key ID，从而允许合法的密钥轮换副本判为一致；
+- **恢复演练** `run_backup_restore_drill`：只接受 `VERIFIED` 交接，在临时明文路径重跑 AEAD、清单、审计链、锚点验证，记录耗时与结果后清理明文；
+- **保留候选** `backup_retention_candidates` 只返回"已通过演练 + 超最小保留年龄 + 不属于最新 N 份"的 backup_id，**永不自动删除文件**。
+
+### 5.8 部署形态与 API
+
+三种形态：
+
+| 形态 | 说明 | 生产就绪 |
+|---|---|---|
+| 三运营者独立 VPS | 三个不同故障域、各自全节点视图与 fee 预算 | ✅ 目标形态 |
+| 单 VPS Docker 三容器 | 不同 BLS 公钥/数据库/Token，取消故障域门槛 | ❌ `test_only=true` |
+| 只读监控器 | 无密钥、无 fee coin、无广播端点 | ❌ 仅观测 |
+
+服务（`watchtower-v3-6`）默认监听 `127.0.0.1:8738`，**强制只允许回环**——非 loopback 地址直接启动失败，必须经 TLS 反向代理暴露。API 固定前缀 `/api/v3.6` + `x-xhub-protocol-version: 0x0360` + bearer token，共 17 个端点，涵盖恢复包收发、商户回执、托管证明、绿灯查询、执行清单/授权/模拟收据、审计链核验、备份演练与保留候选。
+
+### 5.9 它明确不做的事
+
+哪怕走完全部六道闸门，以下也**恒为 false，由数据库约束固定**：
+
+```text
+broadcast_enabled = false
+broadcast_ready   = false
+chain_broadcast   = false
+```
+
+并且：SQLite **不保存 SpendBundle 字节、不保存任何私钥**；没有 bundle 导出接口、没有 `push_tx`、没有广播客户端；HTTP 层用 `deny_unknown_fields` 明确拒绝 `spend_bundle_canonical_hex` 这类执行材料。仓库里有专门的测试守着这条线：`pipeline_never_enables_broadcast_or_exports_the_bundle`、`exports_only_a_non_broadcast_commitment`。
+
+**这不是待办，是刻意的设计。** 详细规范见 [`V3.6/watchtower-v3_6/README.md`](V3.6/watchtower-v3_6/README.md)。
+
+## 六、协议参数（V3.6 默认值）
 
 ```text
 protocol_version          = u16_be(0x0360)
@@ -93,7 +270,7 @@ funding 确认深度          = 32
 
 这四个值在创建 Funding Coin 时由用户确认并承诺进 `channel_terms_hash`，创建后**不可修改**。钱包、HUB 与 Funding Puzzle 各自独立重新校验，互不信任。
 
-## 六、安全模型：保证什么，不保证什么
+## 七、安全模型：保证什么，不保证什么
 
 **保证**
 
@@ -112,7 +289,7 @@ funding 确认深度          = 32
 - 所有持有最新状态的参与者同时离线时仍能及时挑战；
 - 链上拥堵或缺少 fee sponsor 时仍能及时广播。
 
-## 七、当前状态（请如实阅读）
+## 八、当前状态（请如实阅读）
 
 这是一个**工程与密码学证据完整、但尚未获准广播**的项目。
 
@@ -125,11 +302,11 @@ funding 确认深度          = 32
 | 广播能力 | 🔒 `broadcast_enabled` / `broadcast_ready` / `chain_broadcast` **恒为 `false`** |
 | 主网参数冻结、KMS/HSM、跨 VPS 复制、真实 TLS 端点、独立外部安全评审 | ⬜ `OPEN` |
 
-代码库中的 `broadcast_*` 三个字段由**数据库约束**固定为 `false`：瞭望塔可以构造并完整验证 CHALLENGE SpendBundle、可以走完"离线准备 → 双人跨故障域审批 → 最终链上重检 → 执行清单 → 授权闸门"的全流程审计链，但**不保存 SpendBundle 字节、不持有私钥、不提供 `push_tx` 或广播端点**。这是刻意的设计，不是待办。
-
 > **这里说的"广播"是专有含义**，特指**瞭望塔发起 CHALLENGE 交易并调用 `push_tx` 上链**，不等于"产品主网上线"。用户创建 Funding Coin、商户凭已签名凭证结算，都由各自的钱包/商户端发起并由人确认，**不受此约束**。被锁死的是唯一一个"由软件自动决策、可单方面改写链上状态"的动作。
 
-## 八、快速开始
+日常的锁币、预扣、结算**不依赖**这道闸门；但"HUB 消失后已传播状态仍可结算""没有正式预扣时资金全部返回用户"这两条安全承诺，最终要靠瞭望塔的挑战路径在链上强制执行——所以它一日未解锁，项目就不能宣称生产就绪。
+
+## 九、快速开始
 
 前置：Rust stable；可选 `clvm_tools_rs 0.4.0`（用于早期原型的 CLVM 编译）。
 
@@ -162,7 +339,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\security-check.ps1
 
 HTTP 接口固定使用 `/api/v3.6` 前缀与 `x-xhub-protocol-version: 0x0360` 请求头，详见 [`V3.6/hub-v3_6/HTTP-API.md`](V3.6/hub-v3_6/HTTP-API.md) 与 [`V3.6/watchtower-v3_6/README.md`](V3.6/watchtower-v3_6/README.md)。
 
-## 九、文档索引
+## 十、文档索引
 
 **V3.6 主线**
 
@@ -171,9 +348,10 @@ HTTP 接口固定使用 `/api/v3.6` 前缀与 `x-xhub-protocol-version: 0x0360` 
 - [`V3.6/protocol-v3_6/FREEZE-CHECKLIST.md`](V3.6/protocol-v3_6/FREEZE-CHECKLIST.md) — 冻结清单
 - [`V3.6/hub-v3_6/README.md`](V3.6/hub-v3_6/README.md) — HUB 不变量、持久化顺序、链状态门控
 - [`V3.6/hub-v3_6/HTTP-API.md`](V3.6/hub-v3_6/HTTP-API.md) — HUB HTTP API
-- [`V3.6/watchtower-v3_6/README.md`](V3.6/watchtower-v3_6/README.md) — 瞭望塔、审批链、备份恢复
+- [**`V3.6/watchtower-v3_6/README.md`**](V3.6/watchtower-v3_6/README.md) — **瞭望塔完整规范：31 个阶段的验证、审批、审计与备份恢复**
 - [`V3.6/mainnet-experiment/README.md`](V3.6/mainnet-experiment/README.md) — 主网 10 mojo 实验说明
 - [`V3.6/release/README.md`](V3.6/release/README.md) — 测试网发布清单
+- [`V3.6/deploy/mainnet/README.md`](V3.6/deploy/mainnet/README.md) — 主网只读预检、金丝雀与三运营者门禁
 
 **早期原型（v1/v2）**
 
@@ -183,15 +361,16 @@ HTTP 接口固定使用 `/api/v3.6` 前缀与 `x-xhub-protocol-version: 0x0360` 
 - [`docs/mainnet-10mojo-test-report-2026-08-03-zh.md`](docs/mainnet-10mojo-test-report-2026-08-03-zh.md) — 主网 10 mojo 实测报告
 - [`docs/stage-c-hardening.md`](docs/stage-c-hardening.md)、[`docs/stage-c-audit-closure.md`](docs/stage-c-audit-closure.md) — 工程加固与审计收口
 
-## 十、路线图
+## 十一、路线图
 
 1. **主网参数冻结**：`acceptance_blocks` / `freeze_blocks` / `challenge_blocks` 的安全下限经测试与安全评审后冻结（当前 `challenge_blocks = 6000` 仅为候选默认值）。
 2. **独立外部安全评审**：CLVM puzzle、账本状态机、审批与审计链。
 3. **跨故障域真实部署**：三个独立运营者的瞭望塔、真实 TLS/mTLS 端点、跨 VPS 加密备份复制。
-4. **KMS/HSM 密钥托管**：HUB A 与瞭望塔证明密钥的托管、轮换与销毁。
-5. **广播审批（仅指瞭望塔 CHALLENGE 上链）**：在完成以上全部项后，才可能解除数据库层 `broadcast_*` 约束，允许瞭望塔真正把 CHALLENGE SpendBundle 提交到 Chia 网络。日常的锁币、预扣、结算**不依赖**这一步；但"HUB 消失后已传播状态仍可结算""没有正式预扣时资金全部返回用户"这两条安全承诺，最终要靠这条挑战路径在链上强制执行——所以它一日未解锁，项目就不能宣称生产就绪。
+4. **KMS/HSM 密钥托管**：HUB A 与瞭望塔证明密钥的托管、轮换与销毁；备份密钥的远程分发。
+5. **广播审批（仅指瞭望塔 CHALLENGE 上链）**：在完成以上全部项后，才可能解除数据库层 `broadcast_*` 约束，允许瞭望塔真正把 CHALLENGE SpendBundle 提交到 Chia 网络。
+6. **审计链外部锚定**：把 `XHUB_EXECUTION_AUDIT_V3_6` 链头定期写入独立系统，抵御整库回滚。
 
-## 十一、许可证
+## 十二、许可证
 
 Apache License 2.0，见 [LICENSE](LICENSE)。第三方组件归属见 [NOTICE](NOTICE)。
 
