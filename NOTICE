@@ -1,0 +1,44 @@
+XHUB
+Copyright 2026 nifengtz
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+------------------------------------------------------------------------
+Third-party components
+------------------------------------------------------------------------
+
+This distribution bundles third-party components that remain under their
+own licenses. The license text is reproduced in each file's header.
+
+* QR Code Generator for JavaScript (qrcode.js)
+  Copyright (c) 2009 Kazuhiko Arase
+  URL: http://www.d-project.com/
+  License: MIT
+  Bundled at:
+    - V3.6/wallet-v3_6/web/qrcode.min.js
+    - (inlined) V3.6/hub-v3_6/web/merchant.html
+  "QR Code" is a registered trademark of DENSO WAVE INCORPORATED.
+
+* jsQR - a pure JavaScript QR code reading library
+  License: MIT
+  Bundled at: V3.6/wallet-v3_6/web/jsQR.min.js
+
+------------------------------------------------------------------------
+Rust dependencies
+------------------------------------------------------------------------
+
+Third-party Rust crates are not redistributed in this repository; they are
+resolved from crates.io at build time. Permitted licenses are enforced by
+cargo-deny (see deny.toml), and can be verified with:
+
+    cargo deny check licenses
