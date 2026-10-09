@@ -1,290 +1,196 @@
-# Wall-Hub MVP
+# XHUB
 
-This repository contains the implementation artifacts for the seven-day
-Wall-Hub MVP.
+> 基于 Chia 原生原语（CLVM、coin lineage、BLS 聚合签名、绝对/相对高度断言）构建的**非托管小额支付通道**协议与参考实现。
 
-Day 1 freezes the one-shot payment-channel protocol. Day 2 implements its
-funding puzzle and verifies the claim/refund paths in Chia's simulator. Day 3
-implements the off-chain Invoice, Intent, and Voucher signing lifecycle. Day 4
-adds a transactional SQLite state machine and restart-safe artifact storage.
-Day 5 connects persisted Vouchers to simulator Claim/Refund submission,
-independent fee coins, and confirmation-gated terminal states.
-Day 6 adds the attack, replay, restart, and Claim/Refund boundary-race matrix,
-including an explicit `CLAIM_EXPIRED` merchant status.
-Day 7 packages both settlement outcomes into a clean, reproducible simulator
-demo and produces the final MVP verdict.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-## Stage A mainnet adapter
+**一句话定位**：商户在用户与 HUB 双双离线时，仍能凭一份已签名的链下凭证独立在链上兑现收款；而用户始终保有一条不需要任何人配合的全额退出路径。
 
-The Stage A foundation is now available in `src/chain.rs`. The acceptance
-baseline is Chia mainnet with full node 2.7.3, the mainnet Genesis Challenge,
-three-block confirmation depth, and an independent fee coin. The adapter also
-supports the public testnet11 Coinset RPC for development probes.
-The adapter provides:
+- **协议层**：X-Hub V3.6（用户逐条授权 + HUB 单一有状态协调签名 + 开放瞭望塔保存与挑战 + 任意第三方关闭和广播）
+- **实现语言**：Rust（五个独立 crate）+ 一个三端共用的网页前端
+- **许可**：[Apache-2.0](LICENSE)，第三方归属见 [NOTICE](NOTICE)
 
-- network/genesis/sync validation and peak tracking;
-- coin records, funding-coin children, broadcast, and mempool queries;
-- confirmation-depth polling with transport retry;
-- mempool-floor fee estimation and independent fee-coin selection;
-- fee-coin change outputs;
-- SQLite chain observations, final children, and reorg rollback evidence.
+---
 
-Probe the public testnet endpoint with:
+## 一、它解决什么问题
 
-```powershell
-cargo run --example testnet_probe
+Chia 的手续费接近零、区块也远未满，所以 XHUB **不是为了省手续费**。它解决的是链上支付在**支付语义与确定性**上的三个硬缺口：
+
+| 缺口 | 链上直接转账 | XHUB |
+|---|---|---|
+| 确认时延 | 商户必须等出块（约数十秒）才能确认收款 | 链下签名即达 `DELIVERED`，商户可立即交付商品 |
+| 拒付/反悔 | 交易一旦上链即终局，但链下赊账无强制力 | 预扣（reservation）由用户逐条签名 + HUB 协调签名，**不可撤销**，天然无拒付 |
+| 离线兑现 | 付款人离线，收款人无法推进 | 商户凭完整 RecoveryPackage 可**独立**构造 Claim 并广播 |
+
+同时，通道把"高频小额"从链上 UTXO 集合中挪走：避免大量小额 coin 的产生与合并、避免依赖 mempool 在拥堵时接受 0 费交易、避免每一笔都要等待确认深度。这是**时延确定性与支付语义**的问题，不是手续费问题。
+
+## 二、为什么必须是 Chia 原语
+
+XHUB 的安全性不来自任何新的信任假设，而来自 Chia 本身就有的东西：
+
+- **coin lineage**：Funding Coin → Closing Coin → Merchant Payment Coin 的谱系由 coin ID 严格绑定，链上可独立验证，不需要全局状态。
+- **CLVM 纯函数验证**：通道条款、账本根、金额守恒、找零地址全部在 puzzle 内验证，链下各方可以各自复算并得到同一结果。
+- **BLS 聚合签名**：用户逐条授权签名 + HUB 状态签名可聚合进一个 SpendBundle，链上只验证一次聚合签名。
+- **绝对/相对高度断言**：接受期、冻结期、挑战期、关闭延迟全部由高度断言强制执行，不依赖任何参与方"守规矩"。
+- **任意第三方可广播**：关闭与挑战分支对广播者身份无要求——这是 Chia UTXO 模型天然赋予的，也是 XHUB 抗 HUB 消失的基础。
+
+## 三、核心特性
+
+- **非托管**：HUB 只做状态验证、排序与协调签名，其签名**不能代替**用户付款签名；用户找零地址在创建 Funding Coin 时即固定不可改。
+- **逐条授权**：每一笔付款都必须有用户对该笔的独立签名，HUB 不得批量代签。
+- **Append-only 账本**：更高状态只能追加，不得删除、修改或重排旧记录。
+- **幂等预扣**：幂等键为 `(funding_coin_id, reservation_nonce)`；内容冲突返回 `NonceConflict` 而非签出第二份冲突结果。
+- **一次性请求码**：跨全部 Funding Coin 全局唯一，一个请求码只能被一个通道消费一次（守卫已实现于 HUB 与钱包两端）。
+- **开放瞭望塔**：任何人可运行；生产绿灯推荐"一份有效商户回执 + 跨故障域 `2-of-3` 托管证明"。同一 VPS 上的多个实例只算一个故障域。
+- **独立退出**：没有正式预扣时，State 0 走完挑战流程后资金全部返回用户，不设独立退款高度。
+
+## 四、架构
+
+```mermaid
+graph LR
+    U["用户钱包<br/>逐条签名授权"]
+    H["HUB A<br/>有状态协调签名<br/>append-only 账本"]
+    W["瞭望塔<br/>保存 / 监视 / 挑战<br/>（开放参与）"]
+    M["商户<br/>凭凭证独立兑现"]
+
+    U -- "PaymentIntent（用户签名）" --> H
+    H -- "SignedReservationResult + RecoveryPackage" --> U
+    U -. "投递恢复包" .-> W
+    M -. "DeliveryConfirmation" .-> W
+    H -. "RecoveryPackage" .-> W
+
+    subgraph C[Chia 链上]
+      F["Funding Coin"] --> CL["Closing Coin"] --> P["Merchant Payment Coin<br/>（每条账目一枚，不合并）"]
+    end
+
+    M -- "构造 Claim 并广播<br/>无需任何私钥" --> C
+    W -- "CHALLENGE（链上出现更低状态时）" --> C
 ```
 
-For a local full node, construct `ChiaRpcConfig::FullNode` with the full node
-RPC URL and the certificate/key files under the node's `config/ssl` tree.
-The repository does not contain wallet keys or mainnet funding, so the 20-run
-Claim/Refund acceptance campaign must be run only after those external
-prerequisites are supplied. The evidence schema and required fields are
-listed in `docs/mainnet-acceptance-template.md`. Mainnet reorg acceptance is
-observation-based; the project does not intentionally induce a mainnet reorg.
+**五个 Rust crate**（V3.6 主线，评审状态 `REVIEWED`）：
 
-## One-command final demo
+| Crate | 职责 |
+|---|---|
+| `V3.6/protocol-v3_6` | 协议类型、规范编码、哈希域、BLS 签名、Merkle 规则、golden vectors |
+| `V3.6/puzzles-v3_6` | Funding / Initial Closing / Subsequent Closing / Merchant Payment 四个 CLVM puzzle |
+| `V3.6/hub-v3_6` | 有状态签名器、append-only 账本、reservation 幂等核心、SQLite 持久化与故障恢复 |
+| `V3.6/watchtower-v3_6` | RecoveryPackage 接收与完整验证、商户回执校验、托管证明聚合、只读链监控 |
+| `V3.6/wallet-v3_6` | 钱包库、HTTP API、三端共用的网页前端（`web/`） |
 
-Run from the repository root:
+根目录的 `wall-hub-mvp` crate 是**早期一次性单向通道原型**（v1/v2），已冻结并保留作为论证证据，其原始英文说明存档于 [`docs/legacy-README-stage-abc.en.md`](docs/legacy-README-stage-abc.en.md)。
+
+## 五、协议参数（V3.6 默认值）
+
+```text
+protocol_version          = u16_be(0x0360)
+acceptance_blocks         = 12288     # 预扣接受期
+freeze_blocks             = 200       # 冻结期
+close_delay_blocks        = 12488     # = acceptance + freeze，只读派生，不可单独编辑
+challenge_blocks          = 6000      # 挑战期（候选主网默认值，尚未证明为安全下限）
+max_ledger_entries        = 64
+funding 确认深度          = 32
+```
+
+这四个值在创建 Funding Coin 时由用户确认并承诺进 `channel_terms_hash`，创建后**不可修改**。钱包、HUB 与 Funding Puzzle 各自独立重新校验，互不信任。
+
+## 六、安全模型：保证什么，不保证什么
+
+**保证**
+
+- 未经用户签名的付款不能进入最终输出；
+- 商户地址、金额、nonce 不能被 HUB 或瞭望塔修改；
+- 用户找零只能发往创建时固定的地址；
+- 已进入正式状态的账目不能被后续更高状态删除；
+- 任意人可发起关闭、提交更高状态挑战、完成最终结算；
+- 仅凭高序号 checkpoint 而无完整账本数据者，不能锁死 Closing Coin。
+
+**明确不保证**
+
+- HUB A 私钥泄露后不会产生冲突状态；
+- 尚未取得正式签名的 PENDING 请求一定成功；
+- 未传播的恢复包能在 HUB 消失后恢复；
+- 所有持有最新状态的参与者同时离线时仍能及时挑战；
+- 链上拥堵或缺少 fee sponsor 时仍能及时广播。
+
+## 七、当前状态（请如实阅读）
+
+这是一个**工程与密码学证据完整、但尚未获准广播**的项目。
+
+| 项 | 状态 |
+|---|---|
+| 五个 V3.6 crate 的 `cargo test` / `clippy -D warnings` / `fmt --check` | ✅ 通过（`REVIEWED`） |
+| 协议规范、golden vectors、冻结清单 | ✅ `VECTOR_READY` |
+| 早期 v1/v2 原型的主网 10 mojo Claim / Refund 实测 | ✅ 真实主网 PASS（1 + 9 mojo / 10 mojo，0 fee） |
+| V3.6 主网 10 mojo 实验 | ⚠️ 未审计实验，`mainnet_approved = false` |
+| 广播能力 | 🔒 `broadcast_enabled` / `broadcast_ready` / `chain_broadcast` **恒为 `false`** |
+| 主网参数冻结、KMS/HSM、跨 VPS 复制、真实 TLS 端点、独立外部安全评审 | ⬜ `OPEN` |
+
+代码库中的 `broadcast_*` 三个字段由**数据库约束**固定为 `false`：瞭望塔可以构造并完整验证 CHALLENGE SpendBundle、可以走完"离线准备 → 双人跨故障域审批 → 最终链上重检 → 执行清单 → 授权闸门"的全流程审计链，但**不保存 SpendBundle 字节、不持有私钥、不提供 `push_tx` 或广播端点**。这是刻意的设计，不是待办。
+
+## 八、快速开始
+
+前置：Rust stable；可选 `clvm_tools_rs 0.4.0`（用于早期原型的 CLVM 编译）。
+
+```bash
+# V3.6 全量回归（离线）
+cargo test --offline --all-targets --manifest-path V3.6/protocol-v3_6/Cargo.toml
+cargo test --offline --all-targets --manifest-path V3.6/hub-v3_6/Cargo.toml
+cargo test --offline --all-targets --manifest-path V3.6/watchtower-v3_6/Cargo.toml
+
+# 重新生成 golden vectors
+cargo run --offline --manifest-path V3.6/protocol-v3_6/Cargo.toml --bin generate-vectors
+cargo run --offline --manifest-path V3.6/hub-v3_6/Cargo.toml --bin generate-hub-vectors
+
+# 瞭望塔：一次只读链监控轮询（不广播、不创建 SpendBundle）
+cargo run --offline --manifest-path V3.6/watchtower-v3_6/Cargo.toml \
+  --bin watchtower-monitor-v3-6 -- <WATCHTOWER_DB> <RPC_URL> <FUNDING_COIN_ID>
+```
+
+早期原型的一键演示（Windows）：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\demo-day7.ps1
 ```
 
-The script compiles CLVM, verifies protocol vectors, demonstrates offline
-Merchant Claim and no-Voucher User Refund, runs all attack/regression tests,
-and applies strict linting. A successful run ends with
-`WALL-HUB MVP FINAL RESULT: PASS`.
-
-## Day 1 verification
-
-Run from the repository root:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-day1.ps1
-```
-
-The command verifies the normative hashes, field-mutation coverage, amount
-conservation, and the claim/refund height boundary.
-
-## Day 2 build and verification
-
-Prerequisites are Rust stable and `clvm_tools_rs 0.4.0`:
-
-```powershell
-cargo install clvm_tools_rs --version 0.4.0 --locked
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\compile-puzzles.ps1
-cargo test --all-targets
-cargo clippy --all-targets -- -D warnings
-```
-
-The simulator suite proves the Merchant can construct and submit the claim
-after the User and Hub signing keys are released. It also covers the refund
-branch, fixed outputs, exact funding amount, signature binding, replay, and the
-height boundary.
-
-## Day 3 off-chain lifecycle
-
-The Rust library provides:
-
-- `InvoiceFields` and `MerchantInvoice` for Hub-authorized orders;
-- `SettlementCommitment` with the exact canonical CLVM message;
-- `PaymentIntent` for the User signature;
-- `PaymentVoucher` for Hub verification, co-signing, and signature aggregation;
-- `MerchantPaymentStatus` for `Pending`, `PendingHub`, `PaidOffchain`, and
-  `Expired` / `ClaimExpired` display states;
-- typed `ProtocolError` results for wrong network, coin, key, fields, signature,
-  expiry, or claim window.
-
-`cargo test --all-targets` covers all 16 Settlement fields and all 9 Invoice
-fields individually, then submits the resulting valid aggregate signature to
-the CLVM simulator.
-
-## Day 4 state and persistence
-
-`ChannelStore` persists channel state, order id, nonce, Intent, Voucher, and
-settlement balances in SQLite. Composite primary keys reject duplicate orders
-and nonces per channel. An immediate transaction acquires channel ownership
-before the Hub signs a concurrent Intent, so losing requests never receive a
-second Voucher.
-
-The persisted lifecycle is:
-
-```text
-FUNDED -> INTENT_SIGNED -> VOUCHER_ISSUED
-       -> CLAIM_SUBMITTED -> SETTLED
-
-FUNDED -> REFUNDABLE -> REFUND_SUBMITTED -> REFUNDED
-```
-
-Tests close and reopen the SQLite connection at every state and compare the
-recovered Intent and Voucher byte-for-byte.
-
-## Day 5 settlement integration
-
-`build_claim_bundle` lets a Merchant settle from the funding coin, public
-channel arguments, and persisted Voucher without access to User or Hub keys.
-`build_refund_bundle` returns the full funding amount to the User after the
-refund height. An optional independently funded standard coin can pay fees
-without changing either channel output.
-
-Submission records only `CLAIM_SUBMITTED` or `REFUND_SUBMITTED`. The store
-enters `SETTLED` or `REFUNDED` only after confirmed funding-coin children match
-the expected parent, puzzle hashes, amounts, and output count exactly.
-
-## Day 6 attack and recovery matrix
-
-The suite mutates every signed Invoice and Settlement field, rejects duplicate
-and cross-channel/network redemption, restores a persisted Voucher after a Hub
-restart, and races Claim against Refund at both boundary heights. An issued
-Voucher remains `PAID_OFFCHAIN` through the inclusive Claim cutoff and becomes
-`CLAIM_EXPIRED` when the Refund branch opens.
-
-## Protocol documents
-
-- `docs/protocol-v1.md`: normative protocol and binary encoding
-- `docs/state-machine-v1.md`: lifecycle and error semantics
-- `docs/day1-acceptance.md`: Day 1 acceptance record
-- `docs/day2-acceptance.md`: Day 2 simulator acceptance record
-- `docs/day3-acceptance.md`: Day 3 off-chain lifecycle acceptance record
-- `docs/day4-acceptance.md`: Day 4 state and persistence acceptance record
-- `docs/day5-acceptance.md`: Day 5 settlement integration acceptance record
-- `docs/day6-acceptance.md`: Day 6 attack and recovery acceptance record
-- `docs/day7-final-report.md`: Day 7 reproducible demo and final verdict
-- `docs/WALL_HUB_7_DAY_MVP_SUMMARY_ZH.md`: Chinese seven-day proof summary and next-stage roadmap
-- `test-vectors/day1-v1.json`: deterministic interoperability vectors
-- `puzzles/wall_hub_channel_v1.clsp`: funding puzzle source
-- `src/lib.rs`: Rust encoding, SpendBundle construction, and simulator tests
-- `src/offchain.rs`: Invoice, Intent, Voucher, validation, and status logic
-- `src/state_store.rs`: SQLite schema, transactions, state transitions, and recovery
-- `src/settlement.rs`: Claim/Refund/fee bundles and confirmation tracking
-- `src/day6_tests.rs`: replay, restart, boundary-race, and status tests
-- `examples/day7_demo.rs`: clean Claim and Refund simulator demonstration
-- `scripts/demo-day7.ps1`: one-command final verification
-
-## Stage B service CLI and watchers
-
-Stage B now includes three independent binaries. They exchange only versioned
-JSON envelopes; the payload remains the fixed binary Invoice, Intent, or
-Voucher encoding used by the protocol:
-
-```powershell
-cargo run --bin user -- --help
-cargo run --bin hub -- --help
-cargo run --bin merchant -- --help
-```
-
-Encode an artifact for a role boundary with an idempotency key:
-
-```powershell
-cargo run --bin merchant -- artifact encode Voucher <payload_hex> <channel_id> claim:<channel_id>
-```
-
-The `user` and `merchant` binaries also support a persistent watcher:
-
-```powershell
-cargo run --bin merchant -- watch .\merchant-watch.json
-cargo run --bin user -- watch .\user-watch.json
-cargo run --bin merchant -- metrics .\merchant.sqlite3
-```
-
-Use `--once` for failure-injection tests. The watcher config contains the
-SQLite path, channel parameters, RPC URL, confirmation depth, and polling
-interval. Only the User config contains `user_secret_key`; the Merchant
-watcher constructs Claim from the persisted Voucher and never needs User or
-Hub private keys.
-
-Broadcast preparation, serialized SpendBundle, transaction id, attempt state,
-mempool observations, confirmation observations, and audit events are stored
-in SQLite. Re-running the same idempotency key reuses the same SpendBundle;
-restarting a watcher resumes recoverable broadcast jobs.
-
-## Lost local state recovery
-
-`user recover-refund` recovers a confirmed, unspent channel funding coin even
-when the local SQLite database, Invoice, Intent, and Voucher are unavailable.
-It does not contact the HUB or require a HUB signature. At or after the
-channel's `refund_height`, it verifies the coin uses the reconstructed channel
-puzzle hash, signs the on-chain REFUND branch with the User key, and broadcasts
-the full coin amount back to `user_puzzle_hash`.
-
-Create a private configuration from
-`examples/refund-recovery.example.json`, populate the immutable parameters of
-the original channel and one funding coin ID, then run. The User public key is
-derived locally from `user_secret_key` and is never a separate input:
-
-```powershell
-cargo run --bin user -- recover-refund .\refund-recovery.json
-```
-
-The command outputs `Idle` before the refund height, `BroadcastSubmitted` with
-the transaction ID after submitting, or `Confirmed` when the coin was already
-spent to the expected full-amount User refund output. It rejects a coin that
-does not match the reconstructed channel puzzle or was spent differently.
-Keep `refund-recovery.json` outside Git because it contains `user_secret_key`.
-
-`metrics <db_path>` returns counts for channels, broadcast jobs, recoverable
-jobs, attempts, confirmed jobs, and reorg observations. Audit records are
-available through `ChannelStore::list_audit_events` for operator tooling.
-
-## Stage B HTTP Hub API
-
-The `hub-api` binary exposes a small HTTP boundary for a User or Merchant on
-another computer. It keeps the Hub private key in a local JSON configuration
-file and never accepts that key over HTTP. The API currently provides:
-
-- `GET /healthz`: public liveness and Hub public key;
-- `POST /v1/invoices`: validate and sign a Merchant invoice;
-- `POST /v1/vouchers`: validate a User Intent, atomically issue a Voucher, and
-  persist it in SQLite.
-
-The default network is Chia mainnet through `https://api.coinset.org`. The
-service connects to this RPC at startup, validates the mainnet Genesis
-Challenge, and reads the current peak height before every signature operation.
-
-Copy `examples/hub-api.example.json` to a private file, replace both
-placeholders, and start the service:
-
-```bash
-cp examples/hub-api.example.json hub-api.json
-cargo build --release --bin hub-api
-./target/release/hub-api --config hub-api.json
-```
-
-The example binds only to `127.0.0.1`. For a LAN or cloud-server test, set
-`listen_addr` to `0.0.0.0:8080`, open TCP port 8080 in the firewall, and send
-the configured value in the `X-API-Key` header. Keep the JSON file outside Git
-and use a long random API key. The public Coinset RPC is suitable for this
-controlled mainnet test; a production deployment should use a self-operated
-Full Node RPC for availability and rate-limit control.
-
-Example health check:
-
-```bash
-curl http://127.0.0.1:8080/healthz
-```
-
-The request and response schemas are documented in
-`docs/hub-http-api-v1.md`.
-
-Open the merchant browser workbench at `http://<hub-host>:8080/merchant`.
-It provides health checking, Invoice creation, and Voucher submission without
-requiring the merchant to use CLI commands. The API key is kept in the current
-browser session for controlled testing; this page is not a production account
-or TLS system.
-
-## Stage C engineering hardening
-
-The current hardening baseline is documented in `docs/stage-c-hardening.md`.
-The internal closure review and remaining release blockers are in
-`docs/stage-c-audit-closure.md`.
-Run the local gate with:
+安全门禁（格式化、锁定测试、Clippy、CycloneDX SBOM）：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\security-check.ps1
 ```
 
-The gate runs formatting, locked tests, Clippy, and deterministic CycloneDX
-SBOM generation. Install `cargo-audit` and `cargo-deny` before treating the
-dependency checks as release evidence. The libFuzzer targets are under `fuzz/`
-and are run with `scripts/run-fuzz.ps1`.
+HTTP 接口固定使用 `/api/v3.6` 前缀与 `x-xhub-protocol-version: 0x0360` 请求头，详见 [`V3.6/hub-v3_6/HTTP-API.md`](V3.6/hub-v3_6/HTTP-API.md) 与 [`V3.6/watchtower-v3_6/README.md`](V3.6/watchtower-v3_6/README.md)。
+
+## 九、文档索引
+
+**V3.6 主线**
+
+- [`V3.6/protocol-v3_6/protocol-v3_6.md`](V3.6/protocol-v3_6/protocol-v3_6.md) — 协议书（规范）
+- [`V3.6/protocol-v3_6/IMPLEMENTATION-SPEC.md`](V3.6/protocol-v3_6/IMPLEMENTATION-SPEC.md) — 实现规范
+- [`V3.6/protocol-v3_6/FREEZE-CHECKLIST.md`](V3.6/protocol-v3_6/FREEZE-CHECKLIST.md) — 冻结清单
+- [`V3.6/hub-v3_6/README.md`](V3.6/hub-v3_6/README.md) — HUB 不变量、持久化顺序、链状态门控
+- [`V3.6/hub-v3_6/HTTP-API.md`](V3.6/hub-v3_6/HTTP-API.md) — HUB HTTP API
+- [`V3.6/watchtower-v3_6/README.md`](V3.6/watchtower-v3_6/README.md) — 瞭望塔、审批链、备份恢复
+- [`V3.6/mainnet-experiment/README.md`](V3.6/mainnet-experiment/README.md) — 主网 10 mojo 实验说明
+- [`V3.6/release/README.md`](V3.6/release/README.md) — 测试网发布清单
+
+**早期原型（v1/v2）**
+
+- [`docs/protocol-v1.md`](docs/protocol-v1.md)、[`docs/protocol-v2.md`](docs/protocol-v2.md) — 协议与二进制编码
+- [`docs/state-machine-v1.md`](docs/state-machine-v1.md) — 生命周期与错误语义
+- [`docs/WALL_HUB_7_DAY_MVP_SUMMARY_ZH.md`](docs/WALL_HUB_7_DAY_MVP_SUMMARY_ZH.md) — 七天 MVP 中文论证总结
+- [`docs/mainnet-10mojo-test-report-2026-08-03-zh.md`](docs/mainnet-10mojo-test-report-2026-08-03-zh.md) — 主网 10 mojo 实测报告
+- [`docs/stage-c-hardening.md`](docs/stage-c-hardening.md)、[`docs/stage-c-audit-closure.md`](docs/stage-c-audit-closure.md) — 工程加固与审计收口
+
+## 十、路线图
+
+1. **主网参数冻结**：`acceptance_blocks` / `freeze_blocks` / `challenge_blocks` 的安全下限经测试与安全评审后冻结（当前 `challenge_blocks = 6000` 仅为候选默认值）。
+2. **独立外部安全评审**：CLVM puzzle、账本状态机、审批与审计链。
+3. **跨故障域真实部署**：三个独立运营者的瞭望塔、真实 TLS/mTLS 端点、跨 VPS 加密备份复制。
+4. **KMS/HSM 密钥托管**：HUB A 与瞭望塔证明密钥的托管、轮换与销毁。
+5. **广播审批**：在完成以上全部项后，才可能解除数据库层 `broadcast_*` 约束。
+
+## 十一、许可证
+
+Apache License 2.0，见 [LICENSE](LICENSE)。第三方组件归属见 [NOTICE](NOTICE)。
+
+> "QR Code" 是 DENSO WAVE INCORPORATED 的注册商标。
